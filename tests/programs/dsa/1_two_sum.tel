@@ -1,0 +1,12 @@
+int two_sum charya(int nums[], int target, int n) {
+    int i
+    pratisari (i 0 tho modhalu; i < n; i++) {
+        int j
+        pratisari (j i + 1 tho modhalu; j < n; j++) {
+            nums[i] + nums[j] == target ayite {
+                1 ivvu
+            }
+        }
+    }
+    0 ivvu
+}

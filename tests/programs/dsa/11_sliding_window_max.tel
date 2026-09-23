@@ -1,0 +1,14 @@
+void sliding_window_max charya(int nums[], int n, int k, int out[]) {
+    int i
+    pratisari (i 0 tho modhalu; i <= n - k; i++) {
+        int max_val
+        max_val lo nums[i] pettu
+        int j
+        pratisari (j 1 tho modhalu; j < k; j++) {
+            nums[i + j] > max_val ayite {
+                max_val lo nums[i + j] pettu
+            }
+        }
+        out[i] lo max_val pettu
+    }
+}

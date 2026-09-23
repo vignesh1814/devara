@@ -1,0 +1,33 @@
+int n
+n ni chaduvu
+
+bool prime[n + 1]
+
+int i
+pratisari (i 2 tho modhalu; i <= n; i++) {
+    prime[i] lo nijam pettu
+}
+
+prime[0] lo abaddham pettu
+prime[1] lo abaddham pettu
+
+int p
+p lo 2 pettu
+
+int j
+
+p * p <= n unnanta varaku {
+    prime[p] ayite {
+        pratisari (j p * p tho modhalu; j <= n; j lo j + p pettu) {
+            prime[j] lo abaddham pettu
+        }
+    }
+
+    p lo p + 1 pettu
+}
+
+pratisari (i 2 tho modhalu; i <= n; i++) {
+    prime[i] ayite {
+        i ni chupi
+    }
+}

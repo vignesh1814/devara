@@ -1,0 +1,21 @@
+void next_greater charya(int nums[], int n, int res[]) {
+    int stack[100]
+    int top
+    top lo 0 pettu
+    
+    int i
+    pratisari (i n - 1 tho modhalu; i >= 0; i--) {
+        top > 0 && stack[top - 1] <= nums[i] unnanta varaku {
+            top lo top - 1 pettu
+        }
+        
+        top == 0 ayite {
+            res[i] lo -1 pettu
+        } lekunte {
+            res[i] lo stack[top - 1] pettu
+        }
+        
+        stack[top] lo nums[i] pettu
+        top lo top + 1 pettu
+    }
+}

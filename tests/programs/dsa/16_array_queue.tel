@@ -1,0 +1,19 @@
+void init_queue charya(int q[], int head, int tail) {
+    head lo 0 pettu
+    tail lo 0 pettu
+}
+
+void enqueue charya(int q[], int tail, int val) {
+    q[tail] lo val pettu
+    tail lo tail + 1 pettu
+}
+
+int dequeue charya(int q[], int head, int tail) {
+    head == tail ayite {
+        -1 ivvu
+    }
+    int val
+    val lo q[head] pettu
+    head lo head + 1 pettu
+    val ivvu
+}

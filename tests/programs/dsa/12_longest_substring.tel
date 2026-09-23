@@ -1,0 +1,29 @@
+int longest_substring charya(int s[], int n) {
+    int max_len
+    max_len lo 0 pettu
+    int left
+    left lo 0 pettu
+    int right
+    right lo 0 pettu
+    int freq[256]
+    
+    int i
+    pratisari (i 0 tho modhalu; i < 256; i++) {
+        freq[i] lo 0 pettu
+    }
+    
+    right < n unnanta varaku {
+        freq[s[right]] lo freq[s[right]] + 1 pettu
+        freq[s[right]] > 1 unnanta varaku {
+            freq[s[left]] lo freq[s[left]] - 1 pettu
+            left lo left + 1 pettu
+        }
+        
+        right - left + 1 > max_len ayite {
+            max_len lo right - left + 1 pettu
+        }
+        right lo right + 1 pettu
+    }
+    
+    max_len ivvu
+}

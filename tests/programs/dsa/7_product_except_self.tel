@@ -1,0 +1,19 @@
+void product_except_self charya(int nums[], int output[], int n) {
+    int left_product
+    left_product lo 1 pettu
+    
+    int i
+    pratisari (i 0 tho modhalu; i < n; i++) {
+        output[i] lo left_product pettu
+        left_product lo left_product * nums[i] pettu
+    }
+    
+    int right_product
+    right_product lo 1 pettu
+    
+    int j
+    pratisari (j n - 1 tho modhalu; j >= 0; j--) {
+        output[j] lo output[j] * right_product pettu
+        right_product lo right_product * nums[j] pettu
+    }
+}

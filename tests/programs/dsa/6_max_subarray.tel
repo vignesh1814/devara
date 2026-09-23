@@ -1,0 +1,20 @@
+int max_subarray charya(int nums[], int n) {
+    int max_sum
+    max_sum lo nums[0] pettu
+    int current_sum
+    current_sum lo nums[0] pettu
+    
+    int i
+    pratisari (i 1 tho modhalu; i < n; i++) {
+        current_sum < 0 ayite {
+            current_sum lo nums[i] pettu
+        } lekunte {
+            current_sum lo current_sum + nums[i] pettu
+        }
+        
+        current_sum > max_sum ayite {
+            max_sum lo current_sum pettu
+        }
+    }
+    max_sum ivvu
+}

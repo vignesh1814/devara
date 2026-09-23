@@ -1,0 +1,47 @@
+void merge charya(int arr[], int l, int m, int r) {
+    int temp[100]
+    int i
+    i lo l pettu
+    int j
+    j lo m + 1 pettu
+    int k
+    k lo l pettu
+    
+    i <= m && j <= r unnanta varaku {
+        arr[i] <= arr[j] ayite {
+            temp[k] lo arr[i] pettu
+            i lo i + 1 pettu
+        } lekunte {
+            temp[k] lo arr[j] pettu
+            j lo j + 1 pettu
+        }
+        k lo k + 1 pettu
+    }
+    
+    i <= m unnanta varaku {
+        temp[k] lo arr[i] pettu
+        i lo i + 1 pettu
+        k lo k + 1 pettu
+    }
+    
+    j <= r unnanta varaku {
+        temp[k] lo arr[j] pettu
+        j lo j + 1 pettu
+        k lo k + 1 pettu
+    }
+    
+    int idx
+    pratisari (idx l tho modhalu; idx <= r; idx++) {
+        arr[idx] lo temp[idx] pettu
+    }
+}
+
+void merge_sort charya(int arr[], int l, int r) {
+    l < r ayite {
+        int m
+        m lo (l + r) / 2 pettu
+        merge_sort(arr, l, m)
+        merge_sort(arr, m + 1, r)
+        merge(arr, l, m, r)
+    }
+}

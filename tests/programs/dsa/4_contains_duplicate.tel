@@ -1,0 +1,12 @@
+bool contains_duplicate charya(int nums[], int n) {
+    int i
+    pratisari (i 0 tho modhalu; i < n; i++) {
+        int j
+        pratisari (j i + 1 tho modhalu; j < n; j++) {
+            nums[i] == nums[j] ayite {
+                nijam ivvu
+            }
+        }
+    }
+    abaddham ivvu
+}

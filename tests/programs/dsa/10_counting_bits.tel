@@ -1,0 +1,8 @@
+void count_bits charya(int n, int ans[]) {
+    ans[0] lo 0 pettu
+    
+    int i
+    pratisari (i 1 tho modhalu; i <= n; i++) {
+        ans[i] lo ans[i / 2] + (i % 2) pettu
+    }
+}

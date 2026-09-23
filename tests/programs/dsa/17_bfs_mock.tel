@@ -1,0 +1,33 @@
+void bfs charya(int adj[], int n, int start) {
+    int q[100]
+    int head
+    head lo 0 pettu
+    int tail
+    tail lo 0 pettu
+    
+    int visited[10]
+    int i
+    pratisari (i 0 tho modhalu; i < n; i++) {
+        visited[i] lo 0 pettu
+    }
+    
+    q[tail] lo start pettu
+    tail lo tail + 1 pettu
+    visited[start] lo 1 pettu
+    
+    head < tail unnanta varaku {
+        int curr
+        curr lo q[head] pettu
+        head lo head + 1 pettu
+        curr ni chupi
+        
+        int j
+        pratisari (j 0 tho modhalu; j < n; j++) {
+            adj[curr][j] == 1 && visited[j] == 0 ayite {
+                visited[j] lo 1 pettu
+                q[tail] lo j pettu
+                tail lo tail + 1 pettu
+            }
+        }
+    }
+}

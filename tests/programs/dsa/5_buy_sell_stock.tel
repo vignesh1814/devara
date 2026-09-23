@@ -1,0 +1,24 @@
+int max_profit charya(int prices[], int n) {
+    n == 0 ayite {
+        0 ivvu
+    }
+    int min_price
+    min_price lo prices[0] pettu
+    int max_profit
+    max_profit lo 0 pettu
+    
+    int i
+    pratisari (i 1 tho modhalu; i < n; i++) {
+        prices[i] < min_price ayite {
+            min_price lo prices[i] pettu
+        } lekunte {
+            int current_profit
+            current_profit lo prices[i] - min_price pettu
+            current_profit > max_profit ayite {
+                max_profit lo current_profit pettu
+            }
+        }
+    }
+    
+    max_profit ivvu
+}

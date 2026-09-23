@@ -1,0 +1,34 @@
+int trap charya(int height[], int n) {
+    int left
+    left lo 0 pettu
+    int right
+    right lo n - 1 pettu
+    
+    int left_max
+    left_max lo 0 pettu
+    int right_max
+    right_max lo 0 pettu
+    
+    int water
+    water lo 0 pettu
+    
+    left < right unnanta varaku {
+        height[left] < height[right] ayite {
+            height[left] >= left_max ayite {
+                left_max lo height[left] pettu
+            } lekunte {
+                water lo water + (left_max - height[left]) pettu
+            }
+            left lo left + 1 pettu
+        } lekunte {
+            height[right] >= right_max ayite {
+                right_max lo height[right] pettu
+            } lekunte {
+                water lo water + (right_max - height[right]) pettu
+            }
+            right lo right - 1 pettu
+        }
+    }
+    
+    water ivvu
+}

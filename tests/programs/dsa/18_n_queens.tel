@@ -1,0 +1,22 @@
+int solve_n_queens charya(int board[], int col, int n) {
+    col == n ayite {
+        1 ivvu
+    }
+    
+    int res
+    res lo 0 pettu
+    
+    int i
+    pratisari (i 0 tho modhalu; i < n; i++) {
+        is_safe(board, i, col, n) == 1 ayite {
+            board[i][col] lo 1 pettu
+            
+            solve_n_queens(board, col + 1, n) == 1 ayite {
+                1 ivvu
+            }
+            
+            board[i][col] lo 0 pettu
+        }
+    }
+    0 ivvu
+}

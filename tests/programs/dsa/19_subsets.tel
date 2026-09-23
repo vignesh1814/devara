@@ -1,0 +1,9 @@
+void generate_subsets charya(int nums[], int subset[], int n, int idx, int subset_len) {
+    idx == n ayite {
+        subset_len ni chupi
+    } lekunte {
+        subset[subset_len] lo nums[idx] pettu
+        generate_subsets(nums, subset, n, idx + 1, subset_len + 1)
+        generate_subsets(nums, subset, n, idx + 1, subset_len)
+    }
+}

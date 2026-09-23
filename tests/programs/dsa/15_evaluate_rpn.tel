@@ -1,0 +1,34 @@
+int eval_rpn charya(int tokens[], int n) {
+    int stack[100]
+    int top
+    top lo 0 pettu
+    
+    int i
+    prati i 0 nundi n - 1 varaku {
+        tokens[i] == -1 ayite {
+            int b
+            top lo top - 1 pettu
+            b lo stack[top] pettu
+            int a
+            top lo top - 1 pettu
+            a lo stack[top] pettu
+            stack[top] lo a + b pettu
+            top lo top + 1 pettu
+        } lekunte tokens[i] == -2 ayite {
+            int b
+            top lo top - 1 pettu
+            b lo stack[top] pettu
+            int a
+            top lo top - 1 pettu
+            a lo stack[top] pettu
+            stack[top] lo a - b pettu
+            top lo top + 1 pettu
+        } lekunte {
+            stack[top] lo tokens[i] pettu
+            top lo top + 1 pettu
+        }
+    }
+    
+    top lo top - 1 pettu
+    stack[top] ivvu
+}

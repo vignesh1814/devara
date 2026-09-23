@@ -1,0 +1,33 @@
+int partition charya(int arr[], int low, int high) {
+    int pivot
+    pivot lo arr[high] pettu
+    int i
+    i lo low - 1 pettu
+    
+    int j
+    prati j low nundi high - 1 varaku {
+        arr[j] < pivot ayite {
+            i lo i + 1 pettu
+            int temp
+            temp lo arr[i] pettu
+            arr[i] lo arr[j] pettu
+            arr[j] lo temp pettu
+        }
+    }
+    
+    int temp2
+    temp2 lo arr[i + 1] pettu
+    arr[i + 1] lo arr[high] pettu
+    arr[high] lo temp2 pettu
+    
+    i + 1 ivvu
+}
+
+void quick_sort charya(int arr[], int low, int high) {
+    low < high ayite {
+        int pi
+        pi lo partition(arr, low, high) pettu
+        quick_sort(arr, low, pi - 1)
+        quick_sort(arr, pi + 1, high)
+    }
+}

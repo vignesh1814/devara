@@ -1,0 +1,11 @@
+void hanoi charya(int n, int source, int aux, int dest) {
+    n == 1 ayite {
+        source ni chupi
+        dest ni chupi
+    } lekunte {
+        hanoi(n - 1, source, dest, aux)
+        source ni chupi
+        dest ni chupi
+        hanoi(n - 1, aux, source, dest)
+    }
+}

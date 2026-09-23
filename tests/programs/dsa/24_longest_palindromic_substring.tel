@@ -1,0 +1,36 @@
+int expand charya(int s[], int n, int left, int right) {
+    left >= 0 && right < n && s[left] == s[right] unnanta varaku {
+        left lo left - 1 pettu
+        right lo right + 1 pettu
+    }
+    right - left - 1 ivvu
+}
+
+int longest_palindrome charya(int s[], int n) {
+    int start
+    start lo 0 pettu
+    int max_len
+    max_len lo 0 pettu
+    
+    int i
+    pratisari (i 0 tho modhalu; i < n; i++) {
+        int len1
+        len1 lo expand(s, n, i, i) pettu
+        int len2
+        len2 lo expand(s, n, i, i + 1) pettu
+        
+        int len
+        len1 > len2 ayite {
+            len lo len1 pettu
+        } lekunte {
+            len lo len2 pettu
+        }
+        
+        len > max_len ayite {
+            max_len lo len pettu
+            start lo i - (len - 1) / 2 pettu
+        }
+    }
+    
+    max_len ivvu
+}

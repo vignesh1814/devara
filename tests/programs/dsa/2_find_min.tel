@@ -1,0 +1,19 @@
+int find_min charya(int nums[], int n) {
+    int left
+    left lo 0 pettu
+    int right
+    right lo n - 1 pettu
+    
+    left < right unnanta varaku {
+        int mid
+        mid lo (left + right) / 2 pettu
+        
+        nums[mid] > nums[right] ayite {
+            left lo mid + 1 pettu
+        } lekunte {
+            right lo mid pettu
+        }
+    }
+    
+    nums[left] ivvu
+}

@@ -1,0 +1,13 @@
+int missing_number charya(int nums[], int n) {
+    int expected_sum
+    expected_sum lo n * (n + 1) / 2 pettu
+    int actual_sum
+    actual_sum lo 0 pettu
+    
+    int i
+    pratisari (i 0 tho modhalu; i < n; i++) {
+        actual_sum lo actual_sum + nums[i] pettu
+    }
+    
+    expected_sum - actual_sum ivvu
+}

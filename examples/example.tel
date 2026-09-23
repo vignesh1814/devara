@@ -1,0 +1,10 @@
+int a
+a lo 5 pettu
+
+int b
+b lo 10 pettu
+
+int total
+total lo a + b pettu
+
+total ni chupi

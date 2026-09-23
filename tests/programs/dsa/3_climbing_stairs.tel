@@ -1,0 +1,15 @@
+int climb_stairs charya(int n) {
+    n <= 2 ayite {
+        n ivvu
+    }
+    int dp[n + 1]
+    dp[1] lo 1 pettu
+    dp[2] lo 2 pettu
+    
+    int i
+    pratisari (i 3 tho modhalu; i <= n; i++) {
+        dp[i] lo dp[i - 1] + dp[i - 2] pettu
+    }
+    
+    dp[n] ivvu
+}
