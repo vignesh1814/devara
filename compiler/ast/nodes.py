@@ -1,9 +1,30 @@
-"""AST nodes and enums for the Devara compiler."""
+"""Syntax AST for the Devara compiler (design §3.5 field-level contract).
+
+The AST is syntax only: no resolved symbols, semantic types or conversions.
+Every node carries a half-open :class:`Span`. Parenthesized grouping creates no
+node (D9); the grouped expression's child is returned directly.
+"""
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from enum import Enum, StrEnum
+import dataclasses
+from dataclasses import dataclass
+from enum import StrEnum
+from typing import Iterator
+
+from compiler.diagnostics import Span
+
+__all__ = [
+    "Span", "PrimitiveType", "BinaryOp", "UnaryOp", "LiteralKind", "LiteralType",
+    "ASTNode", "Statement", "Expression", "TypeSyntax", "Identifier", "Literal",
+    "ArrayAccess", "FunctionCall", "UnaryExpression", "CastExpression",
+    "BinaryExpression", "Block", "Declaration", "Assignment", "Input", "Output",
+    "IfStatement", "WhileLoop", "RangeLoop", "ForInit", "ForThoModhaluInit",
+    "ForAssignmentInit", "ForDeclarationInit", "ForUpdate", "AssignmentUpdate",
+    "IncrementUpdate", "DecrementUpdate", "ForLoop", "ReturnStatement",
+    "BreakStatement", "ContinueStatement", "ExpressionStatement", "Parameter",
+    "FunctionDeclaration", "Program", "children",
+]
 
 
 # ── Enums ──
@@ -39,12 +60,7 @@ class UnaryOp(StrEnum):
     POSITIVE = "POSITIVE"
 
 
-class UnaryPosition(StrEnum):
-    PREFIX = "PREFIX"
-    POSTFIX = "POSTFIX"
-
-
-class LiteralType(StrEnum):
+class LiteralKind(StrEnum):
     INTEGER = "INTEGER"
     FLOAT = "FLOAT"
     BOOL = "BOOL"
@@ -52,109 +68,92 @@ class LiteralType(StrEnum):
     STRING = "STRING"
 
 
-# ── Base Nodes and Spans ──
-
-@dataclass(frozen=True, slots=True)
-class SourceLocation:
-    line: int
-    column: int
+LiteralType = LiteralKind  # backwards-compatible alias
 
 
-@dataclass(frozen=True, slots=True)
-class Span:
-    start: SourceLocation
-    end: SourceLocation
+# ── Bases ──
 
-
-@dataclass(frozen=True, slots=True)
+@dataclass
 class ASTNode:
-    """Base class for all AST nodes."""
-    line: int
-    column: int
-    end_line: int = field(kw_only=True, default=0)
-    end_column: int = field(kw_only=True, default=0)
+    """Base class for every AST node; ``span`` is half-open ``[start, end)``."""
+
+    span: Span
 
     @property
-    def span(self) -> Span:
-        el = self.end_line if self.end_line != 0 else self.line
-        ec = self.end_column if self.end_column != 0 else self.column
-        return Span(SourceLocation(self.line, self.column), SourceLocation(el, ec))
+    def line(self) -> int:
+        return self.span.start_line
 
-    def __getattr__(self, name: str):
-        if name == "start":
-            return SourceLocation(self.line, self.column)
-        if name == "end":
-            el = self.end_line if self.end_line != 0 else self.line
-            ec = self.end_column if self.end_column != 0 else self.column
-            return SourceLocation(el, ec)
-        raise AttributeError(f"{type(self).__name__!r} object has no attribute {name!r}")
+    @property
+    def column(self) -> int:
+        return self.span.start_column
+
+    @property
+    def end_line(self) -> int:
+        return self.span.end_line
+
+    @property
+    def end_column(self) -> int:
+        return self.span.end_column
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class Statement(ASTNode):
-    """Base class for all statement nodes."""
     pass
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class Expression(ASTNode):
-    """Base class for all expression nodes."""
     pass
 
 
-# ── Types and Parameters ──
+# ── Type syntax ──
 
-@dataclass(frozen=True, slots=True)
-class Type(ASTNode):
-    name: PrimitiveType
-    array_dimensions: list[Expression]
+@dataclass
+class TypeSyntax(ASTNode):
+    """``primitive`` plus array dimensions (``None`` = unsized parameter dim)."""
 
-
-@dataclass(frozen=True, slots=True)
-class Parameter(ASTNode):
-    type: Type
-    name: str
+    primitive: PrimitiveType
+    array_dimensions: list[Expression | None]
 
 
-# ── Expressions ──
+# ── Names, literals, expressions ──
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class Identifier(Expression):
     name: str
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class Literal(Expression):
-    value: str
-    literal_type: LiteralType
+    kind: LiteralKind
+    lexeme: str
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class ArrayAccess(Expression):
-    array: Expression
-    index: Expression
+    base: Identifier
+    indices: list[Expression]
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class FunctionCall(Expression):
-    callee: Expression
+    callee: Identifier
     arguments: list[Expression]
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class UnaryExpression(Expression):
     operator: UnaryOp
     operand: Expression
-    position: UnaryPosition
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class CastExpression(Expression):
-    target_type: Type
+    target_type: TypeSyntax
     expression: Expression
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class BinaryExpression(Expression):
     operator: BinaryOp
     left: Expression
@@ -163,128 +162,165 @@ class BinaryExpression(Expression):
 
 # ── Statements ──
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class Block(ASTNode):
     statements: list[Statement]
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class Declaration(Statement):
-    type: Type
-    name: str
+    type: TypeSyntax
+    name: Identifier
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class Assignment(Statement):
-    target: Expression
+    target: Identifier | ArrayAccess
     value: Expression
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class Input(Statement):
-    target: Expression
+    target: Identifier | ArrayAccess
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class Output(Statement):
     value: Expression
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class IfStatement(Statement):
     condition: Expression
     then_block: Block
-    else_block: Block | IfStatement | None
+    else_branch: Block | IfStatement | None
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class WhileLoop(Statement):
     condition: Expression
     body: Block
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class RangeLoop(Statement):
-    target: str
+    variable: Identifier
     start: Expression
     end: Expression
     body: Block
 
 
-# ── For Loop Constructs ──
+# ── Three-part loop ──
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class ForInit(ASTNode):
+    """Tagged union base: ForThoModhaluInit | ForAssignmentInit | ForDeclarationInit."""
+
+
+@dataclass
+class ForThoModhaluInit(ForInit):
     target: Identifier
-    value: Expression | None = None
-    type: Type | None = None
-
-
-@dataclass(frozen=True, slots=True)
-class ForUpdate(ASTNode):
-    """Base class for for-loop updates."""
-    pass
-
-
-@dataclass(frozen=True, slots=True)
-class AssignmentUpdate(ForUpdate):
-    target: Expression
     value: Expression
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass
+class ForAssignmentInit(ForInit):
+    target: Identifier
+    value: Expression
+
+
+@dataclass
+class ForDeclarationInit(ForInit):
+    type: TypeSyntax
+    name: Identifier
+    initializer: Expression | None
+
+
+@dataclass
+class ForUpdate(ASTNode):
+    """Tagged union base: AssignmentUpdate | IncrementUpdate | DecrementUpdate."""
+
+
+@dataclass
+class AssignmentUpdate(ForUpdate):
+    target: Identifier | ArrayAccess
+    value: Expression
+
+
+@dataclass
 class IncrementUpdate(ForUpdate):
-    target: Expression
+    target: Identifier | ArrayAccess
     prefix: bool
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class DecrementUpdate(ForUpdate):
-    target: Expression
+    target: Identifier | ArrayAccess
     prefix: bool
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class ForLoop(Statement):
-    init: ForInit | None
-    condition: Expression | None
-    update: ForUpdate | None
+    init: ForInit
+    condition: Expression
+    update: ForUpdate
     body: Block
 
 
-# ── Control Flow Statements ──
+# ── Control transfer / expression statements ──
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class ReturnStatement(Statement):
     value: Expression
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class BreakStatement(Statement):
     pass
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class ContinueStatement(Statement):
     pass
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class ExpressionStatement(Statement):
-    """For extensibility. Not currently produced by the parser."""
-    expression: Expression
+    expression: FunctionCall
 
 
-# ── Top-Level ──
+# ── Top level ──
 
-@dataclass(frozen=True, slots=True)
+@dataclass
+class Parameter(ASTNode):
+    type: TypeSyntax
+    name: Identifier
+
+
+@dataclass
 class FunctionDeclaration(ASTNode):
-    return_type: Type
-    name: str
+    return_type: TypeSyntax
+    name: Identifier
     parameters: list[Parameter]
     body: Block
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass
 class Program(ASTNode):
-    items: list[FunctionDeclaration | Statement]
+    items: list[FunctionDeclaration | Declaration | Statement]
+
+
+# ── Traversal ──
+
+def children(node: ASTNode) -> Iterator[ASTNode]:
+    """Yield the direct child nodes of ``node`` in field order."""
+    for f in dataclasses.fields(node):
+        if f.name == "span":
+            continue
+        v = getattr(node, f.name)
+        if isinstance(v, ASTNode):
+            yield v
+        elif isinstance(v, list):
+            for x in v:
+                if isinstance(x, ASTNode):
+                    yield x

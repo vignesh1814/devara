@@ -179,3 +179,12 @@ def format_tree(obj: Any, *, spans: bool = True, indent: str = "  ") -> str:
 
     emit(None, obj, 0)
     return "\n".join(lines)
+
+
+def _register_builtin_modules() -> None:
+    from compiler import diagnostics
+
+    register(diagnostics)
+
+
+_register_builtin_modules()
