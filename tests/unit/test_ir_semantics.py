@@ -339,3 +339,20 @@ def test_shadowing_and_scopes_execute_correctly():
 def test_float_loop_and_comparison_chain():
     src = "float f\npratisari (f lo 0.0 pettu; f < 1.0; f lo f + 0.25 pettu) { f ni chupi }"
     assert out(src).split() == ["0", "0.25", "0.5", "0.75"]
+
+
+def test_q001_unary_minus_wraps_on_int64_min():
+    src = "int m\nm lo -9223372036854775807 - 1 pettu\n-m ni chupi\n- -m ni chupi"
+    assert out(src) == "-9223372036854775808\n-9223372036854775808\n"
+
+
+def test_padham_arrays_zero_filled_and_assignable():
+    src = 'padham a[3]\npodavu(a[2]) ni chupi\na[1] lo "hi" + "!" pettu\na[1] ni chupi\n' \
+          'int f charya(padham p[], int i) { podavu(p[i]) ivvu }\nf(a, 1) ni chupi\nf(a, 0) ni chupi'
+    assert out(src) == "0\nhi!\n3\n0\n"
+
+
+def test_q005_float_to_char_composition():
+    src = "float f\nf lo 300.7 pettu\nchar c\nc lo f pettu\n(int) c ni chupi\n(int) (char) 3.9 ni chupi\n" \
+          "bool b\nb lo 0.0 / 0.0 pettu\nb ni chupi"
+    assert out(src) == "44\n3\nnijam\n"
