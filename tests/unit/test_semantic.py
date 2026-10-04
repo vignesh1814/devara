@@ -400,3 +400,29 @@ def test_evaluation_order_and_loop_lowering_inputs_present():
     t = accept("pratisari (int i lo 0 pettu; i < 3; i++) { }")
     loop = t.entry.stmts[0]
     assert isinstance(loop, T.TFor) and len(loop.init) == 2 and isinstance(loop.update, T.TIncDec)
+
+
+# ── design-authority rulings (plan §L) ──
+
+def test_q002_point_of_declaration_rule():
+    # a use before a later same-scope declaration sees the enclosing declaration
+    accept("int x\nx lo 1 pettu\nnijam ayite { x ni chupi\nint x\nx lo 2 pettu }")
+    reject("nijam ayite { x ni chupi\nint x }", S.UNDECLARED)
+    accept("int f charya() { int a\na lo 1 pettu\nnijam ayite { a ni chupi\nint a\na lo 2 pettu }\n0 ivvu }")
+
+
+def test_q003_trapping_dimension_is_not_a_constant():
+    accept("int a[1 / 0]")                       # evaluated (and trapping) at run time
+    accept("int a[(-9223372036854775807 - 1) / -1]")
+    accept("int a[5 % 0]")
+    reject("int a[10 - 10]", S.INVALID_ARRAY_SIZE)
+
+
+def test_q006_for_declaration_without_initializer():
+    accept("pratisari (int i; nijam; i lo 0 pettu) { aapu }")
+    reject("pratisari (int i; i < 3; i lo i + 1 pettu) { }", S.UNINITIALIZED)
+
+
+def test_q008_padham_arrays_and_parameters():
+    accept('padham a[3]\na[0] lo "x" pettu\na[1] lo a[0] + "y" pettu\na[1] ni chupi\n'
+           'int f charya(padham p[]) { podavu(p[0]) ivvu }\nf(a) ni chupi')
