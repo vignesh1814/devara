@@ -196,7 +196,11 @@ _PRIM = {"INT": "int", "FLOAT": "float", "BOOL": "bool", "CHAR": "char", "PADHAM
 
 # --------------------------------------------------------------------------- the interpreter
 class Interp:
-    def __init__(self, stdin: bytes, max_steps: int | None):
+    def __init__(self, stdin: bytes, max_steps: int | None, strict_tokens: bool = False):
+        # strict_tokens=True: a numeric read consumes a whole whitespace-delimited token (any trailing junk is an
+        # error); False: C++ `cin >>` prefix semantics. P7 is ambiguous (OPEN_QUESTIONS Q-010); fuzz tests compare
+        # both readings and skip inputs on which they disagree.
+        self.strict_tokens = strict_tokens
         self.inp = stdin
         self.pos = 0
         self.last_token = False
@@ -277,6 +281,8 @@ class Interp:
                 raise RuntimeErr("invalid input")
             v = int(self.inp[p:q])
             self.pos = q
+            if self.strict_tokens and q < len(self.inp) and self.inp[q] not in b" \t\r\n\v\f":
+                raise RuntimeErr("invalid input")
             if not INT_MIN <= v <= INT_MAX:
                 raise RuntimeErr("invalid input")
             return ("int", v)
@@ -686,7 +692,7 @@ class Interp:
 
 
 # --------------------------------------------------------------------------- public API
-def run_ast(ast_data, stdin: bytes = b"", max_steps: int | None = 5_000_000) -> Result:
+def run_ast(ast_data, stdin: bytes = b"", max_steps: int | None = 5_000_000, strict_tokens: bool = False) -> Result:
     """Interpret ``ast_data`` (the ``data`` member of ``parse --json``).
 
     Runs in a thread with a large stack so that deep Devara recursion (>10^4 frames) works."""
@@ -695,7 +701,7 @@ def run_ast(ast_data, stdin: bytes = b"", max_steps: int | None = 5_000_000) -> 
     box: list = []
 
     def target():
-        it = Interp(stdin, max_steps)
+        it = Interp(stdin, max_steps, strict_tokens)
         try:
             it.run_program(ast_data)
             box.append(Result(bytes(it.out), 0, ""))

@@ -36,3 +36,11 @@ assert "no crash (exit 0/1, never 3)".
 | Q-007 | Range loop modifying its own loop variable in the body (L47: "mutable, increment occurs after each body execution"). Taken literally the next value is `i_modified + 1`; the tester assumes this reading in validation tests only (not in the corpus). | loops | L47, §4.18 |
 | Q-008 | Is a `padham` element-type array parameter (`padham a[]`) accepted? Plan P29 says element type may be any non-void type; corpus uses it (DSA-115) on that basis. | arrays | P29, §3.5.2 |
 | Q-009 | Order of diagnostics when a source has both semantic errors in multiple functions: sorted by position (plan F) — tests only check the *set* of categories. | diagnostics | §F |
+
+## Round 2 (tester)
+
+| ID | Question | Where it matters | Sources consulted |
+|---|---|---|---|
+| Q-010 | P7 says numeric input follows "C++ `cin >>` semantics: skip whitespace, read one token", with `int` = "optional sign + decimal digits". For a token with trailing junk (`3.5`, `12abc`, `1x` read as `int`/`float`/`bool`) is the result (a) the leading prefix (C++ `cin`: reads `3`, leaves `.5`) or (b) `invalid input` for the whole token? The current compiler implements (b). Corpus and validation tests avoid this input; the reference interpreter implements both (`strict_tokens`) and the I/O fuzz test skips streams where they disagree. | P7, P10 | P7, P8, P10, L42 |
+| Q-011 | `09`, `078`: the lexical grammar has no rule (an octal literal needs octal digits). The compiler reports lexical `INVALID_NUMBER` ("Invalid octal literal"); P15 suggests two tokens (`0`,`9`) for similar malformed numbers. Tests accept either. | lexer | P15, spec §3.1 |
+| Q-012 | `devara build FILE.s` with a hand-written/invalid assembly file exits 3 (ICE: "assembler/linker rejected generated code"). Plan §E reserves exit 3 for failures on *generated* code; for user-supplied `.s` input the status is unspecified. Not tested. | CLI | §E |
