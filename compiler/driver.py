@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from compiler import serialize
-from compiler.diagnostics import Diagnostic, InternalCompilerError
+from compiler.diagnostics import Diagnostic, InternalCompilerError, Span, SyntaxCategory
 from compiler.lexer import Lexer
 from compiler.lexer import tokens as _tokens_mod
 
@@ -69,7 +69,15 @@ def run_parse(tokens: list, filename: str):
     from compiler.parser import Parser
 
     parser = Parser(tokens, filename=filename)
-    program = parser.parse()
+    try:
+        program = parser.parse()
+    except RecursionError:
+        # nesting beyond the recursion limit is an implementation limit, not a compiler bug (N-001)
+        tok = parser.cur
+        span = Span(tok.line, tok.column, tok.line, tok.column + max(len(tok.lexeme), 1))
+        diag = Diagnostic("syntax", SyntaxCategory.INVALID_EXPRESSION,
+                          "nesting too deep (implementation limit)", span, filename)
+        return None, [*parser.errors, diag]
     if parser.errors:
         return None, list(parser.errors)
     return program, []
@@ -106,8 +114,27 @@ def to_envelope(kind: str, obj: Any, filename: str) -> dict:
     return {"devara": kind, "version": ENVELOPE_VERSION, "file": filename, "data": body}
 
 
+def _json_depth(data: Any, limit: int) -> int:
+    """Nesting depth of a JSON-like value, iteratively, stopping above ``limit``."""
+    stack = [(data, 1)]
+    deepest = 1
+    while stack:
+        v, d = stack.pop()
+        deepest = max(deepest, d)
+        if deepest > limit:
+            return deepest
+        if isinstance(v, dict):
+            stack.extend((x, d + 1) for x in v.values() if isinstance(x, (dict, list)))
+        elif isinstance(v, list):
+            stack.extend((x, d + 1) for x in v if isinstance(x, (dict, list)))
+    return deepest
+
+
 def envelope_json(kind: str, obj: Any, filename: str) -> str:
-    return json.dumps(to_envelope(kind, obj, filename), indent=2)
+    doc = to_envelope(kind, obj, filename)
+    # indentation grows with depth (quadratic output for very deep trees): go compact there
+    indent = 2 if _json_depth(doc, 200) <= 200 else None
+    return json.dumps(doc, indent=indent)
 
 
 def from_envelope(text: str) -> tuple[str, Any, str]:
@@ -149,6 +176,14 @@ def runtime_object(cache_dir: Path | None = None) -> Path:
     return obj
 
 
+class AssemblerError(InternalCompilerError):
+    """The assembler/linker rejected an assembly file (``tool_output`` holds its message)."""
+
+    def __init__(self, tool_output: str) -> None:
+        self.tool_output = tool_output
+        super().__init__(f"assembler/linker rejected generated code:\n{tool_output}")
+
+
 def link_executable(asm_text: str, out: Path) -> None:
     """Assemble ``asm_text`` and link with the runtime into ``out``."""
     if shutil.which("gcc") is None:
@@ -162,6 +197,4 @@ def link_executable(asm_text: str, out: Path) -> None:
             capture_output=True, text=True,
         )
         if proc.returncode != 0:
-            raise InternalCompilerError(
-                f"assembler/linker rejected generated code:\n{proc.stderr}"
-            )
+            raise AssemblerError(proc.stderr)

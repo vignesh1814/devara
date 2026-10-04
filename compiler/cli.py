@@ -9,6 +9,7 @@ Exit status: 0 success; 1 user-program error; 2 usage / I/O error;
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 import tempfile
@@ -72,6 +73,33 @@ def _read_input(file: str) -> tuple[str, bytes]:
     except OSError as e:
         print(f"devara: cannot read {file}: {e.strerror}", file=sys.stderr)
         raise _Fail(EXIT_USAGE)
+
+
+def _check_output_path(out: Path, filename: str) -> None:
+    """Writing the requested output is an I/O matter (exit 2), checked before the toolchain runs."""
+    parent = out.parent if str(out.parent) else Path(".")
+    reason = None
+    if out.is_dir():
+        reason = "Is a directory"
+    elif not parent.exists():
+        reason = "No such file or directory"
+    elif not parent.is_dir():
+        reason = "Not a directory"
+    elif not os.access(parent, os.W_OK) or (out.exists() and not os.access(out, os.W_OK)):
+        reason = "Permission denied"
+    if reason is not None:
+        print(f"{filename}: error: cannot write output '{out}': {reason}", file=sys.stderr)
+        raise _Fail(EXIT_USAGE)
+
+
+def _link(asm_text: str, out: Path, pipe: "_Pipeline", filename: str) -> None:
+    try:
+        driver.link_executable(asm_text, out)
+    except driver.AssemblerError as e:
+        if pipe.kind != "asm":
+            raise                      # generated code rejected: compiler bug (exit 3)
+        print(f"{filename}: assembler error: {e.tool_output.strip()}", file=sys.stderr)
+        raise _Fail(EXIT_USER)
 
 
 def _report(diags: list[Diagnostic]) -> None:
@@ -157,6 +185,8 @@ def _fmt_tokens(tokens) -> str:
 
 def _dispatch(args) -> int:
     filename, data = _read_input(args.file)
+    if args.command == "build":
+        _check_output_path(Path(args.output) if args.output else Path(Path(filename).stem or "a.out"), filename)
     level = args.opt_level if args.opt_level is not None else 1
     pipe = _Pipeline(filename, data, level)
     cmd = args.command
@@ -197,11 +227,11 @@ def _dispatch(args) -> int:
             return EXIT_OK
         if cmd == "build":
             out = Path(args.output) if args.output else Path(Path(filename).stem or "a.out")
-            driver.link_executable(asm_text, out)
+            _link(asm_text, out, pipe, filename)
             return EXIT_OK
         with tempfile.TemporaryDirectory(prefix="devara_run_") as tmp:
             exe = Path(tmp) / "prog"
-            driver.link_executable(asm_text, exe)
+            _link(asm_text, exe, pipe, filename)
             sys.stdout.flush()
             proc = subprocess.run([str(exe)])
             rc = proc.returncode
@@ -223,9 +253,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{args.file}: internal compiler error: {e}", file=sys.stderr)
         return EXIT_ICE
     except RecursionError:
-        print(f"{args.file}: internal compiler error: recursion limit exceeded "
-              "(program nests too deeply)", file=sys.stderr)
-        return EXIT_ICE
+        print(f"{args.file}: error: nesting too deep (implementation limit)", file=sys.stderr)
+        return EXIT_USER
     except BrokenPipeError:
         return EXIT_OK
     except Exception as e:  # any uncaught exception is a compiler bug

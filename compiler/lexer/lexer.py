@@ -26,8 +26,8 @@ _TOKEN_SPEC: list[tuple[str, str]] = [
     ("NEWLINE",     r"\r?\n"),
     ("FLOAT_LIT",   r"[0-9]+\.[0-9]+"),
     ("HEX_INT",     r"0[xX][0-9a-fA-F]+"),
+    ("BAD_OCT",     r"0[0-9]*[89][0-9]*"),   # whole digit run (Q-011), before OCT_INT
     ("OCT_INT",     r"0[0-7]+"),
-    ("BAD_OCT",     r"0[0-9]+"),
     ("DEC_INT",     r"0|[1-9][0-9]*"),
     ("STRING",      r'"[^"\r\n\\]*(?:\\.[^"\r\n\\]*)*"'),
     ("BAD_STRING",  r'"[^"\r\n]*'),

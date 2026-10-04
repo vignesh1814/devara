@@ -123,10 +123,10 @@ def test_integer_literals():
         assert lexer.has_errors
         assert "octal" in lexer.errors[0].message.lower()
 
-    # Split tokens due to boundaries
+    # Q-011 / F-003: a 0-led digit run containing 8 or 9 is one INVALID_NUMBER (no split tokens)
     for v in ["0018", "0078", "0099"]:
-        tokens = lex(v)
-        assert len(tokens) == 3 # octal, decimal, EOF
+        lexer = lex_with_errors(v)
+        assert [e.category for e in lexer.errors] == ["INVALID_NUMBER"]
 
     # Hexadecimal
     for v in ["0x0", "0x1", "0x9", "0xa", "0xf", "0xA", "0xF", "0x10", "0xff", "0xFF", "0xabcdef", "0xABCDEF", "0X10", "0XFF"]:

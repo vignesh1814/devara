@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from compiler.diagnostics import Diagnostic, SemCategory as S, Span
 from compiler.semantic import typed as T
-from compiler.semantic.types import ArrayType, VOID
+from compiler.semantic.types import ArrayType, BOOL, INT, VOID
 
 ALL = None  # "unreachable": every variable counts as assigned
 
@@ -18,10 +18,18 @@ def _meet(a, b):
 
 
 def is_const_true(cond: T.TExpr) -> bool:
-    """Literal ``nijam`` or a non-zero int literal (through implicit conversions)."""
-    while isinstance(cond, T.TConvert):
+    """P24/P25: the literal ``nijam`` or a non-zero *int* literal.
+
+    Only the implicit condition conversion to bool may wrap the literal; char/float
+    literals and explicit casts are ordinary expressions, not constants.
+    """
+    while isinstance(cond, T.TConvert) and not cond.explicit:
         cond = cond.operand
-    return isinstance(cond, T.TLiteral) and not isinstance(cond.value, (bytes, float)) and bool(cond.value)
+    if not isinstance(cond, T.TLiteral) or isinstance(cond.value, (bytes, float)):
+        return False
+    if cond.type not in (INT, BOOL):
+        return False
+    return bool(cond.value)
 
 
 class _Init:

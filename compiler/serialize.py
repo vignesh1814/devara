@@ -142,6 +142,12 @@ def _scalar(v: Any) -> str:
 def format_tree(obj: Any, *, spans: bool = True, indent: str = "  ") -> str:
     """Render a dataclass tree as an indented outline (stable, diff-friendly)."""
     lines: list[str] = []
+    max_indent = 64   # deeper levels print a "[depth]" tag instead of ever-longer indentation
+
+    def pad_for(depth: int) -> str:
+        if depth <= max_indent:
+            return indent * depth
+        return f"[{depth}] " + indent * max_indent
 
     def head(node: Any) -> str:
         name = type(node).__name__
@@ -151,7 +157,7 @@ def format_tree(obj: Any, *, spans: bool = True, indent: str = "  ") -> str:
         return name
 
     def emit(label: str | None, v: Any, depth: int) -> None:
-        pad = indent * depth
+        pad = pad_for(depth)
         prefix = f"{label}: " if label else ""
         if hasattr(v, "compact") and dataclasses.is_dataclass(v):
             lines.append(f"{pad}{prefix}{v.compact()}")
