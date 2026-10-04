@@ -35,10 +35,16 @@ int log2floor charya (int n) {
 
 bool is_square charya (int n) {
     n < 0 ayite { abaddham ivvu }
+    int l
     int r
-    r lo 0 pettu
-    r * r < n unnanta varaku { r lo r + 1 pettu }
-    r * r == n ivvu
+    l lo 0 pettu
+    r lo 3037000499 pettu
+    l < r unnanta varaku {
+        int mid
+        mid lo l + (r - l) / 2 pettu
+        mid * mid < n ayite { l lo mid + 1 pettu } lekunte { r lo mid pettu }
+    }
+    l * l == n ivvu
 }
 
 int q
