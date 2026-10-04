@@ -8,3 +8,4 @@
 | Parser/semantic validation | test_parser_productions.py (425 tests) and test_semantic_rules.py (489 tests) against the merged developer branch: all pass. Design-authority rulings Q-001..Q-009 (plan §L) are covered by tests in test_runtime_semantics.py. |
 | Backend merge | Developer branch now has IR, optimizer, codegen, runtime. `scripts/run_corpus.py`: 128/128 correct at -O0 and at -O1 (compiled 128, executed 128, incorrect 0, timeouts 0). |
 | Runtime / adversarial / fuzz | test_runtime_semantics.py (1045 tests), test_runtime_adversarial.py (356), test_stage_observability.py, test_cli_extra.py (35), tests/property (token-soup fuzz 8 properties, differential 27, I/O differential 47). One failure found: F-001 (see FAILURES.md). |
+| Final run | Merged developer c3c2b2f: full pytest 5155 passed, 0 failed, 1 skipped; corpus 128/128 at -O0 and -O1; F-001..F-005 fixed. Verdict PASS (docs/validation/VALIDATION_REPORT.md). |
