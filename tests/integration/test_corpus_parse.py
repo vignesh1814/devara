@@ -1,35 +1,50 @@
-"""End-to-end integration tests for all Devara test programs."""
+"""Every bundled .tel program lexes, parses and satisfies the AST invariants."""
 
 import glob
 from pathlib import Path
+
 import pytest
 
-from compiler.lexer import Lexer
-from compiler.parser import Parser
+from compiler import serialize
+from compiler.ast import nodes as ast_nodes
+from compiler.ast.invariants import check_program
 from compiler.ast.nodes import Program
+from compiler.lexer import Lexer
+from compiler.lexer import tokens as tokens_mod
+from compiler.parser import Parser
 
 ROOT_DIR = Path(__file__).parent.parent.parent
 PROGRAM_FILES = sorted(
-    glob.glob(str(ROOT_DIR / "tests" / "programs" / "**" / "*.tel"), recursive=True)
+    glob.glob(str(ROOT_DIR / "tests" / "**" / "*.tel"), recursive=True)
     + glob.glob(str(ROOT_DIR / "examples" / "**" / "*.tel"), recursive=True)
 )
 
+serialize.register(tokens_mod, ast_nodes)
 
-@pytest.mark.parametrize("filepath", PROGRAM_FILES, ids=lambda p: Path(p).name)
-def test_program_lex_and_parse_e2e(filepath: str):
-    """Every test program must tokenize and parse with zero errors."""
-    path = Path(filepath)
-    source = path.read_text(encoding="utf-8")
-    
-    # 1. Lexer pass
+
+def parse_file(path: Path):
+    source = path.read_bytes().decode("latin-1")
     lexer = Lexer(source, filename=path.name)
     tokens = lexer.tokenize()
-    assert not lexer.has_errors, f"Lexer errors in {path.name}: {[str(e) for e in lexer.errors]}"
-    assert len(tokens) > 1, f"Expected non-empty token stream in {path.name}"
-    
-    # 2. Parser pass
+    assert not lexer.has_errors, [str(e) for e in lexer.errors]
     parser = Parser(tokens, filename=path.name)
-    ast = parser.parse()
-    assert not parser.errors, f"Parser errors in {path.name}: {[str(e) for e in parser.errors]}"
-    assert isinstance(ast, Program), f"Expected Program AST root in {path.name}"
-    assert len(ast.items) > 0, f"Expected non-empty AST in {path.name}"
+    return tokens, parser.parse(), parser.errors
+
+
+@pytest.mark.parametrize("filepath", PROGRAM_FILES, ids=lambda p: Path(p).name)
+def test_program_lex_parse_and_ast_invariants(filepath: str):
+    path = Path(filepath)
+    tokens, ast, errors = parse_file(path)
+    assert len(tokens) > 1
+    assert not errors, [str(e) for e in errors]
+    assert isinstance(ast, Program) and ast.items
+    assert check_program(ast) == []
+
+
+@pytest.mark.parametrize("filepath", PROGRAM_FILES, ids=lambda p: Path(p).name)
+def test_token_and_ast_json_round_trip(filepath: str):
+    tokens, ast, _ = parse_file(Path(filepath))
+    assert serialize.loads(serialize.dumps(tokens)) == tokens
+    assert serialize.loads(serialize.dumps(ast)) == ast
+    # a second round trip is byte-identical (deterministic output)
+    assert serialize.dumps(ast) == serialize.dumps(serialize.loads(serialize.dumps(ast)))

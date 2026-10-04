@@ -3,6 +3,7 @@
 import pytest  # type: ignore
 from compiler.lexer import Lexer
 from compiler.parser import Parser
+from compiler.ast.invariants import check_program
 from compiler.ast.nodes import (
     ArrayAccess,
     Assignment,
@@ -19,22 +20,23 @@ from compiler.ast.nodes import (
     IncrementUpdate,
     Input,
     Literal,
-    LiteralType,
+    LiteralKind,
     Output,
     Parameter,
     PrimitiveType,
     Program,
     RangeLoop,
     ReturnStatement,
-    SourceLocation,
     Span,
-    Type,
+    TypeSyntax,
     UnaryExpression,
     UnaryOp,
-    UnaryPosition,
     WhileLoop,
+    ForAssignmentInit,
+    ForDeclarationInit,
     ForInit,
     ForLoop,
+    ForThoModhaluInit,
     FunctionCall,
     FunctionDeclaration,
 )
@@ -49,6 +51,7 @@ def parse(source: str) -> Program:
     parser = Parser(tokens)
     ast = parser.parse()
     assert not parser.errors, f"Parser errors: {parser.errors}"
+    assert check_program(ast) == []
     return ast
 
 
@@ -71,20 +74,20 @@ class TestDeclarations:
         assert len(ast.items) == 1
         decl = ast.items[0]
         assert isinstance(decl, Declaration)
-        assert decl.name == "n"
-        assert decl.type.name == PrimitiveType.INT
+        assert decl.name.name == "n"
+        assert decl.type.primitive == PrimitiveType.INT
         assert decl.type.array_dimensions == []
 
     def test_1d_array_declaration(self):
         ast = parse("bool prime[10]")
         decl = ast.items[0]
         assert isinstance(decl, Declaration)
-        assert decl.name == "prime"
-        assert decl.type.name == PrimitiveType.BOOL
+        assert decl.name.name == "prime"
+        assert decl.type.primitive == PrimitiveType.BOOL
         assert len(decl.type.array_dimensions) == 1
         dim = decl.type.array_dimensions[0]
         assert isinstance(dim, Literal)
-        assert dim.value == "10"
+        assert dim.lexeme == "10"
 
     def test_2d_array_declaration(self):
         ast = parse("float matrix[10][20]")
@@ -105,17 +108,18 @@ class TestAssignment:
         assert isinstance(stmt.target, Identifier)
         assert stmt.target.name == "x"
         assert isinstance(stmt.value, Literal)
-        assert stmt.value.value == "10"
+        assert stmt.value.lexeme == "10"
 
     def test_array_assignment(self):
         ast = parse("a[i] lo 0 pettu")
         stmt = ast.items[0]
         assert isinstance(stmt, Assignment)
         assert isinstance(stmt.target, ArrayAccess)
-        assert isinstance(stmt.target.array, Identifier)
-        assert stmt.target.array.name == "a"
-        assert isinstance(stmt.target.index, Identifier)
-        assert stmt.target.index.name == "i"
+        assert isinstance(stmt.target.base, Identifier)
+        assert stmt.target.base.name == "a"
+        assert len(stmt.target.indices) == 1
+        assert isinstance(stmt.target.indices[0], Identifier)
+        assert stmt.target.indices[0].name == "i"
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -149,20 +153,20 @@ class TestIfStatement:
         assert isinstance(stmt, IfStatement)
         assert isinstance(stmt.condition, Literal)
         assert len(stmt.then_block.statements) == 1
-        assert stmt.else_block is None
+        assert stmt.else_branch is None
 
     def test_if_else(self):
         ast = parse("nijam ayite { } lekunte { }")
         stmt = ast.items[0]
         assert isinstance(stmt, IfStatement)
-        assert isinstance(stmt.else_block, Block)
+        assert isinstance(stmt.else_branch, Block)
 
     def test_chained_else_if(self):
         ast = parse("a ayite { } lekunte b ayite { } lekunte { }")
         stmt = ast.items[0]
         assert isinstance(stmt, IfStatement)
-        assert isinstance(stmt.else_block, IfStatement)
-        assert isinstance(stmt.else_block.else_block, Block)
+        assert isinstance(stmt.else_branch, IfStatement)
+        assert isinstance(stmt.else_branch.else_branch, Block)
 
 
 class TestWhileLoop:
@@ -179,7 +183,7 @@ class TestRangeLoop:
         ast = parse("prati i 1 nundi n varaku { }")
         stmt = ast.items[0]
         assert isinstance(stmt, RangeLoop)
-        assert stmt.target == "i"
+        assert stmt.variable.name == "i"
         assert isinstance(stmt.start, Literal)
         assert isinstance(stmt.end, Identifier)
         assert isinstance(stmt.body, Block)
@@ -190,9 +194,9 @@ class TestForLoop:
         ast = parse("pratisari (i 0 tho modhalu; i < 10; i++) { }")
         stmt = ast.items[0]
         assert isinstance(stmt, ForLoop)
-        assert isinstance(stmt.init, ForInit)
+        assert isinstance(stmt.init, ForThoModhaluInit)
         assert stmt.init.target.name == "i"
-        assert stmt.init.value.value == "0"
+        assert stmt.init.value.lexeme == "0"
         assert isinstance(stmt.condition, BinaryExpression)
         assert isinstance(stmt.update, IncrementUpdate)
         assert not stmt.update.prefix
@@ -247,11 +251,11 @@ class TestFunctions:
         ast = parse("int add charya(int a, int b) { a + b ivvu }")
         decl = ast.items[0]
         assert isinstance(decl, FunctionDeclaration)
-        assert decl.name == "add"
-        assert decl.return_type.name == PrimitiveType.INT
+        assert decl.name.name == "add"
+        assert decl.return_type.primitive == PrimitiveType.INT
         assert len(decl.parameters) == 2
-        assert decl.parameters[0].name == "a"
-        assert decl.parameters[1].name == "b"
+        assert decl.parameters[0].name.name == "a"
+        assert decl.parameters[1].name.name == "b"
         assert len(decl.body.statements) == 1
         assert isinstance(decl.body.statements[0], ReturnStatement)
 
@@ -289,13 +293,13 @@ class TestLekunteRegression:
         ast = parse("x ayite { } lekunte { }")
         stmt = ast.items[0]
         assert isinstance(stmt, IfStatement)
-        assert isinstance(stmt.else_block, Block)
+        assert isinstance(stmt.else_branch, Block)
 
     def test_lekunte_valid_else_if(self):
         ast = parse("x ayite { } lekunte y ayite { }")
         stmt = ast.items[0]
         assert isinstance(stmt, IfStatement)
-        assert isinstance(stmt.else_block, IfStatement)
+        assert isinstance(stmt.else_branch, IfStatement)
 
     def test_lekunte_invalid_assignment(self):
         parser = parse_with_errors("x ayite { } lekunte y lo 10 pettu")
@@ -313,39 +317,35 @@ class TestPratisariRegression:
         ast = parse("pratisari (i 0 tho modhalu; i < 10; i++) { }")
         stmt = ast.items[0]
         assert isinstance(stmt, ForLoop)
-        assert isinstance(stmt.init, ForInit)
+        assert isinstance(stmt.init, ForThoModhaluInit)
         assert stmt.init.target.name == "i"
         assert stmt.init.value is not None
-        assert stmt.init.type is None
 
     def test_pratisari_assignment_init(self):
         ast = parse("pratisari (i lo 0 pettu; i < 10; i++) { }")
         stmt = ast.items[0]
         assert isinstance(stmt, ForLoop)
-        assert isinstance(stmt.init, ForInit)
+        assert isinstance(stmt.init, ForAssignmentInit)
         assert stmt.init.target.name == "i"
         assert stmt.init.value is not None
-        assert stmt.init.type is None
 
     def test_pratisari_declaration_init_without_value(self):
         ast = parse("pratisari (int i; i < 10; i++) { }")
         stmt = ast.items[0]
         assert isinstance(stmt, ForLoop)
-        assert isinstance(stmt.init, ForInit)
-        assert stmt.init.target.name == "i"
-        assert stmt.init.value is None
-        assert stmt.init.type is not None
-        assert stmt.init.type.name == PrimitiveType.INT
+        assert isinstance(stmt.init, ForDeclarationInit)
+        assert stmt.init.name.name == "i"
+        assert stmt.init.initializer is None
+        assert stmt.init.type.primitive == PrimitiveType.INT
 
     def test_pratisari_declaration_init_with_value(self):
         ast = parse("pratisari (int i lo 0 pettu; i < 10; i++) { }")
         stmt = ast.items[0]
         assert isinstance(stmt, ForLoop)
-        assert isinstance(stmt.init, ForInit)
-        assert stmt.init.target.name == "i"
-        assert stmt.init.value is not None
-        assert stmt.init.type is not None
-        assert stmt.init.type.name == PrimitiveType.INT
+        assert isinstance(stmt.init, ForDeclarationInit)
+        assert stmt.init.name.name == "i"
+        assert stmt.init.initializer is not None
+        assert stmt.init.type.primitive == PrimitiveType.INT
 
     @pytest.mark.parametrize(
         "init_str",
@@ -388,52 +388,48 @@ class TestBooleanLiteralsRegression:
         stmt = ast.items[0]
         assert isinstance(stmt, Output)
         assert isinstance(stmt.value, Literal)
-        assert stmt.value.literal_type == LiteralType.BOOL
-        assert stmt.value.value == "nijam"
+        assert stmt.value.kind == LiteralKind.BOOL
+        assert stmt.value.lexeme == "nijam"
 
     def test_abaddham_raw_lexeme(self):
         ast = parse("abaddham ni chupi")
         stmt = ast.items[0]
         assert isinstance(stmt, Output)
         assert isinstance(stmt.value, Literal)
-        assert stmt.value.literal_type == LiteralType.BOOL
-        assert stmt.value.value == "abaddham"
+        assert stmt.value.kind == LiteralKind.BOOL
+        assert stmt.value.lexeme == "abaddham"
 
 
 class TestSourceSpansRegression:
+    """Spans are half-open [start, end): end is the first column after the construct."""
+
     def test_declaration_spans(self):
-        ast = parse("int x")
-        decl = ast.items[0]
-        assert decl.start.line == 1
-        assert decl.start.column == 1
-        assert decl.end.line == 1
-        assert decl.end.column == 5
-        assert decl.span.start.line == 1
-        assert decl.span.end.line == 1
+        decl = parse("int x").items[0]
+        assert decl.span == Span(1, 1, 1, 6)
+        assert (decl.line, decl.column, decl.end_line, decl.end_column) == (1, 1, 1, 6)
 
     def test_assignment_spans(self):
-        ast = parse("x lo 10 pettu")
-        stmt = ast.items[0]
-        assert stmt.start.line == 1
-        assert stmt.start.column == 1
-        assert stmt.end.line == 1
-        assert stmt.end.column == 9
+        assert parse("x lo 10 pettu").items[0].span == Span(1, 1, 1, 14)
 
     def test_binary_expression_spans(self):
-        ast = parse("a + b ni chupi")
-        stmt = ast.items[0]
-        expr = stmt.value
+        expr = parse("a + b ni chupi").items[0].value
         assert isinstance(expr, BinaryExpression)
-        assert expr.start.line == 1
-        assert expr.start.column == 1
-        assert expr.end.line == 1
-        assert expr.end.column == 5
+        assert expr.span == Span(1, 1, 1, 6)
 
     def test_block_spans(self):
-        ast = parse("{ x lo 1 pettu }")
-        block = ast.items[0]
+        block = parse("x ayite { x lo 1 pettu }").items[0].then_block
         assert isinstance(block, Block)
-        assert block.start.line == 1
-        assert block.start.column == 1
-        assert block.end.line == 1
-        assert block.end.column == 16
+        assert block.span == Span(1, 9, 1, 25)
+
+    def test_parenthesized_operand_is_included_in_parent_span(self):
+        expr = parse("(a + b) * c ni chupi").items[0].value
+        assert expr.span == Span(1, 1, 1, 12)
+        assert expr.left.span == Span(1, 2, 1, 7)  # grouping creates no node
+
+    def test_multiline_span(self):
+        stmt = parse("x ayite {\n  y lo 1 pettu\n}\n").items[0]
+        assert stmt.span == Span(1, 1, 3, 2)
+
+    def test_program_span_covers_source_to_eof(self):
+        assert parse("int x\n").span == Span(1, 1, 2, 1)
+        assert parse("").span == Span(1, 1, 1, 1)
