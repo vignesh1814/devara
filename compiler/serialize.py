@@ -37,6 +37,9 @@ def register(*modules: types.ModuleType) -> None:
                 and dataclasses.is_dataclass(obj)
                 and obj.__module__ == mod.__name__
             ):
+                prev = _CLASSES.get(obj.__name__)
+                if prev is not None and prev is not obj:
+                    raise RuntimeError(f"serialize: duplicate class name {obj.__name__}")
                 _CLASSES[obj.__name__] = obj
 
 

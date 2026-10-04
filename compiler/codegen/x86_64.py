@@ -1,0 +1,440 @@
+"""x86-64 System V code generator (GNU as, ``.intel_syntax noprefix``).
+
+Stack-slot strategy (plan §D): every IR register has a fixed 8-byte slot
+``[rbp - k]``; each instruction loads operands into scratch registers
+(``rax``, ``rcx``, ``rdx``, ``xmm0``, ``xmm1``), computes, and stores the result.
+All values occupy a full 64-bit slot (bool 0/1, char sign-extended, f64 bit
+pattern, str/addr pointer), so copies/loads/stores are plain 64-bit moves.
+"""
+
+from __future__ import annotations
+
+import struct
+
+from compiler.ir import ir as I
+
+IT = I.IRType
+
+INT_ARGS = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"]
+FRAME_ARRAY_LIMIT = 64 * 1024     # bytes; larger constant-size arrays use the heap
+
+_SETCC = {"LT": "l", "LE": "le", "GT": "g", "GE": "ge", "EQ": "e", "NE": "ne"}
+
+
+def mangle_function(name: str) -> str:
+    return "dv_entry" if name == I.ENTRY_FUNCTION else f"dv_f_{name}"
+
+
+def mangle_global(name: str) -> str:
+    return f"dv_g_{name}"
+
+
+def f64_bits(v: float) -> int:
+    return struct.unpack("<q", struct.pack("<d", v))[0]
+
+
+class _Strings:
+    def __init__(self) -> None:
+        self.table: dict[bytes, str] = {}
+
+    def label(self, b: bytes) -> str:
+        if b not in self.table:
+            self.table[b] = f".Lstr{len(self.table)}"
+        return self.table[b]
+
+    def emit(self) -> list[str]:
+        out = ["    .section .rodata", "    .balign 8"]
+        for b, lab in self.table.items():
+            out.append(f"{lab}:")
+            out.append(f"    .quad {len(b)}")
+            for i in range(0, len(b), 16):
+                out.append("    .byte " + ", ".join(str(x) for x in b[i:i + 16]))
+            out.append("    .byte 0")
+            out.append("    .balign 8")
+        return out
+
+
+class FunctionGen:
+    def __init__(self, fn: I.IRFunction, index: int, strings: _Strings) -> None:
+        self.fn = fn
+        self.idx = index
+        self.strings = strings
+        self.lines: list[str] = []
+        self.slots: dict[str, int] = {}
+        self.next_off = 0
+        self.nlabel = 0
+        self.arrays: dict[int, int] = {}      # id(instr) -> frame offset of its region
+        self.need_div0 = self.need_rem0 = self.need_ovf = False
+        self.collect()
+
+    # ── frame ──
+
+    def slot(self, name: str) -> str:
+        return f"QWORD PTR [rbp - {self.slots[name]}]"
+
+    def alloc(self, nbytes: int) -> int:
+        self.next_off += (nbytes + 7) & ~7
+        return self.next_off
+
+    def collect(self) -> None:
+        def see(o) -> None:
+            if isinstance(o, I.Reg) and o.name not in self.slots:
+                self.slots[o.name] = self.alloc(8)
+
+        for p in self.fn.params:
+            see(p)
+        for b in self.fn.blocks:
+            for i in b.instrs:
+                for name in ("dst", "src", "a", "b", "addr", "value", "base", "index", "count"):
+                    if hasattr(i, name):
+                        see(getattr(i, name))
+                for a in getattr(i, "args", []):
+                    see(a)
+                if isinstance(i, I.NewArray) and isinstance(i.count, I.Const) \
+                        and 1 <= i.count.value and i.count.value * 8 <= FRAME_ARRAY_LIMIT:
+                    self.arrays[id(i)] = self.alloc(i.count.value * 8)
+            t = b.term
+            if isinstance(t, I.Branch):
+                see(t.cond)
+            elif isinstance(t, I.Return) and t.value is not None:
+                see(t.value)
+
+    # ── emit helpers ──
+
+    def e(self, s: str) -> None:
+        self.lines.append("    " + s)
+
+    def lab(self, name: str) -> str:
+        return f".L{self.idx}_{name}"
+
+    def fresh(self, hint: str = "x") -> str:
+        self.nlabel += 1
+        return f".L{self.idx}_{hint}{self.nlabel}"
+
+    def load(self, reg: str, o: I.Operand) -> None:
+        """Load a 64-bit operand into integer register ``reg``."""
+        if isinstance(o, I.Reg):
+            self.e(f"mov {reg}, {self.slot(o.name)}")
+        elif isinstance(o, I.GlobalRef):
+            self.e(f"lea {reg}, [rip + {mangle_global(o.name)}]")
+        elif o.type == IT.STR:
+            self.e(f"lea {reg}, [rip + {self.strings.label(bytes(o.value))}]")
+        elif o.type == IT.F64:
+            self.e(f"mov {reg}, {f64_bits(o.value)}")
+        else:
+            self.e(f"mov {reg}, {int(o.value)}")
+
+    def loadf(self, xmm: str, o: I.Operand) -> None:
+        if isinstance(o, I.Reg):
+            self.e(f"movsd {xmm}, {self.slot(o.name)}")
+        else:
+            self.load("rax", o)
+            self.e(f"movq {xmm}, rax")
+
+    def store(self, dst: I.Reg, reg: str = "rax") -> None:
+        self.e(f"mov {self.slot(dst.name)}, {reg}")
+
+    def storef(self, dst: I.Reg, xmm: str = "xmm0") -> None:
+        self.e(f"movsd {self.slot(dst.name)}, {xmm}")
+
+    # ── function ──
+
+    def generate(self) -> list[str]:
+        fn = self.fn
+        name = mangle_function(fn.name)
+        out = [f"    .globl {name}", f"{name}:"]
+        # body first (to know the frame size), then assemble
+        for k, b in enumerate(fn.blocks):
+            self.lines.append(f"{self.lab(b.label)}:")
+            for ins in b.instrs:
+                self.instr(ins)
+            nxt = fn.blocks[k + 1].label if k + 1 < len(fn.blocks) else None
+            self.terminator(b.term, nxt)
+        stubs = []
+        if self.need_div0:
+            stubs += [f"{self.lab('trap_div0')}:", "    call dv_rt_trap_div0"]
+        if self.need_rem0:
+            stubs += [f"{self.lab('trap_rem0')}:", "    call dv_rt_trap_rem0"]
+        if self.need_ovf:
+            stubs += [f"{self.lab('trap_ovf')}:", "    call dv_rt_trap_divovf"]
+        frame = (self.next_off + 15) & ~15
+        out += ["    push rbp", "    mov rbp, rsp"]
+        if frame:
+            out.append(f"    sub rsp, {frame}")
+        # move parameters from ABI locations into their slots
+        ni = nf = 0
+        stack_off = 16
+        for p in fn.params:
+            if p.type == IT.F64:
+                if nf < 8:
+                    out.append(f"    movsd {self.slot(p.name)}, xmm{nf}")
+                    nf += 1
+                else:
+                    out.append(f"    mov rax, QWORD PTR [rbp + {stack_off}]")
+                    out.append(f"    mov {self.slot(p.name)}, rax")
+                    stack_off += 8
+            else:
+                if ni < 6:
+                    out.append(f"    mov {self.slot(p.name)}, {INT_ARGS[ni]}")
+                    ni += 1
+                else:
+                    out.append(f"    mov rax, QWORD PTR [rbp + {stack_off}]")
+                    out.append(f"    mov {self.slot(p.name)}, rax")
+                    stack_off += 8
+        out += self.lines + stubs
+        return out
+
+    # ── instructions ──
+
+    def instr(self, i: I.Instr) -> None:
+        if isinstance(i, I.Copy):
+            self.load("rax", i.src)
+            self.store(i.dst)
+        elif isinstance(i, I.UnOp):
+            self.load("rax", i.src)
+            if i.op == "NOT":
+                self.e("xor rax, 1")
+            elif i.dst.type == IT.I64:
+                self.e("neg rax")
+            else:
+                self.e("btc rax, 63")
+            self.store(i.dst)
+        elif isinstance(i, I.BinOp):
+            self.binop(i)
+        elif isinstance(i, I.Cmp):
+            self.cmp(i)
+        elif isinstance(i, I.Convert):
+            self.convert(i)
+        elif isinstance(i, I.Load):
+            self.load("rax", i.addr)
+            self.e("mov rax, QWORD PTR [rax]")
+            self.store(i.dst)
+        elif isinstance(i, I.Store):
+            self.load("rax", i.addr)
+            self.load("rcx", i.value)
+            self.e("mov QWORD PTR [rax], rcx")
+        elif isinstance(i, I.PtrAdd):
+            self.load("rax", i.base)
+            self.load("rcx", i.index)
+            self.e("lea rax, [rax + rcx*8]")
+            self.store(i.dst)
+        elif isinstance(i, I.NewArray):
+            off = self.arrays.get(id(i))
+            if off is not None:
+                n = i.count.value  # type: ignore[union-attr]
+                self.e(f"lea rdi, [rbp - {off}]")
+                self.e(f"mov rcx, {n}")
+                self.e("xor eax, eax")
+                self.e("rep stosq")
+                self.e(f"lea rax, [rbp - {off}]")
+            else:
+                self.load("rdi", i.count)
+                self.e("call dv_rt_newarray")
+            self.store(i.dst)
+        elif isinstance(i, I.Call):
+            self.call(mangle_function(i.callee), i.args, i.dst)
+        elif isinstance(i, I.RtCall):
+            self.call(i.name, i.args, i.dst)
+        else:
+            raise TypeError(type(i))
+
+    def binop(self, i: I.BinOp) -> None:
+        if i.dst.type == IT.F64:
+            self.loadf("xmm0", i.a)
+            self.loadf("xmm1", i.b)
+            self.e({"ADD": "addsd", "SUB": "subsd", "MUL": "mulsd", "DIV": "divsd"}[i.op] + " xmm0, xmm1")
+            self.storef(i.dst)
+            return
+        self.load("rax", i.a)
+        self.load("rcx", i.b)
+        if i.op in ("ADD", "SUB", "MUL"):
+            self.e({"ADD": "add", "SUB": "sub", "MUL": "imul"}[i.op] + " rax, rcx")
+            self.store(i.dst)
+            return
+        b = i.b
+        const_b = isinstance(b, I.Const)
+        safe = const_b and b.value not in (0, -1)
+        done = self.fresh("dv")
+        if not safe:
+            if not (const_b and b.value == -1):
+                self.e("test rcx, rcx")
+                if i.op == "DIV":
+                    self.e(f"je {self.lab('trap_div0')}")
+                    self.need_div0 = True
+                else:
+                    self.e(f"je {self.lab('trap_rem0')}")
+                    self.need_rem0 = True
+            normal = self.fresh("dn")
+            self.e("cmp rcx, -1")
+            self.e(f"jne {normal}")
+            if i.op == "DIV":
+                self.e("mov rdx, -9223372036854775808")
+                self.e("cmp rax, rdx")
+                self.e(f"je {self.lab('trap_ovf')}")
+                self.need_ovf = True
+                self.e("neg rax")
+                self.e(f"jmp {done}")
+            else:
+                self.e("xor eax, eax")          # x % -1 == 0 (and avoids the idiv trap)
+                self.e(f"jmp {done}")
+            self.lines.append(f"{normal}:")
+        self.e("cqo")
+        self.e("idiv rcx")
+        if i.op == "MOD":
+            self.e("mov rax, rdx")
+        self.lines.append(f"{done}:")
+        self.store(i.dst)
+
+    def cmp(self, i: I.Cmp) -> None:
+        t = i.a.type if not isinstance(i.a, I.GlobalRef) else IT.ADDR
+        if t == IT.STR:
+            self.call("dv_rt_streq", [i.a, i.b], None, keep_rax=True)
+            if i.cond == "NE":
+                self.e("xor rax, 1")
+            self.store(i.dst)
+            return
+        if t == IT.F64:
+            self.loadf("xmm0", i.a)
+            self.loadf("xmm1", i.b)
+            c = i.cond
+            if c == "LT":
+                self.e("ucomisd xmm1, xmm0"); self.e("seta al")
+            elif c == "LE":
+                self.e("ucomisd xmm1, xmm0"); self.e("setae al")
+            elif c == "GT":
+                self.e("ucomisd xmm0, xmm1"); self.e("seta al")
+            elif c == "GE":
+                self.e("ucomisd xmm0, xmm1"); self.e("setae al")
+            elif c == "EQ":
+                self.e("ucomisd xmm0, xmm1"); self.e("sete al"); self.e("setnp cl"); self.e("and al, cl")
+            else:
+                self.e("ucomisd xmm0, xmm1"); self.e("setne al"); self.e("setp cl"); self.e("or al, cl")
+            self.e("movzx eax, al")
+            self.store(i.dst)
+            return
+        self.load("rax", i.a)
+        self.load("rcx", i.b)
+        self.e("cmp rax, rcx")
+        self.e(f"set{_SETCC[i.cond]} al")
+        self.e("movzx eax, al")
+        self.store(i.dst)
+
+    def convert(self, i: I.Convert) -> None:
+        src_t = i.src.type if not isinstance(i.src, I.GlobalRef) else IT.ADDR
+        dst_t = i.dst.type
+        if dst_t == IT.F64:
+            self.load("rax", i.src)
+            self.e("cvtsi2sd xmm0, rax")
+            self.storef(i.dst)
+        elif src_t == IT.F64:
+            self.loadf("xmm0", i.src)
+            if dst_t == IT.BOOL:
+                self.e("xorpd xmm1, xmm1")
+                self.e("ucomisd xmm0, xmm1")
+                self.e("setne al"); self.e("setp cl"); self.e("or al, cl")
+                self.e("movzx eax, al")
+            else:
+                self.e("cvttsd2si rax, xmm0")
+                if dst_t == IT.CHAR:
+                    self.e("movsx rax, al")
+            self.store(i.dst)
+        else:
+            self.load("rax", i.src)
+            if dst_t == IT.BOOL:
+                if src_t != IT.BOOL:
+                    self.e("test rax, rax")
+                    self.e("setne al")
+                    self.e("movzx eax, al")
+            elif dst_t == IT.CHAR:
+                self.e("movsx rax, al")
+            self.store(i.dst)
+
+    def call(self, symbol: str, args: list[I.Operand], dst: I.Reg | None, keep_rax: bool = False) -> None:
+        int_regs: list[tuple[str, I.Operand]] = []
+        flt_regs: list[tuple[str, I.Operand]] = []
+        stack: list[I.Operand] = []
+        for a in args:
+            t = a.type if not isinstance(a, I.GlobalRef) else IT.ADDR
+            if t == IT.F64:
+                if len(flt_regs) < 8:
+                    flt_regs.append((f"xmm{len(flt_regs)}", a))
+                else:
+                    stack.append(a)
+            else:
+                if len(int_regs) < 6:
+                    int_regs.append((INT_ARGS[len(int_regs)], a))
+                else:
+                    stack.append(a)
+        pad = 8 if len(stack) % 2 else 0
+        if pad:
+            self.e("sub rsp, 8")
+        for a in reversed(stack):
+            self.load("rax", a)
+            self.e("push rax")
+        for xmm, a in flt_regs:
+            self.loadf(xmm, a)
+        for reg, a in int_regs:
+            self.load(reg, a)
+        self.e(f"call {symbol}")
+        if stack or pad:
+            self.e(f"add rsp, {8 * len(stack) + pad}")
+        if dst is not None:
+            if dst.type == IT.F64:
+                self.storef(dst)
+            else:
+                self.store(dst)
+
+    def terminator(self, t: I.Terminator, nxt: str | None) -> None:
+        if isinstance(t, I.Jump):
+            if t.target != nxt:
+                self.e(f"jmp {self.lab(t.target)}")
+        elif isinstance(t, I.Branch):
+            self.load("rax", t.cond)
+            self.e("test rax, rax")
+            if t.then_target == nxt:
+                self.e(f"je {self.lab(t.else_target)}")
+            elif t.else_target == nxt:
+                self.e(f"jne {self.lab(t.then_target)}")
+            else:
+                self.e(f"jne {self.lab(t.then_target)}")
+                self.e(f"jmp {self.lab(t.else_target)}")
+        elif isinstance(t, I.Return):
+            if t.value is not None:
+                if t.value.type == IT.F64:
+                    self.loadf("xmm0", t.value)
+                else:
+                    self.load("rax", t.value)
+            self.e("mov rsp, rbp")
+            self.e("pop rbp")
+            self.e("ret")
+        else:
+            raise TypeError(type(t))
+
+
+def generate(module: I.IRModule) -> str:
+    """Emit GNU assembler text for a verified module."""
+    strings = _Strings()
+    out = ["    .intel_syntax noprefix", "    .text"]
+    for k, fn in enumerate(module.functions):
+        out += FunctionGen(fn, k, strings).generate()
+        out.append("")
+    out += [
+        "    .globl main",
+        "main:",
+        "    push rbp",
+        "    mov rbp, rsp",
+        "    call dv_entry",
+        "    xor eax, eax",
+        "    pop rbp",
+        "    ret",
+        "",
+    ]
+    if module.globals:
+        out += ["    .bss", "    .balign 16"]
+        for g in module.globals:
+            size = 8 * (g.count if g.kind == "array_static" else 1)
+            out += [f"{mangle_global(g.name)}:", f"    .zero {size}"]
+        out.append("")
+    out += strings.emit()
+    out += ['    .section .note.GNU-stack,"",@progbits', ""]
+    return "\n".join(out)
