@@ -150,7 +150,9 @@ def format_tree(obj: Any, *, spans: bool = True, indent: str = "  ") -> str:
     def emit(label: str | None, v: Any, depth: int) -> None:
         pad = indent * depth
         prefix = f"{label}: " if label else ""
-        if dataclasses.is_dataclass(v) and not isinstance(v, type):
+        if hasattr(v, "compact") and dataclasses.is_dataclass(v):
+            lines.append(f"{pad}{prefix}{v.compact()}")
+        elif dataclasses.is_dataclass(v) and not isinstance(v, type):
             lines.append(f"{pad}{prefix}{head(v)}")
             for f in dataclasses.fields(v):
                 if f.name in _SKIP_FIELDS:
