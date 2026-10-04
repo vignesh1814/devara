@@ -83,3 +83,21 @@ def test_deeply_nested_input_via_cli(tmp_path):
     f.write_text("(" * 3000 + "1" + ")" * 3000 + " ni chupi\n")
     r = subprocess.run([DEVARA, "parse", str(f)], capture_output=True, text=True)
     assert r.returncode == 0, r.stderr[-300:]
+
+
+def test_ir_json_feeds_opt_and_matches_direct_run(tmp_path):
+    src = tmp_path / "p.tel"
+    src.write_text("int a\na lo 2 * 3 pettu\na ni chupi\nnijam ayite { 1 ni chupi }\n")
+    def run(*a):
+        return subprocess.run([DEVARA, *a], capture_output=True, text=True)
+    r = run("ir", "--json", str(src))
+    assert r.returncode == 0, r.stderr
+    j = tmp_path / "p.json"
+    j.write_text(r.stdout)
+    via_json = run("opt", str(j))
+    direct = run("opt", str(src))
+    assert via_json.returncode == 0 and via_json.stdout == direct.stdout
+    typed = run("sema", "--json", str(src))
+    t = tmp_path / "t.json"
+    t.write_text(typed.stdout)
+    assert run("ir", str(t)).stdout == run("ir", str(src)).stdout
