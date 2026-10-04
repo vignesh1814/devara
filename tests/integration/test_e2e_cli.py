@@ -124,12 +124,12 @@ def test_requesting_an_earlier_stage_from_a_later_artifact_is_a_usage_error(prog
     assert r.returncode == 2 and b"already at stage" in r.stderr
 
 
-def test_internal_compiler_error_exit_3_for_bad_generated_code(tmp_path):
+def test_user_supplied_bad_assembly_is_a_user_error_not_an_ice(tmp_path):
     s = tmp_path / "bad.s"
     s.write_text("this is not assembly\n")
     r = dv("build", str(s), "-o", str(tmp_path / "o"))
-    assert r.returncode == 3
-    assert b"internal compiler error" in r.stderr
+    assert r.returncode == 1                      # Q-012; exit 3 is reserved for generated code
+    assert b"assembler error" in r.stderr and b"internal compiler error" not in r.stderr
 
 
 def test_every_stage_artifact_chain_to_executable(prog, tmp_path):
