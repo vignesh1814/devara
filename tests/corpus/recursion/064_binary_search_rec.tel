@@ -1,0 +1,26 @@
+# ID: DSA-064
+# Category: recursion
+# Algorithm: recursive binary search
+# Exercises: tail-style recursion on sub-ranges, array parameter passed through recursive calls, multiple returns, queries
+# Difficulty: easy
+# Expected: index of each query or -1
+int bs charya (int a[], int l, int r, int key) {
+    l > r ayite { -1 ivvu }
+    int mid
+    mid lo (l + r) / 2 pettu
+    a[mid] == key ayite { mid ivvu }
+    a[mid] < key ayite { bs(a, mid + 1, r, key) ivvu }
+    bs(a, l, mid - 1, key) ivvu
+}
+
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku { a[i] ni chaduvu }
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int key
+    key ni chaduvu
+    bs(a, 0, n - 1, key) ni chupi
+}

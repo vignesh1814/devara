@@ -1,0 +1,37 @@
+# ID: DSA-041
+# Category: strings
+# Algorithm: padham equality, inequality, concatenation and manual lexicographic compare
+# Exercises: == != + on padham, literals, empty string identity, value semantics of assignment (copy then extend), function returning int from padham args
+# Difficulty: medium
+# Expected: bool and int results of comparisons
+int compare charya (padham a, padham b) {
+    int i
+    i lo 0 pettu
+    i < podavu(a) && i < podavu(b) unnanta varaku {
+        a[i] < b[i] ayite { -1 ivvu }
+        a[i] > b[i] ayite { 1 ivvu }
+        i lo i + 1 pettu
+    }
+    podavu(a) < podavu(b) ayite { -1 ivvu }
+    podavu(a) > podavu(b) ayite { 1 ivvu }
+    0 ivvu
+}
+
+padham a
+padham b
+a lo "apple" pettu
+b lo a pettu
+b lo b + "s" pettu
+a ni chupi
+b ni chupi
+a == b ni chupi
+a != b ni chupi
+a + "s" == b ni chupi
+"" + a == a ni chupi
+compare(a, b) ni chupi
+compare(b, a) ni chupi
+compare(a, "apple") ni chupi
+compare("banana", "apple") ni chupi
+compare("", "a") ni chupi
+podavu(a + b) ni chupi
+podavu("") ni chupi

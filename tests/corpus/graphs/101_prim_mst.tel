@@ -1,0 +1,58 @@
+# ID: DSA-101
+# Category: graphs
+# Algorithm: Prim's minimum spanning tree (O(V^2))
+# Exercises: key/parent arrays, in-tree flags, selection of minimum key, weight matrix with 0 = no edge, MST edge printing
+# Difficulty: medium
+# Expected: total weight of the MST then edges (parent, child) in order of addition
+int w[10][10]
+int key[10]
+int par[10]
+bool in_tree[10]
+int n
+int m
+n ni chaduvu
+m ni chaduvu
+prati i 0 nundi m varaku {
+    int u
+    int v
+    int c
+    u ni chaduvu
+    v ni chaduvu
+    c ni chaduvu
+    w[u][v] lo c pettu
+    w[v][u] lo c pettu
+}
+prati i 0 nundi n varaku {
+    key[i] lo 1000000000 pettu
+    par[i] lo -1 pettu
+}
+key[0] lo 0 pettu
+int total
+total lo 0 pettu
+int count
+count lo 0 pettu
+int added[10]
+prati round 0 nundi n varaku {
+    int u
+    u lo -1 pettu
+    prati i 0 nundi n varaku {
+        !in_tree[i] && (u == -1 || key[i] < key[u]) ayite { u lo i pettu }
+    }
+    in_tree[u] lo nijam pettu
+    total lo total + key[u] pettu
+    par[u] != -1 ayite {
+        added[count] lo u pettu
+        count lo count + 1 pettu
+    }
+    prati v 0 nundi n varaku {
+        w[u][v] > 0 && !in_tree[v] && w[u][v] < key[v] ayite {
+            key[v] lo w[u][v] pettu
+            par[v] lo u pettu
+        }
+    }
+}
+total ni chupi
+prati i 0 nundi count varaku {
+    par[added[i]] ni chupi
+    added[i] ni chupi
+}

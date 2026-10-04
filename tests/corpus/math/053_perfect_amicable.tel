@@ -1,0 +1,30 @@
+# ID: DSA-053
+# Category: math
+# Algorithm: divisor sums, perfect and amicable numbers
+# Exercises: divisor enumeration up to sqrt, helper function reuse inside conditions, nested logic with &&, ordered pairs
+# Difficulty: medium
+# Expected: perfect numbers below 10000, then amicable pairs (a < b) below 3000
+int divsum charya (int n) {
+    n == 1 ayite { 0 ivvu }
+    int s
+    s lo 1 pettu
+    pratisari (int i lo 2 pettu; i * i <= n; i++) {
+        n % i == 0 ayite {
+            s lo s + i pettu
+            i * i != n ayite { s lo s + n / i pettu }
+        }
+    }
+    s ivvu
+}
+
+prati n 2 nundi 10000 varaku {
+    divsum(n) == n ayite { n ni chupi }
+}
+prati a 2 nundi 3000 varaku {
+    int b
+    b lo divsum(a) pettu
+    b > a && divsum(b) == a ayite {
+        a ni chupi
+        b ni chupi
+    }
+}

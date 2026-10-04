@@ -1,0 +1,100 @@
+# ID: DSA-076
+# Category: datastructures
+# Algorithm: singly linked list in parallel arrays (value[], next[]) with free list
+# Exercises: index-as-pointer with -1 as null, insert at head/tail/after, delete by value, traversal loops, reverse in place
+# Difficulty: hard
+# Expected: list contents after a series of operations and its length
+int val[32]
+int nxt[32]
+int head
+int free_top
+int len
+
+int alloc charya (int v) {
+    int id
+    id lo free_top pettu
+    free_top lo free_top + 1 pettu
+    val[id] lo v pettu
+    nxt[id] lo -1 pettu
+    id ivvu
+}
+
+void push_front charya (int v) {
+    int id
+    id lo alloc(v) pettu
+    nxt[id] lo head pettu
+    head lo id pettu
+    len lo len + 1 pettu
+}
+
+void push_back charya (int v) {
+    int id
+    id lo alloc(v) pettu
+    len lo len + 1 pettu
+    head == -1 ayite {
+        head lo id pettu
+    } lekunte {
+        int cur
+        cur lo head pettu
+        nxt[cur] != -1 unnanta varaku { cur lo nxt[cur] pettu }
+        nxt[cur] lo id pettu
+    }
+}
+
+void remove_value charya (int v) {
+    int prev
+    int cur
+    prev lo -1 pettu
+    cur lo head pettu
+    cur != -1 unnanta varaku {
+        val[cur] == v ayite {
+            prev == -1 ayite { head lo nxt[cur] pettu } lekunte { nxt[prev] lo nxt[cur] pettu }
+            len lo len - 1 pettu
+            aapu
+        }
+        prev lo cur pettu
+        cur lo nxt[cur] pettu
+    }
+}
+
+void reverse_list charya () {
+    int prev
+    int cur
+    prev lo -1 pettu
+    cur lo head pettu
+    cur != -1 unnanta varaku {
+        int nx
+        nx lo nxt[cur] pettu
+        nxt[cur] lo prev pettu
+        prev lo cur pettu
+        cur lo nx pettu
+    }
+    head lo prev pettu
+}
+
+void show charya () {
+    len ni chupi
+    int cur
+    cur lo head pettu
+    cur != -1 unnanta varaku {
+        val[cur] ni chupi
+        cur lo nxt[cur] pettu
+    }
+}
+
+head lo -1 pettu
+push_back(1)
+push_back(2)
+push_front(0)
+push_back(3)
+push_back(4)
+show()
+remove_value(2)
+remove_value(0)
+remove_value(99)
+show()
+reverse_list()
+show()
+push_front(7)
+remove_value(4)
+show()

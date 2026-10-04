@@ -1,0 +1,57 @@
+# ID: DSA-092
+# Category: dp
+# Algorithm: longest palindromic substring (expand around centre) and longest palindromic subsequence (interval dp)
+# Exercises: expansion helper returning length, odd/even centres, 2-D interval dp filled by increasing length, padham building from a range
+# Difficulty: hard
+# Expected: longest palindromic substring (leftmost on ties) and its length, then the longest palindromic subsequence length
+int dp[41][41]
+
+int expand charya (padham s, int l, int r) {
+    l >= 0 && r < podavu(s) && s[l] == s[r] unnanta varaku {
+        l lo l - 1 pettu
+        r lo r + 1 pettu
+    }
+    r - l - 1 ivvu
+}
+
+padham s
+s ni chaduvu
+int n
+n lo podavu(s) pettu
+int bs
+int bl
+bs lo 0 pettu
+bl lo 0 pettu
+prati i 0 nundi n varaku {
+    int l1
+    int l2
+    int l
+    l1 lo expand(s, i, i) pettu
+    l2 lo expand(s, i, i + 1) pettu
+    l lo l1 pettu
+    l2 > l ayite { l lo l2 pettu }
+    l > bl ayite {
+        bl lo l pettu
+        bs lo i - (l - 1) / 2 pettu
+    }
+}
+padham res
+res lo "" pettu
+prati k bs nundi bs + bl varaku { res lo res + (padham) s[k] pettu }
+res ni chupi
+bl ni chupi
+prati i 0 nundi n varaku { dp[i][i] lo 1 pettu }
+prati len 2 nundi n + 1 varaku {
+    prati i 0 nundi n - len + 1 varaku {
+        int j
+        j lo i + len - 1 pettu
+        s[i] == s[j] ayite {
+            dp[i][j] lo dp[i + 1][j - 1] + 2 pettu
+        } lekunte dp[i + 1][j] > dp[i][j - 1] ayite {
+            dp[i][j] lo dp[i + 1][j] pettu
+        } lekunte {
+            dp[i][j] lo dp[i][j - 1] pettu
+        }
+    }
+}
+dp[0][n - 1] ni chupi

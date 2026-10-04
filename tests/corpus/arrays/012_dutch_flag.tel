@@ -1,0 +1,36 @@
+# ID: DSA-012
+# Category: arrays
+# Algorithm: Dutch national flag three-way partition
+# Exercises: swap helper, three-way if/else-if chain, three indices, array parameter aliasing
+# Difficulty: medium
+# Expected: input of 0/1/2 sorted ascending, one per line
+void swap charya (int a[], int i, int j) {
+    int t
+    t lo a[i] pettu
+    a[i] lo a[j] pettu
+    a[j] lo t pettu
+}
+
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku { a[i] ni chaduvu }
+int low
+int mid
+int high
+low lo 0 pettu
+mid lo 0 pettu
+high lo n - 1 pettu
+mid <= high unnanta varaku {
+    a[mid] == 0 ayite {
+        swap(a, low, mid)
+        low lo low + 1 pettu
+        mid lo mid + 1 pettu
+    } lekunte a[mid] == 1 ayite {
+        mid lo mid + 1 pettu
+    } lekunte {
+        swap(a, mid, high)
+        high lo high - 1 pettu
+    }
+}
+prati i 0 nundi n varaku { a[i] ni chupi }

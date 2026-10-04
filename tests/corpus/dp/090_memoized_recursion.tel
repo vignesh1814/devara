@@ -1,0 +1,27 @@
+# ID: DSA-090
+# Category: dp
+# Algorithm: top-down memoization (tribonacci stairs) and bottom-up Catalan numbers
+# Exercises: memo array with 0 as unknown, recursion + global state, nested summation loop for Catalan, large values near 2^52
+# Difficulty: medium
+# Expected: ways(n) for n in 1..40 step 3, then Catalan numbers C0..C25
+int memo[64]
+
+int ways charya (int n) {
+    n < 0 ayite { 0 ivvu }
+    n == 0 ayite { 1 ivvu }
+    memo[n] != 0 ayite { memo[n] ivvu }
+    memo[n] lo ways(n - 1) + ways(n - 2) + ways(n - 3) pettu
+    memo[n] ivvu
+}
+
+pratisari (int n lo 1 pettu; n <= 40; n lo n + 3 pettu) {
+    ways(n) ni chupi
+}
+int cat[26]
+cat[0] lo 1 pettu
+prati n 1 nundi 26 varaku {
+    prati i 0 nundi n varaku {
+        cat[n] lo cat[n] + cat[i] * cat[n - 1 - i] pettu
+    }
+}
+prati n 0 nundi 26 varaku { cat[n] ni chupi }

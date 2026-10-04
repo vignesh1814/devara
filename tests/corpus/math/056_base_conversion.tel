@@ -1,0 +1,47 @@
+# ID: DSA-056
+# Category: math
+# Algorithm: base conversion to and from bases 2..16
+# Exercises: global padham lookup table indexed by value, char to padham prepend, search function returning from inside a range loop, round trip
+# Difficulty: medium
+# Expected: n in base 2, 8, 16, and the value parsed back from its base-16 text
+padham digits
+digits lo "0123456789abcdef" pettu
+
+padham to_base charya (int n, int base) {
+    n == 0 ayite { "0" ivvu }
+    padham s
+    s lo "" pettu
+    n > 0 unnanta varaku {
+        s lo (padham) digits[n % base] + s pettu
+        n lo n / base pettu
+    }
+    s ivvu
+}
+
+int dv charya (char c) {
+    prati k 0 nundi 16 varaku {
+        digits[k] == c ayite { k ivvu }
+    }
+    -1 ivvu
+}
+
+int from_base charya (padham s, int base) {
+    int v
+    v lo 0 pettu
+    prati i 0 nundi podavu(s) varaku {
+        v lo v * base + dv(s[i]) pettu
+    }
+    v ivvu
+}
+
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int x
+    x ni chaduvu
+    to_base(x, 2) ni chupi
+    to_base(x, 8) ni chupi
+    to_base(x, 16) ni chupi
+    from_base(to_base(x, 16), 16) ni chupi
+    from_base(to_base(x, 2), 2) == x ni chupi
+}

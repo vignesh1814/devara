@@ -1,0 +1,61 @@
+# ID: DSA-074
+# Category: datastructures
+# Algorithm: array-backed stack with push/pop/peek and an infix-free RPN evaluator
+# Exercises: global stack array and top index, void/int functions with side effects, command loop over input codes, postfix evaluation with operator switch via if-chain
+# Difficulty: medium
+# Expected: results of push/pop commands, then RPN evaluation results
+int stack[100]
+int top
+top lo 0 pettu
+
+void push charya (int v) {
+    stack[top] lo v pettu
+    top lo top + 1 pettu
+}
+
+int pop charya () {
+    top lo top - 1 pettu
+    stack[top] ivvu
+}
+
+bool empty charya () {
+    top == 0 ivvu
+}
+
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int cmd
+    cmd ni chaduvu
+    cmd == 1 ayite {
+        int v
+        v ni chaduvu
+        push(v)
+    } lekunte cmd == 2 ayite {
+        pop() ni chupi
+    } lekunte cmd == 3 ayite {
+        empty() ni chupi
+    } lekunte {
+        stack[top - 1] ni chupi
+    }
+}
+top ni chupi
+
+# RPN: codes >= 0 are operands, -1 '+', -2 '-', -3 '*', -4 '/'
+top lo 0 pettu
+int m
+m ni chaduvu
+prati t 0 nundi m varaku {
+    int tok
+    tok ni chaduvu
+    tok >= 0 ayite {
+        push(tok)
+    } lekunte {
+        int y
+        int x
+        y lo pop() pettu
+        x lo pop() pettu
+        tok == -1 ayite { push(x + y) } lekunte tok == -2 ayite { push(x - y) } lekunte tok == -3 ayite { push(x * y) } lekunte { push(x / y) }
+    }
+}
+pop() ni chupi

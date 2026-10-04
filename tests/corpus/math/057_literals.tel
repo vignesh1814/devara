@@ -1,0 +1,23 @@
+# ID: DSA-057
+# Category: math
+# Algorithm: numeric and character literal forms
+# Exercises: decimal, octal, hexadecimal literals (both X cases), zero forms, INT64_MAX literal, \x char/string escapes, mixed-base arithmetic
+# Difficulty: easy
+# Expected: values of each literal in decimal, then escape-built text
+0x1F ni chupi
+0XFF ni chupi
+017 ni chupi
+0777 ni chupi
+0 ni chupi
+00 ni chupi
+0xdeadBEEF ni chupi
+0x7FFFFFFFFFFFFFFF ni chupi
+9223372036854775807 ni chupi
+0x10 + 010 + 10 ni chupi
+0xA * 012 ni chupi
+'\x41' ni chupi
+'\x7a' ni chupi
+"\x48\x69\x21" ni chupi
+podavu("\x48\x69\x21") ni chupi
+'A' + 1 ni chupi
+(char) ('A' + 1) ni chupi

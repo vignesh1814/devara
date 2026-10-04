@@ -1,0 +1,59 @@
+# ID: DSA-086
+# Category: dp
+# Algorithm: longest increasing subsequence: O(n^2) dp with reconstruction, and O(n log n) tails with binary search
+# Exercises: predecessor array, reconstruction into array then reversed output, lower-bound binary search on tails, two independent algorithms agreeing
+# Difficulty: hard
+# Expected: LIS length (dp), the subsequence, LIS length (tails method)
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku { a[i] ni chaduvu }
+int len[n]
+int prev[n]
+int best
+int bi
+best lo 0 pettu
+bi lo 0 pettu
+prati i 0 nundi n varaku {
+    len[i] lo 1 pettu
+    prev[i] lo -1 pettu
+    prati j 0 nundi i varaku {
+        a[j] < a[i] && len[j] + 1 > len[i] ayite {
+            len[i] lo len[j] + 1 pettu
+            prev[i] lo j pettu
+        }
+    }
+    len[i] > best ayite {
+        best lo len[i] pettu
+        bi lo i pettu
+    }
+}
+best ni chupi
+int seq[n]
+int k
+k lo best - 1 pettu
+int cur
+cur lo bi pettu
+cur != -1 unnanta varaku {
+    seq[k] lo a[cur] pettu
+    k lo k - 1 pettu
+    cur lo prev[cur] pettu
+}
+prati i 0 nundi best varaku { seq[i] ni chupi }
+int tails[n]
+int tn
+tn lo 0 pettu
+prati i 0 nundi n varaku {
+    int l
+    int r
+    l lo 0 pettu
+    r lo tn pettu
+    l < r unnanta varaku {
+        int mid
+        mid lo (l + r) / 2 pettu
+        tails[mid] < a[i] ayite { l lo mid + 1 pettu } lekunte { r lo mid pettu }
+    }
+    tails[l] lo a[i] pettu
+    l == tn ayite { tn lo tn + 1 pettu }
+}
+tn ni chupi

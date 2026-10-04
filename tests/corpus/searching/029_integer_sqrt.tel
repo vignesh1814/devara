@@ -1,0 +1,34 @@
+# ID: DSA-029
+# Category: searching
+# Algorithm: integer square root by binary search on the answer
+# Exercises: search over a value range, 64-bit products, loop invariants, floor semantics
+# Difficulty: medium
+# Expected: floor(sqrt(x)) for each query
+int isqrt charya (int x) {
+    int l
+    int r
+    int ans
+    l lo 0 pettu
+    r lo 3037000499 pettu
+    r > x ayite { r lo x pettu }
+    ans lo 0 pettu
+    l <= r unnanta varaku {
+        int mid
+        mid lo l + (r - l) / 2 pettu
+        mid * mid <= x ayite {
+            ans lo mid pettu
+            l lo mid + 1 pettu
+        } lekunte {
+            r lo mid - 1 pettu
+        }
+    }
+    ans ivvu
+}
+
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int x
+    x ni chaduvu
+    isqrt(x) ni chupi
+}

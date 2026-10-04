@@ -1,0 +1,39 @@
+# ID: DSA-100
+# Category: graphs
+# Algorithm: Bellman-Ford with negative-cycle detection
+# Exercises: edge lists in parallel arrays, n-1 relaxation rounds, extra detection pass, bool flag, INF guard, negative weights
+# Difficulty: medium
+# Expected: distances from the source (or "unreachable" -1), then whether a negative cycle is reachable
+int eu[20]
+int ev[20]
+int ew[20]
+int dist[10]
+int n
+int m
+n ni chaduvu
+m ni chaduvu
+prati i 0 nundi m varaku {
+    eu[i] ni chaduvu
+    ev[i] ni chaduvu
+    ew[i] ni chaduvu
+}
+int src
+src ni chaduvu
+prati i 0 nundi n varaku { dist[i] lo 1000000000 pettu }
+dist[src] lo 0 pettu
+prati round 1 nundi n varaku {
+    prati e 0 nundi m varaku {
+        dist[eu[e]] < 1000000000 && dist[eu[e]] + ew[e] < dist[ev[e]] ayite {
+            dist[ev[e]] lo dist[eu[e]] + ew[e] pettu
+        }
+    }
+}
+bool neg
+neg lo abaddham pettu
+prati e 0 nundi m varaku {
+    dist[eu[e]] < 1000000000 && dist[eu[e]] + ew[e] < dist[ev[e]] ayite { neg lo nijam pettu }
+}
+prati i 0 nundi n varaku {
+    dist[i] == 1000000000 ayite { -1 ni chupi } lekunte { dist[i] ni chupi }
+}
+neg ni chupi

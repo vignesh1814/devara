@@ -1,0 +1,23 @@
+# ID: DSA-013
+# Category: arrays
+# Algorithm: frequency histogram with padham bars
+# Exercises: counting array indexed by value, padham concatenation in a loop, padham output, nested loops, shadowed loop variable
+# Difficulty: medium
+# Expected: for each digit 0..9 a line with its count then a bar of stars
+int n
+n ni chaduvu
+int cnt[10]
+prati i 0 nundi n varaku {
+    int d
+    d ni chaduvu
+    cnt[d] lo cnt[d] + 1 pettu
+}
+prati d 0 nundi 10 varaku {
+    cnt[d] ni chupi
+    padham bar
+    bar lo "" pettu
+    prati k 0 nundi cnt[d] varaku {
+        bar lo bar + "*" pettu
+    }
+    bar ni chupi
+}

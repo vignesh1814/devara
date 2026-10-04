@@ -1,0 +1,19 @@
+# ID: DSA-021
+# Category: sorting
+# Algorithm: counting sort on small non-negative integers
+# Exercises: constant-size array, nested range loops, value-indexed counting, output
+# Difficulty: easy
+# Expected: values sorted ascending
+int count[100]
+int n
+n ni chaduvu
+prati i 0 nundi n varaku {
+    int v
+    v ni chaduvu
+    count[v] lo count[v] + 1 pettu
+}
+prati v 0 nundi 100 varaku {
+    prati c 0 nundi count[v] varaku {
+        v ni chupi
+    }
+}

@@ -1,0 +1,31 @@
+# ID: DSA-052
+# Category: math
+# Algorithm: fast modular exponentiation and modular inverse
+# Exercises: binary exponentiation loop, products near 2^60 that do not overflow, % chains, Fermat inverse via modpow(a, m-2, m)
+# Difficulty: medium
+# Expected: base^exp mod m for each triple, then the inverse of each base mod m
+int modpow charya (int base, int e, int m) {
+    int r
+    r lo 1 pettu
+    base lo base % m pettu
+    e > 0 unnanta varaku {
+        e % 2 == 1 ayite { r lo r * base % m pettu }
+        base lo base * base % m pettu
+        e lo e / 2 pettu
+    }
+    r ivvu
+}
+
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int b0
+    int e0
+    int m0
+    b0 ni chaduvu
+    e0 ni chaduvu
+    m0 ni chaduvu
+    modpow(b0, e0, m0) ni chupi
+    modpow(b0, m0 - 2, m0) ni chupi
+    modpow(b0, m0 - 2, m0) * b0 % m0 ni chupi
+}

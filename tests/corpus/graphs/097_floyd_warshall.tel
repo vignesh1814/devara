@@ -1,0 +1,39 @@
+# ID: DSA-097
+# Category: graphs
+# Algorithm: Floyd-Warshall all-pairs shortest paths on a directed weighted graph
+# Exercises: triple nested loops with k outermost, INF checks before addition, diagonal zero init, matrix output, unreachable pairs
+# Difficulty: medium
+# Expected: n*n distances row-major (-1 for unreachable)
+int d[8][8]
+int n
+int m
+n ni chaduvu
+m ni chaduvu
+prati i 0 nundi n varaku {
+    prati j 0 nundi n varaku {
+        i == j ayite { d[i][j] lo 0 pettu } lekunte { d[i][j] lo 1000000000 pettu }
+    }
+}
+prati i 0 nundi m varaku {
+    int u
+    int v
+    int c
+    u ni chaduvu
+    v ni chaduvu
+    c ni chaduvu
+    c < d[u][v] ayite { d[u][v] lo c pettu }
+}
+prati k 0 nundi n varaku {
+    prati i 0 nundi n varaku {
+        prati j 0 nundi n varaku {
+            d[i][k] < 1000000000 && d[k][j] < 1000000000 && d[i][k] + d[k][j] < d[i][j] ayite {
+                d[i][j] lo d[i][k] + d[k][j] pettu
+            }
+        }
+    }
+}
+prati i 0 nundi n varaku {
+    prati j 0 nundi n varaku {
+        d[i][j] >= 1000000000 ayite { -1 ni chupi } lekunte { d[i][j] ni chupi }
+    }
+}

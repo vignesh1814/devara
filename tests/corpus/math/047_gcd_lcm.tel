@@ -1,0 +1,31 @@
+# ID: DSA-047
+# Category: math
+# Algorithm: Euclid's gcd and lcm
+# Exercises: scalar parameters modified locally (pass-by-value), while loop, % operator, lcm via division-before-multiply, function composition
+# Difficulty: easy
+# Expected: gcd and lcm for each input pair
+int gcd charya (int a, int b) {
+    b != 0 unnanta varaku {
+        int t
+        t lo a % b pettu
+        a lo b pettu
+        b lo t pettu
+    }
+    a ivvu
+}
+
+int lcm charya (int a, int b) {
+    a / gcd(a, b) * b ivvu
+}
+
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int x
+    int y
+    x ni chaduvu
+    y ni chaduvu
+    gcd(x, y) ni chupi
+    lcm(x, y) ni chupi
+    x ni chupi
+}

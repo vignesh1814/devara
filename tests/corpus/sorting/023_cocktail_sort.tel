@@ -1,0 +1,40 @@
+# ID: DSA-023
+# Category: sorting
+# Algorithm: cocktail shaker sort
+# Exercises: pratisari with ++ prefix and -- prefix updates, bool flag, bidirectional passes, saagu
+# Difficulty: medium
+# Expected: sorted values one per line
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku { a[i] ni chaduvu }
+int start
+int stop
+start lo 0 pettu
+stop lo n - 1 pettu
+bool swapped
+swapped lo nijam pettu
+swapped unnanta varaku {
+    swapped lo abaddham pettu
+    int i
+    pratisari (i lo start pettu; i < stop; ++i) {
+        a[i] <= a[i + 1] ayite { saagu }
+        int t
+        t lo a[i] pettu
+        a[i] lo a[i + 1] pettu
+        a[i + 1] lo t pettu
+        swapped lo nijam pettu
+    }
+    !swapped ayite { aapu }
+    stop lo stop - 1 pettu
+    pratisari (i lo stop - 1 pettu; i >= start; --i) {
+        a[i] <= a[i + 1] ayite { saagu }
+        int t
+        t lo a[i] pettu
+        a[i] lo a[i + 1] pettu
+        a[i + 1] lo t pettu
+        swapped lo nijam pettu
+    }
+    start lo start + 1 pettu
+}
+prati i 0 nundi n varaku { a[i] ni chupi }

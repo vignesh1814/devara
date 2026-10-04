@@ -1,0 +1,25 @@
+# ID: DSA-032
+# Category: searching
+# Algorithm: bisection root finding on floats
+# Exercises: float variables and literals, %g output, fixed iteration count with pratisari, float comparison, int-to-float promotion in mixed arithmetic
+# Difficulty: medium
+# Expected: root of x*x - 2 = 0 in [1, 2] after 40 halvings, printed with %g (6 significant digits)
+float f charya (float x) {
+    x * x - 2 ivvu
+}
+
+float l
+float r
+l lo 1.0 pettu
+r lo 2 pettu
+pratisari (int i lo 0 pettu; i < 40; i++) {
+    float m
+    m lo (l + r) / 2 pettu
+    f(m) > 0 ayite { r lo m pettu } lekunte { l lo m pettu }
+}
+l ni chupi
+(l + r) / 2 ni chupi
+f(1.5) ni chupi
+0.1 + 0.2 ni chupi
+1.0 / 3 ni chupi
+100000.0 * 10 ni chupi

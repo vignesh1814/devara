@@ -1,0 +1,15 @@
+# ID: DSA-033
+# Category: strings
+# Algorithm: string reversal
+# Exercises: padham line input, podavu, padham indexing, char to padham cast, padham concatenation, descending range via pratisari
+# Difficulty: easy
+# Expected: the input line reversed, then its length
+padham s
+s ni chaduvu
+padham r
+r lo "" pettu
+pratisari (int i lo podavu(s) - 1 pettu; i >= 0; i--) {
+    r lo r + (padham) s[i] pettu
+}
+r ni chupi
+podavu(r) ni chupi

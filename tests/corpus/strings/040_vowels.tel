@@ -1,0 +1,34 @@
+# ID: DSA-040
+# Category: strings
+# Algorithm: count vowels, consonants and digits
+# Exercises: long || chain, && chain, char comparison with escape-free literals, ranges of chars, counters
+# Difficulty: easy
+# Expected: vowel, consonant, digit, other counts
+padham s
+s ni chaduvu
+int v
+int c
+int d
+int o
+v lo 0 pettu
+c lo 0 pettu
+d lo 0 pettu
+o lo 0 pettu
+prati i 0 nundi podavu(s) varaku {
+    char ch
+    ch lo s[i] pettu
+    ch >= 'A' && ch <= 'Z' ayite { ch lo ch + ('a' - 'A') pettu }
+    ch == 'a' || ch == 'e' || ch == 'i' || ch == 'o' || ch == 'u' ayite {
+        v lo v + 1 pettu
+    } lekunte ch >= 'a' && ch <= 'z' ayite {
+        c lo c + 1 pettu
+    } lekunte ch >= '0' && ch <= '9' ayite {
+        d lo d + 1 pettu
+    } lekunte {
+        o lo o + 1 pettu
+    }
+}
+v ni chupi
+c ni chupi
+d ni chupi
+o ni chupi

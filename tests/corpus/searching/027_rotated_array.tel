@@ -1,0 +1,43 @@
+# ID: DSA-027
+# Category: searching
+# Algorithm: search in a rotated sorted array
+# Exercises: modified binary search, nested conditions with &&, || mixes, early return
+# Difficulty: hard
+# Expected: index of each query in the rotated array, or -1
+int search_rot charya (int a[], int n, int key) {
+    int l
+    int r
+    l lo 0 pettu
+    r lo n - 1 pettu
+    l <= r unnanta varaku {
+        int mid
+        mid lo (l + r) / 2 pettu
+        a[mid] == key ayite { mid ivvu }
+        a[l] <= a[mid] ayite {
+            a[l] <= key && key < a[mid] ayite {
+                r lo mid - 1 pettu
+            } lekunte {
+                l lo mid + 1 pettu
+            }
+        } lekunte {
+            a[mid] < key && key <= a[r] ayite {
+                l lo mid + 1 pettu
+            } lekunte {
+                r lo mid - 1 pettu
+            }
+        }
+    }
+    -1 ivvu
+}
+
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku { a[i] ni chaduvu }
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int key
+    key ni chaduvu
+    search_rot(a, n, key) ni chupi
+}

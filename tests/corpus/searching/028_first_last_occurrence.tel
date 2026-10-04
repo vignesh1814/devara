@@ -1,0 +1,40 @@
+# ID: DSA-028
+# Category: searching
+# Algorithm: first and last occurrence by binary search
+# Exercises: result variables updated while continuing the search, two-sided narrowing, bool-driven function parameter
+# Difficulty: medium
+# Expected: first and last index of each key (or -1 -1)
+int find_edge charya (int a[], int n, int key, bool first) {
+    int l
+    int r
+    int ans
+    l lo 0 pettu
+    r lo n - 1 pettu
+    ans lo -1 pettu
+    l <= r unnanta varaku {
+        int mid
+        mid lo (l + r) / 2 pettu
+        a[mid] == key ayite {
+            ans lo mid pettu
+            first ayite { r lo mid - 1 pettu } lekunte { l lo mid + 1 pettu }
+        } lekunte a[mid] < key ayite {
+            l lo mid + 1 pettu
+        } lekunte {
+            r lo mid - 1 pettu
+        }
+    }
+    ans ivvu
+}
+
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku { a[i] ni chaduvu }
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int key
+    key ni chaduvu
+    find_edge(a, n, key, nijam) ni chupi
+    find_edge(a, n, key, abaddham) ni chupi
+}

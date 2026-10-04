@@ -1,0 +1,26 @@
+# ID: DSA-016
+# Category: sorting
+# Algorithm: insertion sort counting shifts
+# Exercises: while with compound && condition and short-circuit guarding a[j] at j = -1, shift counter, key variable
+# Difficulty: easy
+# Expected: shift count then the sorted values
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku { a[i] ni chaduvu }
+int shifts
+shifts lo 0 pettu
+prati i 1 nundi n varaku {
+    int key
+    int j
+    key lo a[i] pettu
+    j lo i - 1 pettu
+    j >= 0 && a[j] > key unnanta varaku {
+        a[j + 1] lo a[j] pettu
+        j lo j - 1 pettu
+        shifts lo shifts + 1 pettu
+    }
+    a[j + 1] lo key pettu
+}
+shifts ni chupi
+prati i 0 nundi n varaku { a[i] ni chupi }

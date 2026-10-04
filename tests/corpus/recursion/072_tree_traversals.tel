@@ -1,0 +1,56 @@
+# ID: DSA-072
+# Category: recursion
+# Algorithm: pre/in/post-order traversal, height and leaf sum of an implicit binary tree stored level-order in an array
+# Exercises: tree-style recursion on index arithmetic (2i+1, 2i+2), bounds guarded by n, max of two recursive results, three traversal orders
+# Difficulty: medium
+# Expected: preorder, inorder, postorder sequences, height (edges+1 counting nodes), sum of leaf values
+int t[64]
+int n
+
+void pre charya (int i) {
+    i < n ayite {
+        t[i] ni chupi
+        pre(2 * i + 1)
+        pre(2 * i + 2)
+    }
+}
+
+void ino charya (int i) {
+    i < n ayite {
+        ino(2 * i + 1)
+        t[i] ni chupi
+        ino(2 * i + 2)
+    }
+}
+
+void post charya (int i) {
+    i < n ayite {
+        post(2 * i + 1)
+        post(2 * i + 2)
+        t[i] ni chupi
+    }
+}
+
+int height charya (int i) {
+    i >= n ayite { 0 ivvu }
+    int l
+    int r
+    l lo height(2 * i + 1) pettu
+    r lo height(2 * i + 2) pettu
+    l > r ayite { l + 1 ivvu }
+    r + 1 ivvu
+}
+
+int leaf_sum charya (int i) {
+    i >= n ayite { 0 ivvu }
+    2 * i + 1 >= n ayite { t[i] ivvu }
+    leaf_sum(2 * i + 1) + leaf_sum(2 * i + 2) ivvu
+}
+
+n ni chaduvu
+prati i 0 nundi n varaku { t[i] ni chaduvu }
+pre(0)
+ino(0)
+post(0)
+height(0) ni chupi
+leaf_sum(0) ni chupi

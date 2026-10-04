@@ -1,0 +1,58 @@
+# ID: DSA-081
+# Category: datastructures
+# Algorithm: double-ended queue on a circular buffer
+# Exercises: push/pop at both ends, negative index normalisation via + capacity, bool status results, mixed command stream
+# Difficulty: medium
+# Expected: popped values and success flags
+int buf[8]
+int head
+int size
+
+bool push_front charya (int v) {
+    size == 8 ayite { abaddham ivvu }
+    head lo (head + 7) % 8 pettu
+    buf[head] lo v pettu
+    size lo size + 1 pettu
+    nijam ivvu
+}
+
+bool push_back charya (int v) {
+    size == 8 ayite { abaddham ivvu }
+    buf[(head + size) % 8] lo v pettu
+    size lo size + 1 pettu
+    nijam ivvu
+}
+
+int pop_front charya () {
+    size == 0 ayite { -1 ivvu }
+    int v
+    v lo buf[head] pettu
+    head lo (head + 1) % 8 pettu
+    size lo size - 1 pettu
+    v ivvu
+}
+
+int pop_back charya () {
+    size == 0 ayite { -1 ivvu }
+    size lo size - 1 pettu
+    buf[(head + size) % 8] ivvu
+}
+
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int cmd
+    int v
+    cmd ni chaduvu
+    cmd == 1 ayite {
+        v ni chaduvu
+        push_front(v) ni chupi
+    } lekunte cmd == 2 ayite {
+        v ni chaduvu
+        push_back(v) ni chupi
+    } lekunte cmd == 3 ayite {
+        pop_front() ni chupi
+    } lekunte {
+        pop_back() ni chupi
+    }
+}

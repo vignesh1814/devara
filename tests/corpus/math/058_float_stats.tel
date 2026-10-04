@@ -1,0 +1,47 @@
+# ID: DSA-058
+# Category: math
+# Algorithm: mean, variance and Newton square root over floats; %g formatting table
+# Exercises: float input, float arithmetic, int to float promotion, Newton iteration loop, %g outputs including exponent forms
+# Difficulty: medium
+# Expected: mean, variance, standard deviation, min, max (all %g), followed by formatting probes
+int n
+n ni chaduvu
+float x[n]
+prati i 0 nundi n varaku { x[i] ni chaduvu }
+float sum
+sum lo 0.0 pettu
+prati i 0 nundi n varaku { sum lo sum + x[i] pettu }
+float mean
+mean lo sum / n pettu
+float var
+var lo 0.0 pettu
+prati i 0 nundi n varaku { var lo var + (x[i] - mean) * (x[i] - mean) pettu }
+var lo var / n pettu
+float s
+s lo var / 2 + 1 pettu
+pratisari (int k lo 0 pettu; k < 40; k++) {
+    s lo (s + var / s) / 2 pettu
+}
+mean ni chupi
+var ni chupi
+s ni chupi
+float mn
+float mx
+mn lo x[0] pettu
+mx lo x[0] pettu
+prati i 1 nundi n varaku {
+    x[i] < mn ayite { mn lo x[i] pettu }
+    x[i] > mx ayite { mx lo x[i] pettu }
+}
+mn ni chupi
+mx ni chupi
+1234567.0 ni chupi
+123456.0 ni chupi
+1.234 / 100000 ni chupi
+100.0 ni chupi
+3.0 ni chupi
+-2.25 ni chupi
+1000000.0 * 1000000000 ni chupi
+2.0 / 3 ni chupi
+0.0001 ni chupi
+0.00001 ni chupi

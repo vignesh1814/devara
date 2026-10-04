@@ -1,0 +1,43 @@
+# ID: DSA-020
+# Category: sorting
+# Algorithm: heap sort (max-heap, sift down)
+# Exercises: void function with aapu to leave loop, while loop with local declarations, heapify descending pratisari, parent/child arithmetic
+# Difficulty: hard
+# Expected: sorted values one per line
+void swap charya (int a[], int i, int j) {
+    int t
+    t lo a[i] pettu
+    a[i] lo a[j] pettu
+    a[j] lo t pettu
+}
+
+void sift_down charya (int a[], int start, int end) {
+    int root
+    root lo start pettu
+    root * 2 + 1 <= end unnanta varaku {
+        int child
+        int swp
+        child lo root * 2 + 1 pettu
+        swp lo root pettu
+        a[swp] < a[child] ayite { swp lo child pettu }
+        child + 1 <= end && a[swp] < a[child + 1] ayite { swp lo child + 1 pettu }
+        swp == root ayite { aapu }
+        swap(a, root, swp)
+        root lo swp pettu
+    }
+}
+
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku { a[i] ni chaduvu }
+int s
+pratisari (s lo (n - 2) / 2 pettu; s >= 0; --s) {
+    sift_down(a, s, n - 1)
+}
+int e
+pratisari (e lo n - 1 pettu; e > 0; e--) {
+    swap(a, 0, e)
+    sift_down(a, 0, e - 1)
+}
+prati i 0 nundi n varaku { a[i] ni chupi }

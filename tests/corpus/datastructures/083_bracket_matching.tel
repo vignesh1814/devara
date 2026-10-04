@@ -1,0 +1,34 @@
+# ID: DSA-083
+# Category: datastructures
+# Algorithm: balanced-bracket check with an explicit stack of chars
+# Exercises: char array as stack (char element arrays), char literals including '(' ')' '[' ']' '{' '}', early exit on mismatch, empty-stack check
+# Difficulty: medium
+# Expected: nijam/abaddham for each line
+bool balanced charya (padham s) {
+    char st[100]
+    int top
+    top lo 0 pettu
+    prati i 0 nundi podavu(s) varaku {
+        char c
+        c lo s[i] pettu
+        c == '(' || c == '[' || c == '{' ayite {
+            st[top] lo c pettu
+            top lo top + 1 pettu
+        } lekunte c == ')' || c == ']' || c == '}' ayite {
+            top == 0 ayite { abaddham ivvu }
+            top lo top - 1 pettu
+            c == ')' && st[top] != '(' ayite { abaddham ivvu }
+            c == ']' && st[top] != '[' ayite { abaddham ivvu }
+            c == '}' && st[top] != '{' ayite { abaddham ivvu }
+        }
+    }
+    top == 0 ivvu
+}
+
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    padham s
+    s ni chaduvu
+    balanced(s) ni chupi
+}

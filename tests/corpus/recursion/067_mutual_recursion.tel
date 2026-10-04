@@ -1,0 +1,33 @@
+# ID: DSA-067
+# Category: recursion
+# Algorithm: mutual recursion: even/odd and Hofstadter Female/Male sequences
+# Exercises: forward call to a function declared later (L22), mutual recursion (L23), nested recursive calls f(m(n-1)), bool-returning mutual pair
+# Difficulty: medium
+# Expected: parity flags, then F(0..14) and M(0..14)
+bool is_even charya (int n) {
+    n == 0 ayite { nijam ivvu }
+    is_odd(n - 1) ivvu
+}
+
+bool is_odd charya (int n) {
+    n == 0 ayite { abaddham ivvu }
+    is_even(n - 1) ivvu
+}
+
+int female charya (int n) {
+    n == 0 ayite { 1 ivvu }
+    n - male(female(n - 1)) ivvu
+}
+
+int male charya (int n) {
+    n == 0 ayite { 0 ivvu }
+    n - female(male(n - 1)) ivvu
+}
+
+is_even(10) ni chupi
+is_odd(10) ni chupi
+is_even(7) ni chupi
+is_odd(7) ni chupi
+is_even(0) ni chupi
+prati i 0 nundi 15 varaku { female(i) ni chupi }
+prati i 0 nundi 15 varaku { male(i) ni chupi }

@@ -1,0 +1,38 @@
+# ID: DSA-084
+# Category: dp
+# Algorithm: coin change (minimum coins and number of combinations)
+# Exercises: 1-D dp tables of constant size, INF sentinel, two dp passes with different loop orders, query loop, ternary-free if/else for -1
+# Difficulty: medium
+# Expected: for each amount: minimum coin count (or -1) then number of distinct combinations
+int n
+n ni chaduvu
+int coin[n]
+prati i 0 nundi n varaku { coin[i] ni chaduvu }
+int minc[101]
+int ways[101]
+prati a 1 nundi 101 varaku { minc[a] lo 1000000000 pettu }
+ways[0] lo 1 pettu
+prati a 1 nundi 101 varaku {
+    prati i 0 nundi n varaku {
+        coin[i] <= a && minc[a - coin[i]] + 1 < minc[a] ayite {
+            minc[a] lo minc[a - coin[i]] + 1 pettu
+        }
+    }
+}
+prati i 0 nundi n varaku {
+    prati a coin[i] nundi 101 varaku {
+        ways[a] lo ways[a] + ways[a - coin[i]] pettu
+    }
+}
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int amt
+    amt ni chaduvu
+    minc[amt] >= 1000000000 ayite {
+        -1 ni chupi
+    } lekunte {
+        minc[amt] ni chupi
+    }
+    ways[amt] ni chupi
+}

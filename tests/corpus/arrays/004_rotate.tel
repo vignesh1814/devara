@@ -1,0 +1,36 @@
+# ID: DSA-004
+# Category: arrays
+# Algorithm: left rotation by k using three reversals
+# Exercises: helper function with range parameters, modulo, recursion-free decomposition, input, nested calls
+# Difficulty: medium
+# Expected: array rotated left by k positions, space-free one per line
+void rev_range charya (int a[], int l, int r) {
+    l < r unnanta varaku {
+        int t
+        t lo a[l] pettu
+        a[l] lo a[r] pettu
+        a[r] lo t pettu
+        l lo l + 1 pettu
+        r lo r - 1 pettu
+    }
+}
+
+void rotate_left charya (int a[], int n, int k) {
+    k lo k % n pettu
+    rev_range(a, 0, k - 1)
+    rev_range(a, k, n - 1)
+    rev_range(a, 0, n - 1)
+}
+
+int n
+int k
+n ni chaduvu
+k ni chaduvu
+int a[n]
+prati i 0 nundi n varaku {
+    a[i] ni chaduvu
+}
+rotate_left(a, n, k)
+prati i 0 nundi n varaku {
+    a[i] ni chupi
+}

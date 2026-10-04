@@ -1,0 +1,52 @@
+# ID: DSA-010
+# Category: arrays
+# Algorithm: merge of two sorted arrays
+# Exercises: global result array, three indices, && in while condition, tail loops, int-returning function used as statement-free value
+# Difficulty: easy
+# Expected: merged sorted sequence, one per line, preceded by its length
+int merged[64]
+
+int merge charya (int x[], int nx, int y[], int ny) {
+    int i
+    int j
+    int k
+    i lo 0 pettu
+    j lo 0 pettu
+    k lo 0 pettu
+    i < nx && j < ny unnanta varaku {
+        x[i] <= y[j] ayite {
+            merged[k] lo x[i] pettu
+            i lo i + 1 pettu
+        } lekunte {
+            merged[k] lo y[j] pettu
+            j lo j + 1 pettu
+        }
+        k lo k + 1 pettu
+    }
+    i < nx unnanta varaku {
+        merged[k] lo x[i] pettu
+        i lo i + 1 pettu
+        k lo k + 1 pettu
+    }
+    j < ny unnanta varaku {
+        merged[k] lo y[j] pettu
+        j lo j + 1 pettu
+        k lo k + 1 pettu
+    }
+    k ivvu
+}
+
+int nx
+int ny
+nx ni chaduvu
+ny ni chaduvu
+int x[nx]
+int y[ny]
+prati i 0 nundi nx varaku { x[i] ni chaduvu }
+prati i 0 nundi ny varaku { y[i] ni chaduvu }
+int total
+total lo merge(x, nx, y, ny) pettu
+total ni chupi
+prati i 0 nundi total varaku {
+    merged[i] ni chupi
+}

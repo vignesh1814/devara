@@ -1,0 +1,26 @@
+# ID: DSA-065
+# Category: recursion
+# Algorithm: Tower of Hanoi
+# Exercises: void recursion with four parameters, global counter modified in recursion, move encoding src*10+dst, closed-form recursion for counts
+# Difficulty: medium
+# Expected: the 15 moves for 4 disks encoded as src*10+dst, the move counter, then minimal move counts for 1..12 disks
+int moves
+moves lo 0 pettu
+
+void hanoi charya (int n, int src, int dst, int tmp) {
+    n > 0 ayite {
+        hanoi(n - 1, src, tmp, dst)
+        src * 10 + dst ni chupi
+        moves lo moves + 1 pettu
+        hanoi(n - 1, tmp, dst, src)
+    }
+}
+
+int count charya (int n) {
+    n == 0 ayite { 0 ivvu }
+    2 * count(n - 1) + 1 ivvu
+}
+
+hanoi(4, 1, 3, 2)
+moves ni chupi
+prati n 1 nundi 13 varaku { count(n) ni chupi }

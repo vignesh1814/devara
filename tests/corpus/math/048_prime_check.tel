@@ -1,0 +1,27 @@
+# ID: DSA-048
+# Category: math
+# Algorithm: trial-division primality test
+# Exercises: i*i <= n loop bound, early return from pratisari body, large operands, counting primes in a range
+# Difficulty: easy
+# Expected: primality of each query, then count of primes below 2000
+bool is_prime charya (int n) {
+    n < 2 ayite { abaddham ivvu }
+    pratisari (int i lo 2 pettu; i * i <= n; i++) {
+        n % i == 0 ayite { abaddham ivvu }
+    }
+    nijam ivvu
+}
+
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int x
+    x ni chaduvu
+    is_prime(x) ni chupi
+}
+int c
+c lo 0 pettu
+prati i 0 nundi 2000 varaku {
+    is_prime(i) ayite { c lo c + 1 pettu }
+}
+c ni chupi

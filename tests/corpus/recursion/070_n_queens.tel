@@ -1,0 +1,43 @@
+# ID: DSA-070
+# Category: recursion
+# Algorithm: N-Queens solution counting with backtracking
+# Exercises: global column array, safety check with absolute difference via if, recursion with undo, first-solution capture, n from input
+# Difficulty: hard
+# Expected: number of solutions, then the columns of the first solution found
+int col[16]
+int first[16]
+int solutions
+solutions lo 0 pettu
+
+bool safe charya (int row, int c) {
+    prati r 0 nundi row varaku {
+        col[r] == c ayite { abaddham ivvu }
+        int d
+        d lo col[r] - c pettu
+        d < 0 ayite { d lo -d pettu }
+        d == row - r ayite { abaddham ivvu }
+    }
+    nijam ivvu
+}
+
+void solve charya (int row, int n) {
+    row == n ayite {
+        solutions lo solutions + 1 pettu
+        solutions == 1 ayite {
+            prati i 0 nundi n varaku { first[i] lo col[i] pettu }
+        }
+    } lekunte {
+        prati c 0 nundi n varaku {
+            safe(row, c) ayite {
+                col[row] lo c pettu
+                solve(row + 1, n)
+            }
+        }
+    }
+}
+
+int n
+n ni chaduvu
+solve(0, n)
+solutions ni chupi
+prati i 0 nundi n varaku { first[i] ni chupi }

@@ -1,0 +1,66 @@
+# ID: DSA-099
+# Category: graphs
+# Algorithm: Kahn's topological sort with cycle detection on two graphs
+# Exercises: indegree array, queue, reinitialising global state between runs, function returning count processed, -1 for cyclic graph
+# Difficulty: medium
+# Expected: topological order for the DAG; "-1" for the graph that has a cycle
+int adj[10][10]
+int indeg[10]
+int order[10]
+int n
+
+int topo charya () {
+    int q[10]
+    int head
+    int tail
+    head lo 0 pettu
+    tail lo 0 pettu
+    prati i 0 nundi n varaku {
+        indeg[i] == 0 ayite {
+            q[tail] lo i pettu
+            tail lo tail + 1 pettu
+        }
+    }
+    int cnt
+    cnt lo 0 pettu
+    head < tail unnanta varaku {
+        int u
+        u lo q[head] pettu
+        head lo head + 1 pettu
+        order[cnt] lo u pettu
+        cnt lo cnt + 1 pettu
+        prati v 0 nundi n varaku {
+            adj[u][v] == 1 ayite {
+                indeg[v] lo indeg[v] - 1 pettu
+                indeg[v] == 0 ayite {
+                    q[tail] lo v pettu
+                    tail lo tail + 1 pettu
+                }
+            }
+        }
+    }
+    cnt ivvu
+}
+
+prati g 0 nundi 2 varaku {
+    int m
+    n ni chaduvu
+    m ni chaduvu
+    prati i 0 nundi 10 varaku {
+        indeg[i] lo 0 pettu
+        prati j 0 nundi 10 varaku { adj[i][j] lo 0 pettu }
+    }
+    prati i 0 nundi m varaku {
+        int u
+        int v
+        u ni chaduvu
+        v ni chaduvu
+        adj[u][v] lo 1 pettu
+        indeg[v] lo indeg[v] + 1 pettu
+    }
+    topo() == n ayite {
+        prati i 0 nundi n varaku { order[i] ni chupi }
+    } lekunte {
+        -1 ni chupi
+    }
+}

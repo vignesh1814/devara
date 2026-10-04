@@ -1,0 +1,36 @@
+# ID: DSA-025
+# Category: searching
+# Algorithm: iterative binary search
+# Exercises: midpoint without overflow, three-way comparison chain, early return, queries loop, sorted input
+# Difficulty: easy
+# Expected: for each query the index of the key in the sorted array, or -1
+int bsearch charya (int a[], int n, int key) {
+    int l
+    int r
+    l lo 0 pettu
+    r lo n - 1 pettu
+    l <= r unnanta varaku {
+        int mid
+        mid lo l + (r - l) / 2 pettu
+        a[mid] == key ayite {
+            mid ivvu
+        } lekunte a[mid] < key ayite {
+            l lo mid + 1 pettu
+        } lekunte {
+            r lo mid - 1 pettu
+        }
+    }
+    -1 ivvu
+}
+
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku { a[i] ni chaduvu }
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int key
+    key ni chaduvu
+    bsearch(a, n, key) ni chupi
+}

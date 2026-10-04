@@ -1,0 +1,42 @@
+# ID: DSA-024
+# Category: sorting
+# Algorithm: stable insertion sort of (key, id) pairs held in parallel arrays, plus is_sorted check
+# Exercises: parallel arrays, strict vs non-strict comparison for stability, bool function with early return, pratisari declaration init with initializer
+# Difficulty: medium
+# Expected: pairs sorted by key with original order preserved among equal keys, then bool results
+bool is_sorted charya (int keys[], int n) {
+    pratisari (int i lo 0 pettu; i < n - 1; i++) {
+        keys[i] > keys[i + 1] ayite { abaddham ivvu }
+    }
+    nijam ivvu
+}
+
+int n
+n ni chaduvu
+int keys[n]
+int ids[n]
+prati i 0 nundi n varaku {
+    keys[i] ni chaduvu
+    ids[i] lo i + 1 pettu
+}
+is_sorted(keys, n) ni chupi
+prati i 1 nundi n varaku {
+    int k
+    int d
+    int j
+    k lo keys[i] pettu
+    d lo ids[i] pettu
+    j lo i - 1 pettu
+    j >= 0 && keys[j] > k unnanta varaku {
+        keys[j + 1] lo keys[j] pettu
+        ids[j + 1] lo ids[j] pettu
+        j lo j - 1 pettu
+    }
+    keys[j + 1] lo k pettu
+    ids[j + 1] lo d pettu
+}
+prati i 0 nundi n varaku {
+    keys[i] ni chupi
+    ids[i] ni chupi
+}
+is_sorted(keys, n) ni chupi

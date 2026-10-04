@@ -1,0 +1,32 @@
+# ID: DSA-061
+# Category: math
+# Algorithm: truncating division and remainder sign table
+# Exercises: / truncates toward zero, % takes sign of the dividend (P28), 2x2 sign combinations, zero dividend, relation a == (a/b)*b + a%b
+# Difficulty: easy
+# Expected: for each (a,b): quotient, remainder, identity check
+int a[8]
+int b[8]
+a[0] lo 7 pettu
+b[0] lo 2 pettu
+a[1] lo -7 pettu
+b[1] lo 2 pettu
+a[2] lo 7 pettu
+b[2] lo -2 pettu
+a[3] lo -7 pettu
+b[3] lo -2 pettu
+a[4] lo 0 pettu
+b[4] lo 5 pettu
+a[5] lo -1 pettu
+b[5] lo 3 pettu
+a[6] lo 6 pettu
+b[6] lo -3 pettu
+a[7] lo -9 pettu
+b[7] lo 9 pettu
+prati i 0 nundi 8 varaku {
+    a[i] / b[i] ni chupi
+    a[i] % b[i] ni chupi
+    a[i] == (a[i] / b[i]) * b[i] + a[i] % b[i] ni chupi
+}
+-7 / 2 ni chupi
+-7 % 2 ni chupi
+7 / -2 * -2 ni chupi

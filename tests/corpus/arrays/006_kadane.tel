@@ -1,0 +1,38 @@
+# ID: DSA-006
+# Category: arrays
+# Algorithm: Kadane maximum subarray with bounds
+# Exercises: running state variables, nested if, saagu-free scan, three outputs, negative numbers
+# Difficulty: medium
+# Expected: max sum, start index, end index of the maximum subarray (first one on ties)
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku {
+    a[i] ni chaduvu
+}
+int best
+int cur
+int bs
+int be
+int cs
+best lo a[0] pettu
+cur lo a[0] pettu
+bs lo 0 pettu
+be lo 0 pettu
+cs lo 0 pettu
+prati i 1 nundi n varaku {
+    cur + a[i] < a[i] ayite {
+        cur lo a[i] pettu
+        cs lo i pettu
+    } lekunte {
+        cur lo cur + a[i] pettu
+    }
+    cur > best ayite {
+        best lo cur pettu
+        bs lo cs pettu
+        be lo i pettu
+    }
+}
+best ni chupi
+bs ni chupi
+be ni chupi

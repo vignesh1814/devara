@@ -1,0 +1,46 @@
+# ID: DSA-082
+# Category: datastructures
+# Algorithm: open-addressing hash table (linear probing) for non-negative ints
+# Exercises: modulo hashing, probe loop with wrap, sentinel -1 empty marker initialised by loop, insert/search/count, duplicate keys ignored
+# Difficulty: medium
+# Expected: per-operation results: 1/0 for insert-new/duplicate, probe index (or -1) for lookups, final count
+int table[17]
+int count
+
+int slot charya (int key) {
+    int i
+    i lo key % 17 pettu
+    table[i] != -1 && table[i] != key unnanta varaku {
+        i lo (i + 1) % 17 pettu
+    }
+    i ivvu
+}
+
+int insert charya (int key) {
+    count == 17 ayite { -2 ivvu }
+    int s
+    s lo slot(key) pettu
+    table[s] == key ayite { 0 ivvu }
+    table[s] lo key pettu
+    count lo count + 1 pettu
+    1 ivvu
+}
+
+int lookup charya (int key) {
+    int s
+    s lo slot(key) pettu
+    table[s] == key ayite { s ivvu }
+    -1 ivvu
+}
+
+prati i 0 nundi 17 varaku { table[i] lo -1 pettu }
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int op
+    int key
+    op ni chaduvu
+    key ni chaduvu
+    op == 1 ayite { insert(key) ni chupi } lekunte { lookup(key) ni chupi }
+}
+count ni chupi

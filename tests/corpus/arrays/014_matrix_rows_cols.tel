@@ -1,0 +1,41 @@
+# ID: DSA-014
+# Category: arrays
+# Algorithm: row/column sums, diagonal and total of a 2-D array
+# Exercises: multidimensional arrays, partial indexing m[i] passed to int r[], global arrays, nested loops, row-major fill
+# Difficulty: medium
+# Expected: row sums, column sums, main diagonal sum, total
+int m[4][5]
+
+int sum_row charya (int r[], int cols) {
+    int s
+    s lo 0 pettu
+    prati j 0 nundi cols varaku {
+        s lo s + r[j] pettu
+    }
+    s ivvu
+}
+
+prati i 0 nundi 4 varaku {
+    prati j 0 nundi 5 varaku {
+        m[i][j] lo i * 5 + j * j - 3 pettu
+    }
+}
+int total
+total lo 0 pettu
+prati i 0 nundi 4 varaku {
+    int rs
+    rs lo sum_row(m[i], 5) pettu
+    rs ni chupi
+    total lo total + rs pettu
+}
+prati j 0 nundi 5 varaku {
+    int cs
+    cs lo 0 pettu
+    prati i 0 nundi 4 varaku { cs lo cs + m[i][j] pettu }
+    cs ni chupi
+}
+int diag
+diag lo 0 pettu
+prati i 0 nundi 4 varaku { diag lo diag + m[i][i] pettu }
+diag ni chupi
+total ni chupi

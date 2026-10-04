@@ -1,0 +1,37 @@
+# ID: DSA-062
+# Category: math
+# Algorithm: prime factorization and Euler totient
+# Exercises: trial division with shrinking n, exponent counting, phi accumulation by division, remaining prime factor
+# Difficulty: medium
+# Expected: for each input the distinct prime factors with exponents (p then e per line), then phi(n)
+void factor charya (int n) {
+    int phi
+    phi lo n pettu
+    pratisari (int p lo 2 pettu; p * p <= n; p++) {
+        n % p == 0 ayite {
+            int e
+            e lo 0 pettu
+            n % p == 0 unnanta varaku {
+                n lo n / p pettu
+                e lo e + 1 pettu
+            }
+            p ni chupi
+            e ni chupi
+            phi lo phi / p * (p - 1) pettu
+        }
+    }
+    n > 1 ayite {
+        n ni chupi
+        1 ni chupi
+        phi lo phi / n * (n - 1) pettu
+    }
+    phi ni chupi
+}
+
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int x
+    x ni chaduvu
+    factor(x)
+}

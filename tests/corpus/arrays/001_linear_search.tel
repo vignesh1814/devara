@@ -1,0 +1,29 @@
+# ID: DSA-001
+# Category: arrays
+# Algorithm: linear search
+# Exercises: functions, array parameters, pratisari tho-modhalu init, postfix ++, early return, input, range loop, output
+# Difficulty: easy
+# Expected: for each query the index of its first occurrence, or -1
+int linear_search charya (int a[], int n, int key) {
+    int i
+    pratisari (i 0 tho modhalu; i < n; i++) {
+        a[i] == key ayite {
+            i ivvu
+        }
+    }
+    -1 ivvu
+}
+
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku {
+    a[i] ni chaduvu
+}
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int key
+    key ni chaduvu
+    linear_search(a, n, key) ni chupi
+}

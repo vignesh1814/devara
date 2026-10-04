@@ -1,0 +1,27 @@
+# ID: DSA-011
+# Category: arrays
+# Algorithm: remove duplicates from a sorted array in place
+# Exercises: read/write index idiom, comparison with previous element, new length returned
+# Difficulty: easy
+# Expected: new length followed by the distinct values
+int dedupe charya (int a[], int n) {
+    n == 0 ayite { 0 ivvu }
+    int w
+    w lo 1 pettu
+    prati r 1 nundi n varaku {
+        a[r] != a[w - 1] ayite {
+            a[w] lo a[r] pettu
+            w lo w + 1 pettu
+        }
+    }
+    w ivvu
+}
+
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku { a[i] ni chaduvu }
+int m
+m lo dedupe(a, n) pettu
+m ni chupi
+prati i 0 nundi m varaku { a[i] ni chupi }

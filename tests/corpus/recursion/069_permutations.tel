@@ -1,0 +1,35 @@
+# ID: DSA-069
+# Category: recursion
+# Algorithm: generate all permutations by backtracking
+# Exercises: used[] marker array, global arrays used across recursion, undo step, building a decimal number from digits
+# Difficulty: medium
+# Expected: all 24 permutations of 1..4 in lexicographic order as 4-digit numbers, then the count
+int perm[8]
+bool used[8]
+int total
+total lo 0 pettu
+
+void gen charya (int pos, int n) {
+    pos == n ayite {
+        int v
+        v lo 0 pettu
+        prati i 0 nundi n varaku { v lo v * 10 + perm[i] pettu }
+        v ni chupi
+        total lo total + 1 pettu
+    } lekunte {
+        prati d 1 nundi n + 1 varaku {
+            !used[d] ayite {
+                used[d] lo nijam pettu
+                perm[pos] lo d pettu
+                gen(pos + 1, n)
+                used[d] lo abaddham pettu
+            }
+        }
+    }
+}
+
+gen(0, 4)
+total ni chupi
+total lo 0 pettu
+gen(0, 3)
+total ni chupi
