@@ -332,3 +332,22 @@ pytest                        # full suite
 python3 scripts/run_corpus.py # corpus statistics
 ./devara run tests/corpus/sorting/001_bubble_sort.tel < input.txt
 ```
+
+---
+
+## L. Design-authority rulings on open questions (round 1)
+
+Binding from now on. These rulings refine §C; they do not change any frozen L-decision.
+
+| Ref | Ruling |
+|---|---|
+| OQ1–OQ11 (developer) | **Accepted as written** and promoted to rules: array used as a condition → `INVALID_OPERAND`; implicit conversion failure → `TYPE_MISMATCH` and explicit-cast failure → `INVALID_CONVERSION`; sources are read as bytes decoded as latin-1; mixed constant/non-constant dimensions are checked at runtime; a function name used as a value → `INVALID_OPERAND`; the `MISSING_RETURN` span is the function name; an identity cast is legal; a float literal that overflows becomes `inf`; recovery never consumes a block-closing `}`; a recovery loop that makes no progress force-consumes one token; an initialised declaration or a nested function → `INVALID_DECLARATION`. |
+| Q-001 | Unary `-` on `INT64_MIN` **wraps** to `INT64_MIN` (two's-complement `0 - x`, consistent with L37). Not an error. |
+| Q-002 | **Point-of-declaration rule (C++).** A name is visible from its declaration to the end of its scope. A use before a later same-scope declaration resolves to the nearest enclosing declaration visible at that point, otherwise `UNDECLARED`. The later declaration is legal if it does not redeclare a name already declared in the same scope. |
+| Q-003 | A dimension whose folding would trap (`1/0`, `INT64_MIN / -1`, `x % 0`) is **not a constant expression** (C++ rule). It is evaluated at runtime and raises the runtime error (`division by zero`, etc.). |
+| Q-004 | NaN output is exactly what glibc `printf("%g")` prints (`nan` or `-nan` depending on the sign bit). P3's `-nan` was only an example. Tests should avoid depending on the NaN sign. |
+| Q-005 | float→bool = `f != 0.0` (NaN → `nijam`). float→char = float→int (P27, `cvttsd2si`) followed by int→char (low 8 bits, signed). The same composition applies to explicit casts. |
+| Q-006 | No special rule: the ordinary P24 analysis applies. `pratisari (int i; nijam; i lo 0 pettu) { aapu }` is accepted. Any read of `i` that is not definitely preceded by an assignment is `UNINITIALIZED` (the body runs before the first update). |
+| Q-007 | **Confirmed:** after each body execution the loop variable becomes (its current value) + 1. Modifications made in the body therefore affect the iteration. The end bound is still evaluated only once (L17). |
+| Q-008 | **Confirmed:** `padham a[]` parameters and `padham` arrays are legal. |
+| Q-009 | Diagnostics are sorted by (line, column, category). Tests may compare either the set of categories or the ordered list. |
