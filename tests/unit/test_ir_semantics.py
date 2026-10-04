@@ -1,13 +1,29 @@
-"""Phase 5: lowering semantics, executed with the IR interpreter at O0 and O1."""
+"""Phases 5+6: language semantics, executed at O0 and O1 by (a) the Python IR interpreter and
+(b) the real x86-64 back end (``native``, slow). Both must produce identical results."""
 
 import pytest
 
+from tests.helpers import native
 from tests.helpers.pipeline import run_ir
+
+_BACKEND = {"name": "interp"}
+
+
+@pytest.fixture(autouse=True, params=["interp", pytest.param("native", marks=pytest.mark.slow)])
+def backend(request):
+    _BACKEND["name"] = request.param
+    yield request.param
+
+
+def run_backend(src, stdin, level):
+    if _BACKEND["name"] == "native":
+        return native.build_and_run(src, stdin, level)
+    return run_ir(src, stdin, level)
 
 
 def both(src, stdin=b""):
-    a = run_ir(src, stdin, 0)
-    b = run_ir(src, stdin, 1)
+    a = run_backend(src, stdin, 0)
+    b = run_backend(src, stdin, 1)
     assert a == b, f"O0 {a} != O1 {b}"
     return a
 
