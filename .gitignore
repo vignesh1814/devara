@@ -9,3 +9,4 @@
 __pycache__/
 build/
 htmlcov/
+t_[0-9a-f]*
