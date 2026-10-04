@@ -82,8 +82,14 @@ def test_N001_too_deep_is_user_error_not_ice(depth):
     assert "internal compiler error" not in p.err
 
 
-@pytest.mark.parametrize("depth", [30000])
+@pytest.mark.parametrize("depth", [200000])
 def test_N001_too_deep_blocks_and_unary(depth):
-    for src in ("nijam ayite { " * depth + "}" * depth + "\n", "x lo " + "!" * depth + "1 pettu\n"):
+    for src in ("nijam ayite { " * depth + "}" * depth + "\n", "int x\nx lo " + "!" * depth + "1 pettu\n"):
         p = cli("sema", src)
         assert p.rc == 1 and "internal compiler error" not in p.err and p.diags(), p.err[:200]
+        assert any(d[0] == "syntax" and d[1] == "INVALID_EXPRESSION" for d in p.diags()), p.err[:200]
+
+
+def test_N001_30000_nested_blocks_are_within_the_supported_limit_or_a_clean_limit_error():
+    p = cli("sema", "nijam ayite { " * 30000 + "}" * 30000 + "\n")
+    assert p.rc in (0, 1) and "internal compiler error" not in p.err
