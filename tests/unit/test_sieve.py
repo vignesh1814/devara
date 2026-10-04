@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from compiler.lexer import Lexer, TokenType
 
-SIEVE_PATH = Path(__file__).parent / "programs" / "sieve.tel"
+SIEVE_PATH = Path(__file__).parent.parent / "programs" / "sieve.tel"
 
 @pytest.fixture
 def sieve_tokens():

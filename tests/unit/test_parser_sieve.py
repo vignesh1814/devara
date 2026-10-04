@@ -17,7 +17,7 @@ from compiler.ast.nodes import (
     AssignmentUpdate,
 )
 
-SIEVE_PATH = Path(__file__).parent / "programs" / "sieve.tel"
+SIEVE_PATH = Path(__file__).parent.parent / "programs" / "sieve.tel"
 
 
 @pytest.fixture

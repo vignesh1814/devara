@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Devara compiler wrapper: ./devara <command> [options] <file>
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export PYTHONPATH="$here${PYTHONPATH:+:$PYTHONPATH}"
+exec python3 -c 'from compiler.cli import run_main; run_main()' "$@"

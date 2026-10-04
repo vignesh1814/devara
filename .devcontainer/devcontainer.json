@@ -1,0 +1,11 @@
+{
+  "name": "devara",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y --no-install-recommends gcc libc6-dev binutils && ./scripts/setup.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python"],
+      "settings": { "python.testing.pytestEnabled": true, "python.testing.pytestArgs": ["tests"] }
+    }
+  }
+}

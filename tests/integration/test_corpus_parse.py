@@ -8,7 +8,7 @@ from compiler.lexer import Lexer
 from compiler.parser import Parser
 from compiler.ast.nodes import Program
 
-ROOT_DIR = Path(__file__).parent.parent
+ROOT_DIR = Path(__file__).parent.parent.parent
 PROGRAM_FILES = sorted(
     glob.glob(str(ROOT_DIR / "tests" / "programs" / "**" / "*.tel"), recursive=True)
     + glob.glob(str(ROOT_DIR / "examples" / "**" / "*.tel"), recursive=True)

@@ -1,7 +1,5 @@
 {
-  "venvPath": "C:\\Users\\vignesh theerdala\\.pyenv\\pyenv-win\\versions",
-  "venv": "3.11.9",
-  "extraPaths": [
-    "."
-  ]
+  "pythonVersion": "3.11",
+  "extraPaths": ["."],
+  "include": ["compiler", "tests", "scripts"]
 }
