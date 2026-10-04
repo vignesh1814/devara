@@ -1,0 +1,50 @@
+# ID: DSA-114
+# Category: misc
+# Algorithm: 3-D arrays, runtime-sized 2-D arrays and partial indexing into rank-1 parameters
+# Exercises: int c[3][4][5] row-major layout, c[i][j] passed to int r[], runtime dimensions int g[n][m] (heap, zero-filled), index arithmetic checks, nested loops, accumulation
+# Difficulty: medium
+# Expected: see oracle
+int c[3][4][5]
+
+int row_sum charya (int r[], int len) {
+    int s
+    s lo 0 pettu
+    prati k 0 nundi len varaku { s lo s + r[k] pettu }
+    s ivvu
+}
+
+void fill_row charya (int r[], int len, int base) {
+    prati k 0 nundi len varaku { r[k] lo base + k pettu }
+}
+
+prati i 0 nundi 3 varaku {
+    prati j 0 nundi 4 varaku {
+        prati k 0 nundi 5 varaku { c[i][j][k] lo i * 100 + j * 10 + k pettu }
+    }
+}
+row_sum(c[0][0], 5) ni chupi
+row_sum(c[2][3], 5) ni chupi
+row_sum(c[1][2], 3) ni chupi
+fill_row(c[1][1], 5, 900)
+c[1][1][0] ni chupi
+c[1][1][4] ni chupi
+c[1][2][0] ni chupi
+c[1][0][4] ni chupi
+int total
+total lo 0 pettu
+prati i 0 nundi 3 varaku {
+    prati j 0 nundi 4 varaku { total lo total + row_sum(c[i][j], 5) pettu }
+}
+total ni chupi
+int n
+int m
+n ni chaduvu
+m ni chaduvu
+int g[n][m]
+g[n - 1][m - 1] ni chupi
+prati i 0 nundi n varaku {
+    prati j 0 nundi m varaku { g[i][j] lo i * m + j pettu }
+}
+fill_row(g[1], m, 50)
+prati i 0 nundi n varaku { row_sum(g[i], m) ni chupi }
+g[0][m - 1] + g[1][0] ni chupi

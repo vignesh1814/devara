@@ -1,0 +1,49 @@
+# ID: DSA-113
+# Category: misc
+# Algorithm: padham value semantics and operations
+# Exercises: copy-on-assign independence (L6), + chains, == != content equality (L5), indexing, podavu, padham parameters and results, global padham, arrays of padham, accumulate in loop, char to padham
+# Difficulty: medium
+# Expected: see oracle
+padham greeting
+greeting lo "Hello" pettu
+
+padham decorate charya (padham s, int n) {
+    padham r
+    r lo "" pettu
+    prati i 0 nundi n varaku { r lo r + s pettu }
+    r ivvu
+}
+
+padham join3 charya (padham a, padham b, padham c) {
+    a + ", " + b + "!" + c ivvu
+}
+
+padham a
+padham b
+a lo "abc" pettu
+b lo a pettu
+a lo a + "def" pettu
+a ni chupi
+b ni chupi
+a == b ni chupi
+b + "def" == a ni chupi
+a != "abcdef" ni chupi
+decorate("ab", 3) ni chupi
+decorate("xyz", 0) ni chupi
+podavu(decorate("ab", 3)) ni chupi
+join3(greeting, "World", "?") ni chupi
+greeting ni chupi
+padham names[3]
+names[0] lo "ann" pettu
+names[2] lo "cy" pettu
+podavu(names[1]) ni chupi
+names[0] + names[1] + names[2] ni chupi
+names[1] == "" ni chupi
+prati i 0 nundi 3 varaku { podavu(names[i]) ni chupi }
+a[0] ni chupi
+a[5] ni chupi
+a[podavu(a) - 1] ni chupi
+(padham) a[1] + (padham) a[2] ni chupi
+a[0] == 'a' ni chupi
+"" == "" ni chupi
+"a" + "" == "a" ni chupi

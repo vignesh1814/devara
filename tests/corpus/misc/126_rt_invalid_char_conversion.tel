@@ -1,0 +1,13 @@
+# ID: DSA-126
+# Category: misc
+# Algorithm: runtime error: (char) cast of a padham whose length is not 1 (P27)
+# Exercises: length-1 conversion succeeds, length-2 fails
+# Difficulty: easy
+# Expected: "z" then runtime error "invalid char conversion", exit 1
+padham a
+padham b
+a lo "z" pettu
+b ni chaduvu
+(char) a ni chupi
+(char) b ni chupi
+"done" ni chupi

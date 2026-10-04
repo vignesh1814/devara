@@ -1,0 +1,14 @@
+# ID: DSA-123
+# Category: misc
+# Algorithm: runtime error: end of input while reading (P10)
+# Exercises: reading more ints than supplied, sum printed only on success
+# Difficulty: easy
+# Expected: running sums of the available numbers, then runtime error "invalid input", exit 1
+int s
+s lo 0 pettu
+prati i 0 nundi 5 varaku {
+    int v
+    v ni chaduvu
+    s lo s + v pettu
+    s ni chupi
+}

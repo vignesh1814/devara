@@ -1,0 +1,36 @@
+# ID: DSA-110
+# Category: misc
+# Algorithm: observable evaluation order and short-circuiting via side-effecting calls
+# Exercises: left-to-right binary operands (L30), call arguments (L31), && / || short circuit (L29), assignment target index before value (P40), nested calls, call count
+# Difficulty: hard
+# Expected: the print order of tick() arguments followed by each expression result
+int counter
+
+int tick charya (int v) {
+    counter lo counter + 1 pettu
+    v ni chupi
+    v ivvu
+}
+
+int add3 charya (int a, int b, int c) {
+    a * 100 + b * 10 + c ivvu
+}
+
+tick(1) + tick(2) * tick(3) ni chupi
+tick(10) - tick(4) - tick(3) ni chupi
+tick(0) && tick(5) ni chupi
+tick(1) && tick(2) ni chupi
+tick(1) || tick(9) ni chupi
+tick(0) || tick(7) ni chupi
+add3(tick(7), tick(8), tick(9)) ni chupi
+tick(tick(2) + 1) ni chupi
+tick(1) < tick(2) == tick(1) ni chupi
+int a[4]
+a[tick(1)] lo tick(5) pettu
+a[tick(0)] lo tick(2) + tick(1) pettu
+a[1] ni chupi
+a[0] ni chupi
+a[tick(2)] lo a[tick(1)] + a[tick(0)] pettu
+a[2] ni chupi
+!tick(0) || tick(3) && tick(0) ni chupi
+counter ni chupi

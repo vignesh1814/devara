@@ -1,0 +1,12 @@
+# ID: DSA-122
+# Category: misc
+# Algorithm: runtime error: malformed integer token on input (P7, P10)
+# Exercises: first int read succeeds, second token is not a number
+# Difficulty: easy
+# Expected: the first number echoed, then runtime error "invalid input", exit 1
+int a
+int b
+a ni chaduvu
+a ni chupi
+b ni chaduvu
+b ni chupi

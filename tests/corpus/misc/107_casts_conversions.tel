@@ -1,0 +1,58 @@
+# ID: DSA-107
+# Category: misc
+# Algorithm: explicit and implicit conversion table
+# Exercises: float->int truncation toward zero, int->float, int->char low-8-bit narrowing and signed char, char->int sign, bool<->int, float->bool, char<->padham casts, assignment conversions, arithmetic promotions
+# Difficulty: medium
+# Expected: see oracle
+(int) 3.99 ni chupi
+(int) -3.99 ni chupi
+(int) 0.5 ni chupi
+(float) 7 ni chupi
+(float) 7 / 2 ni chupi
+(float) (7 / 2) ni chupi
+7 / 2 ni chupi
+7 / 2.0 ni chupi
+(char) 65 ni chupi
+(char) 321 ni chupi
+(int) (char) 200 ni chupi
+(int) (char) 255 ni chupi
+(int) 'A' ni chupi
+(int) nijam ni chupi
+(int) abaddham ni chupi
+(bool) 5 ni chupi
+(bool) 0 ni chupi
+(bool) 0.0 ni chupi
+(bool) 0.25 ni chupi
+(bool) 'a' ni chupi
+nijam + nijam ni chupi
+nijam + 1.5 ni chupi
+'a' + 1 ni chupi
+'a' + 1.5 ni chupi
+(padham) 'q' ni chupi
+(char) "z" ni chupi
+(padham) (char) 72 + (padham) (char) 105 ni chupi
+int n
+float f
+char c
+bool b
+n lo 2.9 pettu
+f lo 3 pettu
+c lo 66 pettu
+b lo 17 pettu
+n ni chupi
+f ni chupi
+c ni chupi
+b ni chupi
+n lo 'x' pettu
+n ni chupi
+c lo 1000 pettu
+(int) c ni chupi
+f lo nijam pettu
+f ni chupi
+b lo 0.1 pettu
+b ni chupi
+c lo 3.9 pettu
+(int) c ni chupi
+n lo -7.9 pettu
+n ni chupi
+(float) (int) 2.5 ni chupi

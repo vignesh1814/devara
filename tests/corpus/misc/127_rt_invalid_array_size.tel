@@ -1,0 +1,17 @@
+# ID: DSA-127
+# Category: misc
+# Algorithm: runtime error: non-constant array dimension < 1 (P21)
+# Exercises: valid runtime size works, size 0 fails at declaration execution
+# Difficulty: easy
+# Expected: "ok" for size 3, then runtime error "invalid array size", exit 1
+int sizes[2]
+sizes[0] ni chaduvu
+sizes[1] ni chaduvu
+prati k 0 nundi 2 varaku {
+    int n
+    n lo sizes[k] pettu
+    int a[n]
+    a[0] lo 7 pettu
+    "ok" ni chupi
+}
+"end" ni chupi

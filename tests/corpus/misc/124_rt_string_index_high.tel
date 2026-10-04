@@ -1,0 +1,11 @@
+# ID: DSA-124
+# Category: misc
+# Algorithm: runtime error: padham index past the end (P11)
+# Exercises: valid indices succeed, index == length fails, exit 1
+# Difficulty: easy
+# Expected: the characters then runtime error "string index out of range", exit 1
+padham s
+s lo "abc" pettu
+int i
+i ni chaduvu
+prati k 0 nundi i varaku { s[k] ni chupi }
