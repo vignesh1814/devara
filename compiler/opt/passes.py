@@ -370,23 +370,30 @@ def unreachable_blocks(fn: I.IRFunction) -> bool:
 
 
 def merge_blocks(fn: I.IRFunction) -> bool:
-    changed = False
-    while True:
-        preds = predecessors(fn)
-        by = {b.label: b for b in fn.blocks}
-        entry = fn.blocks[0].label
-        for b in fn.blocks:
-            if isinstance(b.term, I.Jump):
-                t = b.term.target
-                if t != b.label and t != entry and len(preds[t]) == 1:
-                    tb = by[t]
-                    b.instrs.extend(tb.instrs)
-                    b.term = tb.term
-                    fn.blocks.remove(tb)
-                    changed = True
-                    break
-        else:
-            return changed
+    """Merge ``A: ...; jump B`` with ``B`` when A is B's only predecessor (linear time)."""
+    preds = predecessors(fn)
+    by = {b.label: b for b in fn.blocks}
+    entry = fn.blocks[0].label
+    removed: set[str] = set()
+    for b in fn.blocks:
+        if b.label in removed:
+            continue
+        # absorb a whole chain of single-predecessor jump targets into ``b``
+        while isinstance(b.term, I.Jump):
+            t = b.term.target
+            if t == b.label or t == entry or t in removed or len(preds[t]) != 1:
+                break
+            tb = by[t]
+            b.instrs.extend(tb.instrs)
+            b.term = tb.term
+            removed.add(t)
+            # successors of tb now have ``b`` as predecessor instead of ``tb``
+            for succ in successors(tb.term):
+                preds[succ] = [b.label if x == t else x for x in preds[succ]]
+    if not removed:
+        return False
+    fn.blocks = [b for b in fn.blocks if b.label not in removed]
+    return True
 
 
 # ── pass: dead-code elimination ──

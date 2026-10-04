@@ -78,3 +78,16 @@ Corpus: ~0.17 s average compile (dominated by process start + `gcc` link), progr
 `docs/validation/OPEN_QUESTIONS.md` (OQ1–OQ11) — all accepted by the design authority
 (`docs/IMPLEMENTATION_PLAN.md` §L, which also rules Q-001…Q-009; each is covered by a test).
 `docs/validation/FAILURES.md` (tester) lists no open failure against the compiler at the time of writing.
+
+## Round 2 (validation fixes)
+
+| Ref | Fix | Regression test |
+|---|---|---|
+| F-001 | `build -o` to a missing dir / directory / unwritable path exits 2 with `FILE: error: cannot write output '<path>': <reason>`, checked before the toolchain runs | `test_bug_f001_*` |
+| F-002 | only a bare `nijam` or non-zero int literal (through implicit condition conversion) is "constant true"; char/float literals and casts are not | `test_bug_f002_*` |
+| F-003 | a 0-led digit run containing 8/9 is one `INVALID_NUMBER` (`078`, `0189`) | `test_bug_f003_*` (+ updated `test_exhaustive_lexer`) |
+| Q-012 | user-supplied `.s` rejected by the assembler: exit 1 `FILE: assembler error: ...`; generated code stays exit 3 | `test_bug_q012_*`, `test_generated_code_rejection_stays_an_ice` |
+| N-001 | explicit parser nesting limit (`MAX_NESTING`, ~10 000 blocks/parentheses; ≥ 1000 supported) reported as `syntax error [INVALID_EXPRESSION]: nesting too deep (implementation limit)`, exit 1 | `test_bug_n001_*`, `test_n001_*` |
+| N-002 | quadratic cost was the indented tree/JSON printers (output size grows with depth²); deep trees now print a `[depth]` tag / compact JSON; `merge_blocks` was also quadratic and is now linear | `test_bug_n002_*`, `test_bug_deeply_nested_blocks_optimize_in_linear_time` |
+
+16000-term `1 + 1 + ...` chain: `parse` 0.6 s (was 23 s). The full suite now takes about 14 minutes because of the tester's property/fuzz suites.

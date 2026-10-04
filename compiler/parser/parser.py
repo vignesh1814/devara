@@ -70,6 +70,9 @@ _MULTIPLICATIVE = {T.STAR: BinaryOp.MUL, T.SLASH: BinaryOp.DIV, T.PERCENT: Binar
 _UNARY = {T.NOT: UnaryOp.NOT, T.PLUS: UnaryOp.POSITIVE, T.MINUS: UnaryOp.NEGATE}
 
 
+MAX_NESTING = 20_000   # counted per grammar level (about 10 000 nested blocks/parentheses); implementation limit, see N-001
+
+
 class ParseAbort(Exception):
     """Control-flow signal: a diagnostic was recorded; unwind to a recovery point."""
 
@@ -94,6 +97,7 @@ class Parser:
         self.pos = 0
         self.errors: list[Diagnostic] = []
         self._header_depth = 0  # >0 while parsing a pratisari header
+        self._depth = 0         # current syntactic nesting depth
 
     # ── Public API ──
 
@@ -112,6 +116,11 @@ class Parser:
             span=Span(1, 1, eof.line, eof.column),
             items=items,
         )
+
+    def _enter(self) -> None:
+        self._depth += 1
+        if self._depth > MAX_NESTING:
+            raise RecursionError("nesting too deep")   # reported by the driver as a syntax diagnostic
 
     # ── Token helpers ──
 
@@ -368,6 +377,13 @@ class Parser:
         return Declaration(span=self._span_from(start), type=dtype, name=name)
 
     def parse_block(self) -> Block:
+        self._enter()
+        try:
+            return self._parse_block()
+        finally:
+            self._depth -= 1
+
+    def _parse_block(self) -> Block:
         lbrace = self._expect(T.LBRACE, "Expected '{'.")
         statements: list[Statement] = []
         while self.cur.type not in (T.RBRACE, T.EOF):
@@ -438,6 +454,13 @@ class Parser:
         )
 
     def _finish_if(self, condition: Expression, start: Token) -> IfStatement:
+        self._enter()
+        try:
+            return self._finish_if_inner(condition, start)
+        finally:
+            self._depth -= 1
+
+    def _finish_if_inner(self, condition: Expression, start: Token) -> IfStatement:
         self._expect(T.AYITE, "Expected 'ayite'.")
         then_block = self.parse_block()
         else_branch: Block | IfStatement | None = None
@@ -611,7 +634,11 @@ class Parser:
     # ── Expressions ──
 
     def parse_expression(self) -> Expression:
-        return self._binary(self._parse_and, {T.OR: BinaryOp.OR})
+        self._enter()
+        try:
+            return self._binary(self._parse_and, {T.OR: BinaryOp.OR})
+        finally:
+            self._depth -= 1
 
     def _parse_and(self) -> Expression:
         return self._binary(self._parse_equality, {T.AND: BinaryOp.AND})
@@ -640,6 +667,13 @@ class Parser:
         return left
 
     def parse_unary(self) -> Expression:
+        self._enter()
+        try:
+            return self._parse_unary()
+        finally:
+            self._depth -= 1
+
+    def _parse_unary(self) -> Expression:
         start = self.cur
         t = start.type
         if t == T.LPAREN and self._peek(1).type in FIRST_DECLARATION:

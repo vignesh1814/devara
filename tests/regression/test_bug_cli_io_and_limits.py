@@ -153,3 +153,23 @@ def test_f003_valid_zero_prefixed_numbers_unchanged():
         lx = Lexer(lx_text)
         lx.tokenize()
         assert not lx.errors, lx_text
+
+
+def test_bug_deeply_nested_blocks_optimize_in_linear_time(tmp_path):
+    """merge_blocks was quadratic (5 s at 2000 nested blocks, minutes at 9000)."""
+    p = tmp_path / "b.tel"
+    n = 4000
+    p.write_text("nijam ayite { " * n + "}" * n + "\n")
+    t = time.time()
+    r = dv("asm", str(p))
+    assert r.returncode == 0, r.stderr[-200:]
+    assert time.time() - t < 20
+
+
+def test_n001_explicit_nesting_limit_for_blocks_and_unary(tmp_path):
+    for name, text in {"blocks": "nijam ayite { " * 30000 + "}" * 30000 + "\n",
+                       "unary": "x lo " + "!" * 30000 + "1 pettu\n"}.items():
+        p = tmp_path / f"{name}.tel"
+        p.write_text(text)
+        r = dv("sema", str(p))
+        assert r.returncode == 1 and "nesting too deep (implementation limit)" in r.stderr, name
