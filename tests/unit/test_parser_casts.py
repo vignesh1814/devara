@@ -2,9 +2,8 @@ import pytest
 from compiler.lexer.lexer import Lexer
 from compiler.parser.parser import Parser
 from compiler.ast.nodes import (
-    CastExpression, ExpressionStatement, Type, Identifier, PrimitiveType, BinaryExpression, FunctionCall, Literal
+    CastExpression, ExpressionStatement, TypeSyntax, Identifier, PrimitiveType, BinaryExpression, FunctionCall, Literal
 )
-from compiler.parser.errors import ParserError
 
 def parse_expr(source: str):
     lexer = Lexer(source)
@@ -24,7 +23,7 @@ def parse_with_errors(source: str):
 def test_cast_expression_basic():
     expr = parse_expr("(int) x")
     assert isinstance(expr, CastExpression)
-    assert expr.target_type.name == PrimitiveType.INT
+    assert expr.target_type.primitive == PrimitiveType.INT
     assert isinstance(expr.expression, Identifier)
     assert expr.expression.name == "x"
 
@@ -33,13 +32,13 @@ def test_cast_all_primitive_types():
     for t in types:
         expr = parse_expr(f"({t}) x")
         assert isinstance(expr, CastExpression)
-        assert expr.target_type.name.value == t.upper()
+        assert expr.target_type.primitive.value == t.upper()
 
 def test_cast_used_as_subexpression():
     expr = parse_expr("(int) x + 1")
     assert isinstance(expr, BinaryExpression)
     assert isinstance(expr.left, CastExpression)
-    assert expr.left.target_type.name == PrimitiveType.INT
+    assert expr.left.target_type.primitive == PrimitiveType.INT
 
 def test_cast_precedence():
     expr = parse_expr("(int) x + 1")
@@ -55,15 +54,15 @@ def test_disambiguation():
     # Cast of grouped expression
     expr = parse_expr("(int)(x)")
     assert isinstance(expr, CastExpression)
-    assert expr.target_type.name == PrimitiveType.INT
+    assert expr.target_type.primitive == PrimitiveType.INT
     assert isinstance(expr.expression, Identifier)
 
     # Nested casts
     expr = parse_expr("(int)(float) x")
     assert isinstance(expr, CastExpression)
-    assert expr.target_type.name == PrimitiveType.INT
+    assert expr.target_type.primitive == PrimitiveType.INT
     assert isinstance(expr.expression, CastExpression)
-    assert expr.expression.target_type.name == PrimitiveType.FLOAT
+    assert expr.expression.target_type.primitive == PrimitiveType.FLOAT
 
 def test_malformed_casts():
     # Unterminated
@@ -87,7 +86,7 @@ def test_cast_ast_shape():
     assert expr.line > 0
     assert expr.column > 0
     assert expr.end_line >= expr.line
-    assert expr.end_column > expr.column
+    assert expr.span.start_column == 1 and expr.span.end_column == 8  # '(int) x' = [1,8)
 
 def test_cast_assignment():
     lexer = Lexer("y lo (int) x pettu")

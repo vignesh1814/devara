@@ -134,5 +134,10 @@ class Token:
     line: int
     column: int
 
+    @property
+    def end_column(self) -> int:
+        """Half-open end column (tokens never span lines)."""
+        return self.column + len(self.lexeme)
+
     def __repr__(self) -> str:
         return f"Token({self.type}, {self.lexeme!r}, {self.line}:{self.column})"

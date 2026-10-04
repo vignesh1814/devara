@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from compiler.lexer.errors import LexerError
+from compiler.diagnostics import Diagnostic, LexCategory, Span
 from compiler.lexer.tokens import KEYWORDS, Token, TokenType
 
 # ── Escape sequence map ──
@@ -23,16 +23,16 @@ _ESCAPE_MAP: dict[str, str] = {
 _TOKEN_SPEC: list[tuple[str, str]] = [
     ("COMMENT",     r"#[^\n]*"),
     ("WHITESPACE",  r"[ \t]+"),
-    ("NEWLINE",     r"\n"),
-    ("FLOAT_LIT",   r"\d+\.\d+"),
+    ("NEWLINE",     r"\r?\n"),
+    ("FLOAT_LIT",   r"[0-9]+\.[0-9]+"),
     ("HEX_INT",     r"0[xX][0-9a-fA-F]+"),
     ("OCT_INT",     r"0[0-7]+"),
     ("BAD_OCT",     r"0[0-9]+"),
     ("DEC_INT",     r"0|[1-9][0-9]*"),
-    ("STRING",      r'"[^"\n\\]*(?:\\.[^"\n\\]*)*"'),
-    ("BAD_STRING",  r'"[^"\n]*'),
-    ("CHARLIT",     r"'[^'\n\\]'|'\\.[^'\n]*'|'\\x[0-9a-fA-F]{2}'"),
-    ("BAD_CHAR",    r"'[^'\n]*'?"),
+    ("STRING",      r'"[^"\r\n\\]*(?:\\.[^"\r\n\\]*)*"'),
+    ("BAD_STRING",  r'"[^"\r\n]*'),
+    ("CHARLIT",     r"'[^'\r\n\\]'|'\\.[^'\r\n]*'|'\\x[0-9a-fA-F]{2}'"),
+    ("BAD_CHAR",    r"'[^'\r\n]*'?"),
     ("IDENT",       r"[a-zA-Z_][a-zA-Z0-9_]*"),
     ("LTE",         r"<="),
     ("GTE",         r">="),
@@ -101,7 +101,7 @@ class Lexer:
         self._source = source
         self._filename = filename
         self._tokens: list[Token] = []
-        self._errors: list[LexerError] = []
+        self._errors: list[Diagnostic] = []
         self._line = 1
         self._col_offset = 0  # index of the start of the current line
 
@@ -153,7 +153,10 @@ class Lexer:
                 )
 
             elif kind == "BAD_OCT":
-                self._error(f"Invalid octal literal '{value}'", self._line, col)
+                self._error(
+                    LexCategory.INVALID_NUMBER,
+                    f"Invalid octal literal '{value}'", self._line, col, len(value),
+                )
 
             elif kind == "DEC_INT":
                 self._tokens.append(
@@ -165,7 +168,10 @@ class Lexer:
                 self._validate_string(value, self._line, col)
 
             elif kind == "BAD_STRING":
-                self._error("Unterminated string literal", self._line, col)
+                self._error(
+                    LexCategory.UNTERMINATED_STRING,
+                    "Unterminated string literal", self._line, col, len(value),
+                )
 
             elif kind == "CHARLIT":
                 # Validate the character literal
@@ -181,7 +187,8 @@ class Lexer:
 
             elif kind == "MISMATCH":
                 self._error(
-                    f"Unexpected character {value!r}", self._line, col
+                    LexCategory.INVALID_CHARACTER,
+                    f"Unexpected character {value!r}", self._line, col, len(value),
                 )
 
         # Always end with EOF
@@ -196,7 +203,7 @@ class Lexer:
         return self._tokens
 
     @property
-    def errors(self) -> list[LexerError]:
+    def errors(self) -> list[Diagnostic]:
         return self._errors
 
     @property
@@ -205,8 +212,13 @@ class Lexer:
 
     # ── Private helpers ──
 
-    def _error(self, message: str, line: int, col: int) -> None:
-        self._errors.append(LexerError(message, line, col, self._filename))
+    def _error(
+        self, category: LexCategory, message: str, line: int, col: int, length: int = 1
+    ) -> None:
+        span = Span(line, col, line, col + max(length, 1))
+        self._errors.append(
+            Diagnostic("lexical", category, message, span, self._filename)
+        )
 
     def _validate_string(self, lexeme: str, line: int, col: int) -> None:
         """Validate escape sequences in a fully-matched string literal."""
@@ -228,13 +240,15 @@ class Lexer:
                     else:
                         esc_col = col + i
                         self._error(
-                            "Invalid hex escape sequence", line, esc_col
+                            LexCategory.INVALID_ESCAPE,
+                            "Invalid hex escape sequence", line, esc_col, 2,
                         )
                         has_error = True
                 elif esc not in _ESCAPE_MAP:
                     esc_col = col + i
                     self._error(
-                        f"Unknown escape sequence '\\{esc}'", line, esc_col
+                        LexCategory.INVALID_ESCAPE,
+                        f"Unknown escape sequence '\\{esc}'", line, esc_col, 2,
                     )
                     has_error = True
             i += 1
@@ -254,7 +268,10 @@ class Lexer:
         inner = lexeme[1:-1]  # strip surrounding quotes
 
         if len(inner) == 0:
-            self._error("Empty character literal", line, col)
+            self._error(
+                LexCategory.INVALID_CHAR_LITERAL,
+                "Empty character literal", line, col, len(lexeme),
+            )
             return
 
         if inner[0] == "\\":
@@ -268,31 +285,50 @@ class Lexer:
                         Token(TokenType.CHAR_LITERAL, lexeme, line, col)
                     )
                 else:
-                    self._error("Invalid hex escape sequence", line, col + 1)
+                    self._error(
+                        LexCategory.INVALID_ESCAPE,
+                        "Invalid hex escape sequence", line, col + 1, len(lexeme) - 1,
+                    )
             elif esc in _ESCAPE_MAP:
                 self._tokens.append(
                     Token(TokenType.CHAR_LITERAL, lexeme, line, col)
                 )
             else:
                 self._error(
-                    f"Unknown escape sequence '\\{esc}'", line, col + 1
+                    LexCategory.INVALID_ESCAPE,
+                    f"Unknown escape sequence '\\{esc}'", line, col + 1, 2,
                 )
         elif len(inner) == 1:
             self._tokens.append(
                 Token(TokenType.CHAR_LITERAL, lexeme, line, col)
             )
         else:
-            self._error("Multi-character character literal", line, col)
+            self._error(
+                LexCategory.INVALID_CHAR_LITERAL,
+                "Multi-character character literal", line, col, len(lexeme),
+            )
 
     def _handle_bad_char(self, lexeme: str, line: int, col: int) -> None:
         """Handle character literals that didn't match the valid pattern."""
         if not lexeme.endswith("'"):
-            self._error("Unterminated character literal", line, col)
+            self._error(
+                LexCategory.UNTERMINATED_CHAR,
+                "Unterminated character literal", line, col, len(lexeme),
+            )
         elif lexeme == "''":
-            self._error("Empty character literal", line, col)
+            self._error(
+                LexCategory.INVALID_CHAR_LITERAL,
+                "Empty character literal", line, col, 2,
+            )
         else:
             inner = lexeme[1:-1]
             if len(inner) > 1 and inner[0] != "\\":
-                self._error("Multi-character character literal", line, col)
+                self._error(
+                    LexCategory.INVALID_CHAR_LITERAL,
+                    "Multi-character character literal", line, col, len(lexeme),
+                )
             else:
-                self._error("Invalid character literal", line, col)
+                self._error(
+                    LexCategory.INVALID_CHAR_LITERAL,
+                    "Invalid character literal", line, col, len(lexeme),
+                )

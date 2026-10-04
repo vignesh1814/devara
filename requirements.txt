@@ -1,1 +1,2 @@
-pytest>=8.0
+# The compiler itself uses only the Python 3.11 standard library.
+# Test/dev dependencies are in requirements-dev.txt.

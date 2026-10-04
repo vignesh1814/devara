@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  fast:
+    # Fast suite on every push: unit + quick integration tests.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: ./scripts/setup.sh
+      - run: pytest -m "not slow" -q
+
+  full:
+    # Full suite (incl. slow corpus / property / end-to-end) on PRs and manual runs.
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: ./scripts/setup.sh
+      - run: pytest -q
+      - run: python3 scripts/run_corpus.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: corpus-report
+          path: build/corpus_report.json
+          if-no-files-found: ignore
