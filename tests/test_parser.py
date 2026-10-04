@@ -26,6 +26,8 @@ from compiler.ast.nodes import (
     Program,
     RangeLoop,
     ReturnStatement,
+    SourceLocation,
+    Span,
     Type,
     UnaryExpression,
     UnaryOp,
@@ -276,3 +278,162 @@ class TestErrors:
         parser = parse_with_errors("i++")
         assert len(parser.errors) > 0
         assert "Expected statement keyword" in parser.errors[0].message
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Stage 2 Finalization Regression Tests
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+class TestLekunteRegression:
+    def test_lekunte_valid_block(self):
+        ast = parse("x ayite { } lekunte { }")
+        stmt = ast.items[0]
+        assert isinstance(stmt, IfStatement)
+        assert isinstance(stmt.else_block, Block)
+
+    def test_lekunte_valid_else_if(self):
+        ast = parse("x ayite { } lekunte y ayite { }")
+        stmt = ast.items[0]
+        assert isinstance(stmt, IfStatement)
+        assert isinstance(stmt.else_block, IfStatement)
+
+    def test_lekunte_invalid_assignment(self):
+        parser = parse_with_errors("x ayite { } lekunte y lo 10 pettu")
+        assert len(parser.errors) > 0
+        assert "Expected '{' or if-statement after 'lekunte'" in parser.errors[0].message
+
+    def test_lekunte_invalid_input(self):
+        parser = parse_with_errors("x ayite { } lekunte x ni chaduvu")
+        assert len(parser.errors) > 0
+        assert "Expected '{' or if-statement after 'lekunte'" in parser.errors[0].message
+
+
+class TestPratisariRegression:
+    def test_pratisari_tho_modhalu_init(self):
+        ast = parse("pratisari (i 0 tho modhalu; i < 10; i++) { }")
+        stmt = ast.items[0]
+        assert isinstance(stmt, ForLoop)
+        assert isinstance(stmt.init, ForInit)
+        assert stmt.init.target.name == "i"
+        assert stmt.init.value is not None
+        assert stmt.init.type is None
+
+    def test_pratisari_assignment_init(self):
+        ast = parse("pratisari (i lo 0 pettu; i < 10; i++) { }")
+        stmt = ast.items[0]
+        assert isinstance(stmt, ForLoop)
+        assert isinstance(stmt.init, ForInit)
+        assert stmt.init.target.name == "i"
+        assert stmt.init.value is not None
+        assert stmt.init.type is None
+
+    def test_pratisari_declaration_init_without_value(self):
+        ast = parse("pratisari (int i; i < 10; i++) { }")
+        stmt = ast.items[0]
+        assert isinstance(stmt, ForLoop)
+        assert isinstance(stmt.init, ForInit)
+        assert stmt.init.target.name == "i"
+        assert stmt.init.value is None
+        assert stmt.init.type is not None
+        assert stmt.init.type.name == PrimitiveType.INT
+
+    def test_pratisari_declaration_init_with_value(self):
+        ast = parse("pratisari (int i lo 0 pettu; i < 10; i++) { }")
+        stmt = ast.items[0]
+        assert isinstance(stmt, ForLoop)
+        assert isinstance(stmt.init, ForInit)
+        assert stmt.init.target.name == "i"
+        assert stmt.init.value is not None
+        assert stmt.init.type is not None
+        assert stmt.init.type.name == PrimitiveType.INT
+
+    @pytest.mark.parametrize(
+        "init_str",
+        [
+            "i 0 tho modhalu",
+            "i lo 0 pettu",
+            "int i",
+            "int i lo 0 pettu",
+        ],
+    )
+    @pytest.mark.parametrize(
+        "update_str",
+        [
+            "i lo i + 1 pettu",
+            "++i",
+            "i++",
+            "--i",
+            "i--",
+        ],
+    )
+    def test_pratisari_all_init_update_combinations(self, init_str, update_str):
+        code = f"pratisari ({init_str}; i < 10; {update_str}) {{ }}"
+        ast = parse(code)
+        assert len(ast.items) == 1
+        stmt = ast.items[0]
+        assert isinstance(stmt, ForLoop)
+        assert stmt.init is not None
+        assert stmt.condition is not None
+        assert stmt.update is not None
+
+    def test_pratisari_empty_rejected(self):
+        parser = parse_with_errors("pratisari (;;) { }")
+        assert len(parser.errors) > 0
+        assert "Expected loop initialization in pratisari" in parser.errors[0].message
+
+
+class TestBooleanLiteralsRegression:
+    def test_nijam_raw_lexeme(self):
+        ast = parse("nijam ni chupi")
+        stmt = ast.items[0]
+        assert isinstance(stmt, Output)
+        assert isinstance(stmt.value, Literal)
+        assert stmt.value.literal_type == LiteralType.BOOL
+        assert stmt.value.value == "nijam"
+
+    def test_abaddham_raw_lexeme(self):
+        ast = parse("abaddham ni chupi")
+        stmt = ast.items[0]
+        assert isinstance(stmt, Output)
+        assert isinstance(stmt.value, Literal)
+        assert stmt.value.literal_type == LiteralType.BOOL
+        assert stmt.value.value == "abaddham"
+
+
+class TestSourceSpansRegression:
+    def test_declaration_spans(self):
+        ast = parse("int x")
+        decl = ast.items[0]
+        assert decl.start.line == 1
+        assert decl.start.column == 1
+        assert decl.end.line == 1
+        assert decl.end.column == 5
+        assert decl.span.start.line == 1
+        assert decl.span.end.line == 1
+
+    def test_assignment_spans(self):
+        ast = parse("x lo 10 pettu")
+        stmt = ast.items[0]
+        assert stmt.start.line == 1
+        assert stmt.start.column == 1
+        assert stmt.end.line == 1
+        assert stmt.end.column == 9
+
+    def test_binary_expression_spans(self):
+        ast = parse("a + b ni chupi")
+        stmt = ast.items[0]
+        expr = stmt.value
+        assert isinstance(expr, BinaryExpression)
+        assert expr.start.line == 1
+        assert expr.start.column == 1
+        assert expr.end.line == 1
+        assert expr.end.column == 5
+
+    def test_block_spans(self):
+        ast = parse("{ x lo 1 pettu }")
+        block = ast.items[0]
+        assert isinstance(block, Block)
+        assert block.start.line == 1
+        assert block.start.column == 1
+        assert block.end.line == 1
+        assert block.end.column == 16

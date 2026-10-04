@@ -10,6 +10,7 @@ from compiler.ast.nodes import (
     BinaryOp,
     Block,
     BreakStatement,
+    CastExpression,
     ContinueStatement,
     Declaration,
     DecrementUpdate,
@@ -76,9 +77,15 @@ class Parser:
             except ParserError:
                 self.synchronize_top_level()
 
+        start_line = 1 if not items else items[0].line
+        start_col = 1 if not items else items[0].column
+        end_line = 1 if not items else (items[-1].end_line or items[-1].line)
+        end_col = 1 if not items else (items[-1].end_column or items[-1].column)
         return Program(
-            line=1 if not items else items[0].line,
-            column=1 if not items else items[0].column,
+            line=start_line,
+            column=start_col,
+            end_line=end_line,
+            end_column=end_col,
             items=items,
         )
 
@@ -219,23 +226,29 @@ class Parser:
         if not self.check(TokenType.RPAREN):
             while True:
                 param_type = self.parse_type()
-                param_name = self.consume(TokenType.IDENTIFIER, "Expected parameter name.").lexeme
+                param_name = self.consume(TokenType.IDENTIFIER, "Expected parameter name.")
+                end_tok = param_name
                 
                 if self.match(TokenType.LBRACKET):
-                    self.consume(TokenType.RBRACKET, "Expected ']' after '[' in array parameter.")
+                    rbracket = self.consume(TokenType.RBRACKET, "Expected ']' after '[' in array parameter.")
+                    end_tok = rbracket
                     param_type = Type(
                         line=param_type.line,
                         column=param_type.column,
+                        end_line=end_tok.line,
+                        end_column=end_tok.column,
                         name=param_type.name,
-                        array_dimensions=[None]
+                        array_dimensions=[None],
                     )
                     
                 parameters.append(
                     Parameter(
                         line=param_type.line,
                         column=param_type.column,
+                        end_line=end_tok.line,
+                        end_column=end_tok.column,
                         type=param_type,
-                        name=param_name,
+                        name=param_name.lexeme,
                     )
                 )
                 if not self.match(TokenType.COMMA):
@@ -246,6 +259,8 @@ class Parser:
         return FunctionDeclaration(
             line=start_token.line,
             column=start_token.column,
+            end_line=body.end_line or body.line,
+            end_column=body.end_column or body.column,
             return_type=ret_type,
             name=name,
             parameters=parameters,
@@ -264,10 +279,10 @@ class Parser:
                 return self.parse_range_loop()
             if self.match(TokenType.AAPU):
                 start = self.previous()
-                return BreakStatement(line=start.line, column=start.column)
+                return BreakStatement(line=start.line, column=start.column, end_line=start.line, end_column=start.column)
             if self.match(TokenType.SAAGU):
                 start = self.previous()
-                return ContinueStatement(line=start.line, column=start.column)
+                return ContinueStatement(line=start.line, column=start.column, end_line=start.line, end_column=start.column)
             if self.match(TokenType.LBRACE):
                 return self.parse_block()
                 
@@ -280,17 +295,20 @@ class Parser:
         start_token = self.peek()
         decl_type = self.parse_type()
         name = self.consume(TokenType.IDENTIFIER, "Expected variable name after type.")
+        end_tok = name
         
         dimensions = []
         while self.match(TokenType.LBRACKET):
             dim_expr = self.parse_expression()
-            self.consume(TokenType.RBRACKET, "Expected ']' after array dimension.")
+            end_tok = self.consume(TokenType.RBRACKET, "Expected ']' after array dimension.")
             dimensions.append(dim_expr)
             
         if dimensions:
             decl_type = Type(
                 line=decl_type.line,
                 column=decl_type.column,
+                end_line=end_tok.line,
+                end_column=end_tok.column,
                 name=decl_type.name,
                 array_dimensions=dimensions,
             )
@@ -298,6 +316,8 @@ class Parser:
         return Declaration(
             line=start_token.line,
             column=start_token.column,
+            end_line=end_tok.line,
+            end_column=end_tok.column,
             type=decl_type,
             name=name.lexeme,
         )
@@ -313,6 +333,8 @@ class Parser:
         return Type(
             line=start.line,
             column=start.column,
+            end_line=start.line,
+            end_column=start.column,
             name=primitive,
             array_dimensions=[],
         )
@@ -329,10 +351,12 @@ class Parser:
             if item is not None:
                 statements.append(item)
             
-        self.consume(TokenType.RBRACE, "Expected '}' after block.")
+        rbrace = self.consume(TokenType.RBRACE, "Expected '}' after block.")
         return Block(
             line=start.line,
             column=start.column,
+            end_line=rbrace.line,
+            end_column=rbrace.column,
             statements=statements,
         )
 
@@ -344,9 +368,12 @@ class Parser:
                 raise self.error(self.previous(), "Expected identifier or array access as assignment target.")
             value = self.parse_expression()
             self.consume(TokenType.PETTU, "Expected 'pettu' after assignment value.")
+            end_tok = self.previous()
             return Assignment(
                 line=expr.line,
                 column=expr.column,
+                end_line=end_tok.line,
+                end_column=end_tok.column,
                 target=expr,
                 value=value,
             )
@@ -355,9 +382,23 @@ class Parser:
             if self.match(TokenType.CHADUVU):
                 if not isinstance(expr, (Identifier, ArrayAccess)):
                     raise self.error(self.previous(), "Expected identifier or array access for input.")
-                return Input(line=expr.line, column=expr.column, target=expr)
+                end_tok = self.previous()
+                return Input(
+                    line=expr.line,
+                    column=expr.column,
+                    end_line=end_tok.line,
+                    end_column=end_tok.column,
+                    target=expr,
+                )
             elif self.match(TokenType.CHUPI):
-                return Output(line=expr.line, column=expr.column, value=expr)
+                end_tok = self.previous()
+                return Output(
+                    line=expr.line,
+                    column=expr.column,
+                    end_line=end_tok.line,
+                    end_column=end_tok.column,
+                    value=expr,
+                )
             else:
                 raise self.error(self.peek(), "Expected 'chaduvu' or 'chupi' after 'ni'.")
                 
@@ -368,10 +409,18 @@ class Parser:
                 if self.check(TokenType.LBRACE):
                     else_block = self.parse_block()
                 else:
-                    else_block = self.parse_statement() 
+                    start_tok = self.peek()
+                    else_stmt = self.parse_expression_statement()
+                    if not isinstance(else_stmt, IfStatement):
+                        raise self.error(start_tok, "Expected '{' or if-statement after 'lekunte'.")
+                    else_block = else_stmt
+            end_line = (else_block.end_line or else_block.line) if else_block else (then_block.end_line or then_block.line)
+            end_column = (else_block.end_column or else_block.column) if else_block else (then_block.end_column or then_block.column)
             return IfStatement(
                 line=expr.line,
                 column=expr.column,
+                end_line=end_line,
+                end_column=end_column,
                 condition=expr,
                 then_block=then_block,
                 else_block=else_block,
@@ -383,15 +432,30 @@ class Parser:
             return WhileLoop(
                 line=expr.line,
                 column=expr.column,
+                end_line=body.end_line or body.line,
+                end_column=body.end_column or body.column,
                 condition=expr,
                 body=body,
             )
             
         if self.match(TokenType.IVVU):
-            return ReturnStatement(line=expr.line, column=expr.column, value=expr)
+            end_tok = self.previous()
+            return ReturnStatement(
+                line=expr.line,
+                column=expr.column,
+                end_line=end_tok.line,
+                end_column=end_tok.column,
+                value=expr,
+            )
             
         if isinstance(expr, FunctionCall):
-            return ExpressionStatement(line=expr.line, column=expr.column, expression=expr)
+            return ExpressionStatement(
+                line=expr.line,
+                column=expr.column,
+                end_line=expr.end_line or expr.line,
+                end_column=expr.end_column or expr.column,
+                expression=expr,
+            )
             
         raise self.error(self.peek(), "Expected statement keyword after expression.")
 
@@ -399,40 +463,103 @@ class Parser:
         start = self.previous()
         self.consume(TokenType.LPAREN, "Expected '(' after 'pratisari'.")
         
-        # Init
-        init = None
-        if not self.match(TokenType.SEMICOLON):
-            target_name = self.consume(TokenType.IDENTIFIER, "Expected loop variable in pratisari.").lexeme
-            target_expr = Identifier(line=self.previous().line, column=self.previous().column, name=target_name)
+        # Init (mandatory according to canonical grammar)
+        if self.check(TokenType.SEMICOLON):
+            raise self.error(self.peek(), "Expected loop initialization in pratisari.")
+            
+        if self.peek().type in _TYPE_MAP:
+            type_node = self.parse_type()
+            target_tok = self.consume(TokenType.IDENTIFIER, "Expected loop variable in pratisari.")
+            target_expr = Identifier(
+                line=target_tok.line,
+                column=target_tok.column,
+                end_line=target_tok.line,
+                end_column=target_tok.column,
+                name=target_tok.lexeme,
+            )
+            val_expr = None
+            if self.match(TokenType.LO):
+                val_expr = self.parse_expression()
+                self.consume(TokenType.PETTU, "Expected 'pettu' in pratisari init.")
+            end_tok = self.previous()
+            init = ForInit(
+                line=type_node.line,
+                column=type_node.column,
+                end_line=end_tok.line,
+                end_column=end_tok.column,
+                target=target_expr,
+                value=val_expr,
+                type=type_node,
+            )
+        elif self.check(TokenType.IDENTIFIER) and self.peek_next().type == TokenType.LO:
+            target_tok = self.advance()
+            target_expr = Identifier(
+                line=target_tok.line,
+                column=target_tok.column,
+                end_line=target_tok.line,
+                end_column=target_tok.column,
+                name=target_tok.lexeme,
+            )
+            self.consume(TokenType.LO, "Expected 'lo' in pratisari init.")
+            val_expr = self.parse_expression()
+            self.consume(TokenType.PETTU, "Expected 'pettu' in pratisari init.")
+            end_tok = self.previous()
+            init = ForInit(
+                line=target_tok.line,
+                column=target_tok.column,
+                end_line=end_tok.line,
+                end_column=end_tok.column,
+                target=target_expr,
+                value=val_expr,
+                type=None,
+            )
+        elif self.check(TokenType.IDENTIFIER):
+            target_tok = self.advance()
+            target_expr = Identifier(
+                line=target_tok.line,
+                column=target_tok.column,
+                end_line=target_tok.line,
+                end_column=target_tok.column,
+                name=target_tok.lexeme,
+            )
             start_expr = self.parse_expression()
             self.consume(TokenType.THO, "Expected 'tho' in pratisari init.")
             self.consume(TokenType.MODHALU, "Expected 'modhalu' in pratisari init.")
+            end_tok = self.previous()
             init = ForInit(
-                line=target_expr.line,
-                column=target_expr.column,
+                line=target_tok.line,
+                column=target_tok.column,
+                end_line=end_tok.line,
+                end_column=end_tok.column,
                 target=target_expr,
                 value=start_expr,
+                type=None,
             )
-            self.consume(TokenType.SEMICOLON, "Expected ';' after pratisari init.")
+        else:
+            raise self.error(self.peek(), "Expected loop initialization in pratisari.")
+            
+        self.consume(TokenType.SEMICOLON, "Expected ';' after pratisari init.")
         
-        # Condition
-        condition = None
-        if not self.match(TokenType.SEMICOLON):
-            condition = self.parse_expression()
-            if self.match(TokenType.UNNANTA):
-                raise self.error(self.previous(), "'unnanta varaku' is not allowed in a pratisari loop condition.")
-            self.consume(TokenType.SEMICOLON, "Expected ';' after pratisari condition.")
+        # Condition (mandatory according to canonical grammar)
+        if self.check(TokenType.SEMICOLON):
+            raise self.error(self.peek(), "Expected condition in pratisari.")
+        condition = self.parse_expression()
+        if self.match(TokenType.UNNANTA):
+            raise self.error(self.previous(), "'unnanta varaku' is not allowed in a pratisari loop condition.")
+        self.consume(TokenType.SEMICOLON, "Expected ';' after pratisari condition.")
         
-        # Update
-        update = None
-        if not self.check(TokenType.RPAREN):
-            update = self.parse_for_update()
+        # Update (mandatory according to canonical grammar)
+        if self.check(TokenType.RPAREN):
+            raise self.error(self.peek(), "Expected update in pratisari.")
+        update = self.parse_for_update()
         self.consume(TokenType.RPAREN, "Expected ')' after pratisari.")
         
         body = self.parse_block()
         return ForLoop(
             line=start.line,
             column=start.column,
+            end_line=body.end_line or body.line,
+            end_column=body.end_column or body.column,
             init=init,
             condition=condition,
             update=update,
@@ -441,33 +568,73 @@ class Parser:
 
     def parse_for_update(self) -> ForUpdate:
         if self.match(TokenType.INCREMENT):
+            start = self.previous()
             target = self.parse_primary()
             if not isinstance(target, (Identifier, ArrayAccess)):
                 raise self.error(self.previous(), "Expected identifier or array access for increment target.")
-            return IncrementUpdate(line=target.line, column=target.column, target=target, prefix=True)
+            return IncrementUpdate(
+                line=start.line,
+                column=start.column,
+                end_line=target.end_line or target.line,
+                end_column=target.end_column or target.column,
+                target=target,
+                prefix=True,
+            )
         if self.match(TokenType.DECREMENT):
+            start = self.previous()
             target = self.parse_primary()
             if not isinstance(target, (Identifier, ArrayAccess)):
                 raise self.error(self.previous(), "Expected identifier or array access for decrement target.")
-            return DecrementUpdate(line=target.line, column=target.column, target=target, prefix=True)
+            return DecrementUpdate(
+                line=start.line,
+                column=start.column,
+                end_line=target.end_line or target.line,
+                end_column=target.end_column or target.column,
+                target=target,
+                prefix=True,
+            )
             
         expr = self.parse_expression()
         
         if self.match(TokenType.INCREMENT):
+            end_tok = self.previous()
             if not isinstance(expr, (Identifier, ArrayAccess)):
                 raise self.error(self.previous(), "Expected identifier or array access for increment target.")
-            return IncrementUpdate(line=expr.line, column=expr.column, target=expr, prefix=False)
+            return IncrementUpdate(
+                line=expr.line,
+                column=expr.column,
+                end_line=end_tok.line,
+                end_column=end_tok.column,
+                target=expr,
+                prefix=False,
+            )
         if self.match(TokenType.DECREMENT):
+            end_tok = self.previous()
             if not isinstance(expr, (Identifier, ArrayAccess)):
                 raise self.error(self.previous(), "Expected identifier or array access for decrement target.")
-            return DecrementUpdate(line=expr.line, column=expr.column, target=expr, prefix=False)
+            return DecrementUpdate(
+                line=expr.line,
+                column=expr.column,
+                end_line=end_tok.line,
+                end_column=end_tok.column,
+                target=expr,
+                prefix=False,
+            )
             
         self.consume(TokenType.LO, "Expected 'lo' in pratisari update.")
         val_expr = self.parse_expression()
         self.consume(TokenType.PETTU, "Expected 'pettu' in pratisari update.")
+        end_tok = self.previous()
         if not isinstance(expr, (Identifier, ArrayAccess)):
             raise self.error(self.previous(), "Expected identifier or array access as assignment target.")
-        return AssignmentUpdate(line=expr.line, column=expr.column, target=expr, value=val_expr)
+        return AssignmentUpdate(
+            line=expr.line,
+            column=expr.column,
+            end_line=end_tok.line,
+            end_column=end_tok.column,
+            target=expr,
+            value=val_expr,
+        )
 
     def parse_range_loop(self) -> RangeLoop:
         start = self.previous()
@@ -481,6 +648,8 @@ class Parser:
         return RangeLoop(
             line=start.line,
             column=start.column,
+            end_line=body.end_line or body.line,
+            end_column=body.end_column or body.column,
             target=target,
             start=start_expr,
             end=end_expr,
@@ -500,6 +669,8 @@ class Parser:
             expr = BinaryExpression(
                 line=expr.line,
                 column=expr.column,
+                end_line=right.end_line or right.line,
+                end_column=right.end_column or right.column,
                 operator=BinaryOp.OR,
                 left=expr,
                 right=right,
@@ -514,6 +685,8 @@ class Parser:
             expr = BinaryExpression(
                 line=expr.line,
                 column=expr.column,
+                end_line=right.end_line or right.line,
+                end_column=right.end_column or right.column,
                 operator=BinaryOp.AND,
                 left=expr,
                 right=right,
@@ -529,6 +702,8 @@ class Parser:
             expr = BinaryExpression(
                 line=expr.line,
                 column=expr.column,
+                end_line=right.end_line or right.line,
+                end_column=right.end_column or right.column,
                 operator=op,
                 left=expr,
                 right=right,
@@ -552,6 +727,8 @@ class Parser:
             expr = BinaryExpression(
                 line=expr.line,
                 column=expr.column,
+                end_line=right.end_line or right.line,
+                end_column=right.end_column or right.column,
                 operator=op,
                 left=expr,
                 right=right,
@@ -567,6 +744,8 @@ class Parser:
             expr = BinaryExpression(
                 line=expr.line,
                 column=expr.column,
+                end_line=right.end_line or right.line,
+                end_column=right.end_column or right.column,
                 operator=op,
                 left=expr,
                 right=right,
@@ -588,6 +767,8 @@ class Parser:
             expr = BinaryExpression(
                 line=expr.line,
                 column=expr.column,
+                end_line=right.end_line or right.line,
+                end_column=right.end_column or right.column,
                 operator=op,
                 left=expr,
                 right=right,
@@ -595,6 +776,20 @@ class Parser:
         return expr
 
     def parse_unary(self) -> Expression:
+        if self.check(TokenType.LPAREN) and self.peek_next().type in _TYPE_MAP:
+            start_tok = self.advance()
+            type_node = self.parse_type()
+            self.consume(TokenType.RPAREN, "Expected ')' after type in cast.")
+            operand = self.parse_unary()
+            return CastExpression(
+                line=start_tok.line,
+                column=start_tok.column,
+                end_line=operand.end_line or operand.line,
+                end_column=operand.end_column or operand.column,
+                target_type=type_node,
+                expression=operand,
+            )
+
         if self.match(TokenType.NOT, TokenType.PLUS, TokenType.MINUS):
             op_token = self.previous()
             if op_token.type == TokenType.NOT:
@@ -608,6 +803,8 @@ class Parser:
             return UnaryExpression(
                 line=op_token.line,
                 column=op_token.column,
+                end_line=right.end_line or right.line,
+                end_column=right.end_column or right.column,
                 operator=op,
                 operand=right,
                 position=UnaryPosition.PREFIX,
@@ -617,36 +814,40 @@ class Parser:
 
     def parse_primary(self) -> Expression:
         if self.match(TokenType.INT_LITERAL):
-            return Literal(self.previous().line, self.previous().column, self.previous().lexeme, LiteralType.INTEGER)
+            tok = self.previous()
+            return Literal(tok.line, tok.column, tok.lexeme, LiteralType.INTEGER, end_line=tok.line, end_column=tok.column)
         if self.match(TokenType.FLOAT_LITERAL):
-            return Literal(self.previous().line, self.previous().column, self.previous().lexeme, LiteralType.FLOAT)
+            tok = self.previous()
+            return Literal(tok.line, tok.column, tok.lexeme, LiteralType.FLOAT, end_line=tok.line, end_column=tok.column)
         if self.match(TokenType.CHAR_LITERAL):
-            return Literal(self.previous().line, self.previous().column, self.previous().lexeme, LiteralType.CHAR)
+            tok = self.previous()
+            return Literal(tok.line, tok.column, tok.lexeme, LiteralType.CHAR, end_line=tok.line, end_column=tok.column)
         if self.match(TokenType.STRING_LITERAL):
-            return Literal(self.previous().line, self.previous().column, self.previous().lexeme, LiteralType.STRING)
+            tok = self.previous()
+            return Literal(tok.line, tok.column, tok.lexeme, LiteralType.STRING, end_line=tok.line, end_column=tok.column)
         if self.match(TokenType.NIJAM):
-            return Literal(self.previous().line, self.previous().column, True, LiteralType.BOOL)
+            tok = self.previous()
+            return Literal(tok.line, tok.column, tok.lexeme, LiteralType.BOOL, end_line=tok.line, end_column=tok.column)
         if self.match(TokenType.ABADDHAM):
-            return Literal(self.previous().line, self.previous().column, False, LiteralType.BOOL)
+            tok = self.previous()
+            return Literal(tok.line, tok.column, tok.lexeme, LiteralType.BOOL, end_line=tok.line, end_column=tok.column)
             
         if self.match(TokenType.LPAREN):
             start = self.previous()
             expr = self.parse_expression()
             self.consume(TokenType.RPAREN, "Expected ')' after expression.")
-            # Wrap the parsed expr in something if needed, or just return it.
-            # Usually parentheses don't need a specific AST node in the final AST since tree structure enforces precedence.
             return expr
             
         if self.match(TokenType.IDENTIFIER):
             start = self.previous()
-            expr: Expression = Identifier(start.line, start.column, start.lexeme)
+            expr: Expression = Identifier(start.line, start.column, start.lexeme, end_line=start.line, end_column=start.column)
             
             # Postfix operators (Array access and Function call)
             while True:
                 if self.match(TokenType.LBRACKET):
                     index = self.parse_expression()
-                    self.consume(TokenType.RBRACKET, "Expected ']' after array index.")
-                    expr = ArrayAccess(expr.line, expr.column, expr, index)
+                    rbracket = self.consume(TokenType.RBRACKET, "Expected ']' after array index.")
+                    expr = ArrayAccess(expr.line, expr.column, expr, index, end_line=rbracket.line, end_column=rbracket.column)
                 elif self.match(TokenType.LPAREN):
                     arguments = []
                     if not self.check(TokenType.RPAREN):
@@ -654,8 +855,8 @@ class Parser:
                             arguments.append(self.parse_expression())
                             if not self.match(TokenType.COMMA):
                                 break
-                    self.consume(TokenType.RPAREN, "Expected ')' after arguments.")
-                    expr = FunctionCall(expr.line, expr.column, expr, arguments)
+                    rparen = self.consume(TokenType.RPAREN, "Expected ')' after arguments.")
+                    expr = FunctionCall(expr.line, expr.column, expr, arguments, end_line=rparen.line, end_column=rparen.column)
                 else:
                     break
                     

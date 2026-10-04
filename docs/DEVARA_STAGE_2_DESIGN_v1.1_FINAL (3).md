@@ -931,8 +931,12 @@ multiplicative-expression =
     { multiplicative-operator, unary-expression } ;
 
 unary-expression =
-      unary-operator, unary-expression
-    | primary-expression ;
+    cast-expression
+  | unary-operator, unary-expression
+  | primary-expression ;
+
+cast-expression =
+    "(", type, ")", unary-expression ;
 
 primary-expression =
       literal
@@ -1157,6 +1161,7 @@ At minimum, the design must account for:
 - identifier
 - array access
 - function call
+- cast expression
 - unary expression
 - binary expression
 

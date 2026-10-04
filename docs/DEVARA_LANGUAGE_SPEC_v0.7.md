@@ -1,7 +1,6 @@
-
 # Devara Language Specification
 
-**Specification version:** 0.5  
+**Specification version:** 0.7  
 **Status:** Canonical project specification; formal grammar reviewed for internal consistency and written in EBNF notation adapted from ISO/IEC 14977  
 **Language:** Devara  
 **Specification notation:** EBNF-style notation, following ISO/IEC 14977:1996
@@ -196,7 +195,6 @@ Examples:
 ```
 
 The language supports escaped character forms accepted by the lexer.
-A physical newline cannot occur inside a character literal; use `\n` instead.
 
 ## 3.5 String literals
 
@@ -209,7 +207,6 @@ Example:
 ```
 
 Escaped characters may occur inside strings according to the lexical rules.
-String literals are strictly single-line; a physical newline cannot occur inside a string literal. If a newline is required, the `\n` escape sequence must be used.
 
 ---
 
@@ -848,6 +845,9 @@ array-parameter =
     "[", "]" ;
 ```
 
+
+
+
 The current language specification permits only one unsized array dimension
 in a function parameter. Multidimensional array parameters such as
 `int matrix[][20]` are not currently part of the specified function-parameter
@@ -918,8 +918,12 @@ multiplicative-operator =
   | "%" ;
 
 unary-expression =
-    unary-operator, unary-expression
+    cast-expression
+  | unary-operator, unary-expression
   | primary-expression ;
+
+cast-expression =
+    "(", type, ")", unary-expression ;
 
 unary-operator =
     "!"
@@ -1086,6 +1090,69 @@ The parser is responsible for syntactic structure.
 Semantic analysis is responsible for context-dependent meaning.
 
 ---
+
+## 12.1 Explicit casts
+
+Explicit conversion uses C-style source syntax:
+
+```text
+(type) expression
+```
+
+The cast applies the approved conversion model used elsewhere in the
+language. Where Devara has a corresponding C++ conversion situation, the
+language uses the literal C++ conversion system rather than a custom
+conversion subset. A cast does not make otherwise invalid conversions valid;
+it makes an otherwise supported conversion explicit.
+
+## 12.2 Standard library and `podavu`
+
+The baseline standard library contains predeclared global functions. These
+predeclared symbols are installed in the global symbol environment before
+user declarations are collected. They participate in ordinary name lookup
+and same-scope redeclaration checking.
+
+The baseline text-length facility is:
+
+```text
+podavu(padham value) -> int
+```
+
+`podavu` is a normal function call in source syntax, not a reserved keyword.
+Because it is predeclared in the global symbol environment, a user
+declaration of a function named `podavu` is a same-scope redeclaration
+error. Inner scopes follow the general shadowing rule: an inner declaration
+may shadow the global `podavu`, and ordinary lookup resolves the nearest
+visible declaration. Calls resolving to the builtin are checked against its
+declared signature.
+
+## 12.3 Array index conversion
+
+Array indices use the approved conversion model. An index expression must be
+usable as an integral array index under the normal conversion rules. The
+language does not introduce a separate hard-coded whitelist of source types
+for indexing; semantic analysis applies the ordinary conversion model and
+rejects an index when no valid conversion to an integral index value exists.
+
+## 12.4 Floating-point optimization baseline
+
+`float` uses IEEE-754 binary64 semantics. Algebraic identities are not
+assumed to preserve those semantics. The baseline optimizer permits **no
+algebraic simplification transformations involving potentially-float
+operands**. In particular, none of the following is a permitted identity:
+
+```text
+x + 0.0 -> x
+x - 0.0 -> x
+x * 1.0 -> x
+x / 1.0 -> x
+x * 0.0 -> 0.0
+```
+
+This conservative baseline preserves observable signed-zero and exceptional
+IEEE-754 behavior. A future transformation may be added only by an explicit
+language/design revision; an implementation must not introduce one on its
+own.
 
 # 13. Stage Boundaries
 

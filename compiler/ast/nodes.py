@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum, StrEnum
 
 
@@ -52,13 +52,42 @@ class LiteralType(StrEnum):
     STRING = "STRING"
 
 
-# ── Base Nodes ──
+# ── Base Nodes and Spans ──
+
+@dataclass(frozen=True, slots=True)
+class SourceLocation:
+    line: int
+    column: int
+
+
+@dataclass(frozen=True, slots=True)
+class Span:
+    start: SourceLocation
+    end: SourceLocation
+
 
 @dataclass(frozen=True, slots=True)
 class ASTNode:
     """Base class for all AST nodes."""
     line: int
     column: int
+    end_line: int = field(kw_only=True, default=0)
+    end_column: int = field(kw_only=True, default=0)
+
+    @property
+    def span(self) -> Span:
+        el = self.end_line if self.end_line != 0 else self.line
+        ec = self.end_column if self.end_column != 0 else self.column
+        return Span(SourceLocation(self.line, self.column), SourceLocation(el, ec))
+
+    def __getattr__(self, name: str):
+        if name == "start":
+            return SourceLocation(self.line, self.column)
+        if name == "end":
+            el = self.end_line if self.end_line != 0 else self.line
+            ec = self.end_column if self.end_column != 0 else self.column
+            return SourceLocation(el, ec)
+        raise AttributeError(f"{type(self).__name__!r} object has no attribute {name!r}")
 
 
 @dataclass(frozen=True, slots=True)
@@ -117,6 +146,12 @@ class UnaryExpression(Expression):
     operator: UnaryOp
     operand: Expression
     position: UnaryPosition
+
+
+@dataclass(frozen=True, slots=True)
+class CastExpression(Expression):
+    target_type: Type
+    expression: Expression
 
 
 @dataclass(frozen=True, slots=True)
@@ -181,7 +216,8 @@ class RangeLoop(Statement):
 @dataclass(frozen=True, slots=True)
 class ForInit(ASTNode):
     target: Identifier
-    value: Expression
+    value: Expression | None = None
+    type: Type | None = None
 
 
 @dataclass(frozen=True, slots=True)
