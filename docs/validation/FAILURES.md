@@ -8,13 +8,13 @@ Regression tests live in `tests/validation/` and are never marked xfail.
 
 | ID | Severity | Area | Status | Regression test |
 |---|---|---|---|---|
-| F-001 | low | CLI / exit status | OPEN | `tests/validation/test_cli_extra.py::test_F001_build_to_unwritable_output_is_io_error_not_ice`, `::test_F001_build_output_is_a_directory_is_io_error` |
-| F-002 | low | semantic (P24/P25) | OPEN | `tests/validation/test_semantic_rules.py::test_F002_*` |
-| F-003 | low | lexer (Q-011) | OPEN | `test_round2_rulings.py::test_Q011_leading_zero_with_8_or_9_is_invalid_number` |
-| F-004 | low | CLI (Q-012, F-001 wording) | OPEN (awaiting developer fix) | `test_round2_rulings.py::test_Q012_*`, `::test_F001_message_format` |
-| F-005 | low | parser (N-001, ruled a bug) | OPEN (awaiting developer fix) | `test_round2_rulings.py::test_N001_too_deep_*` |
+| F-001 | low | CLI / exit status | FIXED (developer c3c2b2f; regression tests pass) | `tests/validation/test_cli_extra.py::test_F001_build_to_unwritable_output_is_io_error_not_ice`, `::test_F001_build_output_is_a_directory_is_io_error` |
+| F-002 | low | semantic (P24/P25) | FIXED (developer c3c2b2f; regression tests pass) | `tests/validation/test_semantic_rules.py::test_F002_*` |
+| F-003 | low | lexer (Q-011) | FIXED (developer c3c2b2f; regression tests pass) | `test_round2_rulings.py::test_Q011_leading_zero_with_8_or_9_is_invalid_number` |
+| F-004 | low | CLI (Q-012, F-001 wording) | FIXED (developer c3c2b2f; regression tests pass) | `test_round2_rulings.py::test_Q012_*`, `::test_F001_message_format` |
+| F-005 | low | parser (N-001, ruled a bug) | FIXED (developer c3c2b2f; regression tests pass) | `test_round2_rulings.py::test_N001_too_deep_*` |
 | N-001 | note | robustness | NOTE | `tests/validation/test_cli_extra.py` (nesting up to 3000 passes) |
-| N-002 | note | performance | NOTE | - |
+| N-002 | note | performance | FIXED (linear: 64000-term chain parses in 1.8 s) | - |
 
 ---
 
@@ -32,7 +32,7 @@ Regression tests live in `tests/validation/` and are never marked xfail.
   compiler bug, so the status must be `2` and the message must not say "internal compiler error".
 * **Actual**: exit `3`, stderr `a.tel: internal compiler error: assembler/linker rejected generated code:
   /usr/bin/ld: cannot open output file /nonexistent/dir/out: No such file or directory`.
-* **Status**: OPEN.
+* **Status**: FIXED in developer c3c2b2f (regression tests pass).
 
 ## F-002 Any literal behind a conversion counts as a "constant-true" `while` condition
 
@@ -50,7 +50,7 @@ Regression tests live in `tests/validation/` and are never marked xfail.
 * **Actual**: accepted (exit 0): the analysis sees through implicit/explicit conversions of a literal.
 * **Impact**: accepts programs the plan says must be rejected (conservative direction is the opposite); no wrong code
   is generated for accepted programs.
-* **Status**: OPEN.
+* **Status**: FIXED in developer c3c2b2f (regression tests pass).
 
 ## N-001 Very deep nesting is reported as an internal compiler error
 
@@ -68,15 +68,19 @@ amount. Realistic programs (tens of terms) are unaffected; 20000 sequential stat
 
 * Reproducer: `echo 078 > n.tel; ./devara lex n.tel` -> tokens `07` `8` (also `0189` -> `01`,`89`; `00009` -> `0000`,`9`).
 * Expected: lexical `INVALID_NUMBER` for any `0` + decimal digits that include `8` or `9` (only a digit run followed by a letter/underscore splits per P15). `08`/`09` already behave correctly.
-* Status: OPEN.
+* Status: FIXED in developer c3c2b2f (regression tests pass).
 
 ## F-004 Round-2 CLI rulings not yet implemented (Q-012, F-001 message)
 
 * `./devara build bad.s -o out` (invalid assembly) must exit 1 with `FILE: assembler error: ...`; currently exit 3 ICE.
 * `build -o /nonexistent/dir/out` must exit 2 with `cannot write output '<path>'`; currently exit 3 (see F-001).
-* Status: OPEN, developer fix pending.
+* Status: FIXED in developer c3c2b2f (regression tests pass).
 
 ## F-005 Nesting limit (plan §M, N-001 now ruled a bug)
 
 * `"(" * 30000 + "1" + ")" * 30000 + " ni chupi"` must exit 1 with `syntax error [INVALID_EXPRESSION]` (implementation limit; supported depth >= 1000), not exit 3 / process kill. Observed: ICE exit 3 at 20000 and the process was killed (rc -9, likely memory) at larger depths in the test harness.
-* Status: OPEN, developer fix pending.
+* Status: FIXED in developer c3c2b2f (regression tests pass).
+
+## Status after merge of developer c3c2b2f
+
+All of F-001..F-005 are fixed and their regression tests pass in the final full run (5155 passed, 1 skipped). N-001/N-002 were ruled bugs/perf items by the design authority and are fixed (N-001 is covered by `test_round2_rulings.py::test_N001_*`). No open findings remain.
