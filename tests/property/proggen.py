@@ -152,9 +152,9 @@ class Gen:
         if k == 4:
             return f"srem({a()}, {a()})"
         if k == 5:
-            return f"({a()} / {r.choice(['7', '-3', '2', '1000', '-1', '9'])})"
+            return f"({a()} / {r.choice(['7', '-3', '2', '1000', '-5', '9'])})"
         if k == 6:
-            return f"({a()} % {r.choice(['7', '-3', '2', '1000', '-1', '10'])})"
+            return f"({a()} % {r.choice(['7', '-3', '2', '1000', '-5', '10'])})"
         if k == 7:
             return f"(-{a()})"
         if k == 8:
