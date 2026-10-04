@@ -450,6 +450,29 @@ case("many_locals_ok", fn("\n".join(f"int v{i}\nv{i} lo {i} pettu" for i in rang
 case("long_identifier_ok", L("int " + "x" * 300, "x" * 300 + " lo 1 pettu"), "ok")
 
 
+# ------------------------------------------------------------------ additional flow-analysis probes (P24/P25)
+case("P24_x_return_in_then_assign_in_else_ok", L("int f charya () { int x\n 1 ayite { 5 ivvu } lekunte { x lo 1 pettu }\n x ivvu }"), "ok")
+case("P24_break_in_then_assign_in_else", fn("int x\nprati i 0 nundi 3 varaku { 1 ayite { aapu } lekunte { x lo 1 pettu }\n x ni chupi }"), "ok")
+case("P24_continue_in_then_assign_in_else", fn("int x\nprati i 0 nundi 3 varaku { 1 ayite { saagu } lekunte { x lo 1 pettu }\n x ni chupi }"), "ok")
+case("P24_read_before_assign_next_iteration", fn("int x\nprati i 0 nundi 3 varaku { i > 0 ayite { x ni chupi }\n x lo i pettu }"), "UNINITIALIZED")
+case("P24_constant_true_if_is_not_special", fn("int x\nnijam ayite { x lo 1 pettu }\nx ni chupi"), "UNINITIALIZED")
+case("P24_while_true_inner_loop_break_not_counted", fn("int x\nnijam unnanta varaku { prati i 0 nundi 2 varaku { aapu }\n x lo 1 pettu\n aapu }\nx ni chupi"), "ok")
+case("P24_while_true_inner_loop_break_outer_unassigned", fn("int x\nnijam unnanta varaku { prati i 0 nundi 2 varaku { aapu }\n aapu }\nx ni chupi"), "UNINITIALIZED")
+case("P24_for_true_cond_is_not_special", fn("int x\npratisari (int i lo 0 pettu; nijam; i++) { x lo 1 pettu\n aapu }\nx ni chupi"), "UNINITIALIZED")
+case("P24_nested_if_partial_assign", fn("int x\n1 ayite { 2 ayite { x lo 1 pettu } lekunte { x lo 2 pettu } }\nx ni chupi"), "UNINITIALIZED")
+case("P24_inner_shadow_uninitialised", fn("int x\nx lo 1 pettu\n1 ayite { int x\n x ni chupi }"), "UNINITIALIZED")
+case("P24_param_name_reused_in_nested_block", L("void f charya (int p) { 1 ayite { int p\n p lo 1 pettu\n p ni chupi } }"), "ok")
+case("P25_while_negative_literal_is_unary_not_literal", L("int f charya () { -1 unnanta varaku { 1 ivvu } }"), "MISSING_RETURN")
+case("P25_while_hex_literal_nonzero_is_constant_true", L("int f charya () { 0x10 unnanta varaku { 1 ivvu } }"), "ok")
+case("P25_while_octal_literal_nonzero_is_constant_true", L("int f charya () { 010 unnanta varaku { 1 ivvu } }"), "ok")
+case("P25_while_float_literal_not_constant_true", L("int f charya () { 1.5 unnanta varaku { 1 ivvu } }"), "MISSING_RETURN")
+case("P25_while_octal_zero_not_constant_true", L("int f charya () { 00 unnanta varaku { 1 ivvu } }"), "MISSING_RETURN")
+case("P25_nested_while_true_with_returns", L("int f charya () { nijam unnanta varaku { nijam unnanta varaku { 1 ivvu } } }"), "ok")
+case("P25_break_targets_inner_while_only", L("int f charya () { nijam unnanta varaku { 1 unnanta varaku { aapu } } }"), "ok")
+case("P25_break_inside_for_inside_while_true", L("int f charya () { nijam unnanta varaku { pratisari (int i lo 0 pettu; i < 2; i++) { aapu } } }"), "ok")
+case("P25_if_else_chain_inside_loop_returns_ok", L("int f charya (int n) { nijam unnanta varaku { n > 1 ayite { n ivvu } lekunte { n lo n + 1 pettu } } }"), "ok")
+case("P26_call_discarding_nonvoid_value_ok", L("int g charya () { 1 ivvu }", "void f charya () { g()\n g() }"), "ok")
+
 @pytest.mark.parametrize("src,exp", CASES)
 def test_semantic_rule(src, exp):
     if exp == "ok":
@@ -474,3 +497,14 @@ def test_sema_is_deterministic():
     from tests.validation.helpers import cli
     src = L("a ni chupi", "b ni chupi")
     assert cli("sema", src).err == cli("sema", src).err
+
+
+# ------------------------------------------------------------------ F-002 regression: constant-true while is ONLY `nijam` or a non-zero int literal
+@pytest.mark.parametrize("cond", ["'a'", "(int) 1", "(char) 1", "(bool) 1", "1 + 1", "!abaddham", "nijam && nijam", "1 == 1", "-1", "(float) 1"])
+def test_F002_only_nijam_or_nonzero_int_literal_is_constant_true_for_missing_return(cond):
+    rejects(L(f"int f charya () {{ {cond} unnanta varaku {{ 1 ivvu }} }}"), "semantic", "MISSING_RETURN")
+
+
+@pytest.mark.parametrize("cond", ["'a'", "(int) 1", "1 + 1", "!abaddham", "-1"])
+def test_F002_only_nijam_or_nonzero_int_literal_is_constant_true_for_definite_init(cond):
+    rejects(L("void f charya () {", "  int x", f"  {cond} unnanta varaku {{ x lo 1 pettu\n aapu }}", "  x ni chupi", "}"), "semantic", "UNINITIALIZED")

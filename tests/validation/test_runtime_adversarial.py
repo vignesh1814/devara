@@ -514,3 +514,98 @@ def test_infinite_loop_with_break_inside_nested_conditions(opt):
 def test_shadowed_loop_variable_in_nested_range_loops(opt):
     src = prog("prati i 0 nundi 2 varaku { prati i 5 nundi 7 varaku { i ni chupi }\n i ni chupi }")
     assert lines(run(src, b"", opt)) == ["5", "6", "0", "5", "6", "1"]
+
+
+# ---------------------------------------------------------------- stack alignment at runtime-library calls (System V, 16-byte at call)
+@pytest.mark.parametrize("ni", list(range(0, 14)))
+@pytest.mark.parametrize("nf", [0, 1, 9])
+@pytest.mark.parametrize("opt", OPTS)
+def test_runtime_calls_from_functions_with_every_stack_argument_parity(ni, nf, opt):
+    ps = ", ".join([f"int a{i}" for i in range(ni)] + [f"float f{i}" for i in range(nf)]) or ""
+    body = ["\"s\" + \"t\" ni chupi", "1.5 * 3 ni chupi", "(float) 7 / 2 ni chupi", "'c' ni chupi", "nijam ni chupi", "100 ni chupi",
+            "podavu(\"abc\" + \"de\") ni chupi"] + [f"a{i} ni chupi" for i in range(min(ni, 2))] + [f"f{i} ni chupi" for i in range(min(nf, 2))]
+    args = ", ".join([str(i + 1) for i in range(ni)] + [f"{i}.25" for i in range(nf)])
+    src = prog(f"void h charya ({ps}) {{", *body, "}", f"h({args})", f"h({args})")
+    one = ["st", "4.5", "3.5", "c", "nijam", "100", "5"] + [str(i + 1) for i in range(min(ni, 2))] + [g(i + 0.25) for i in range(min(nf, 2))]
+    p = run(src, b"", opt)
+    assert p.rc == 0, p.err
+    assert lines(p) == one * 2
+
+
+@pytest.mark.parametrize("opt", OPTS)
+def test_runtime_calls_inside_argument_evaluation(opt):
+    src = prog("int id charya (int x) { x ni chupi\n x ivvu }", "float fid charya (float x) { x ni chupi\n x ivvu }",
+               "int s charya (int a, int b, int c, int d, int e, int f, int g, int h, int i) { a + b + c + d + e + f + g + h + i ivvu }",
+               "s(id(1), id(2), id(3), id(4), id(5), id(6), id(7), id(8), id(9)) ni chupi",
+               "(fid(1.5) + fid(2.5)) * fid(2.0) ni chupi")
+    assert lines(run(src, b"", opt)) == [str(i) for i in range(1, 10)] + ["45", "1.5", "2.5", "2", "8"]
+
+
+# ---------------------------------------------------------------- algebra/DCE/folding must keep calls and traps (plan §F optimizer contract)
+ALG_PRE = ["int cnt", "int f charya (int v) { cnt lo cnt + 1 pettu\n v ni chupi\n v ivvu }"]
+
+
+@pytest.mark.parametrize("expr,exp_lines", [
+    ("f(7) * 0", ["7", "0"]), ("0 * f(7)", ["7", "0"]), ("f(7) - f(7)", ["7", "7", "0"]), ("f(7) + 0", ["7", "7"]), ("0 + f(7)", ["7", "7"]),
+    ("f(7) * 1", ["7", "7"]), ("1 * f(7)", ["7", "7"]), ("f(7) % 1", ["7", "0"]), ("f(7) / 1", ["7", "7"]), ("f(7) * 0 + 5", ["7", "5"]),
+    ("f(7) == f(7)", ["7", "7", "nijam"]), ("f(7) != f(7)", ["7", "7", "abaddham"]), ("f(7) && 0", ["7", "abaddham"]), ("0 && f(7)", ["abaddham"]),
+    ("f(0) || 0", ["0", "abaddham"]), ("1 || f(7)", ["nijam"]), ("f(1) || 1", ["1", "nijam"]), ("!!f(3)", ["3", "nijam"]), ("f(2) < f(2)", ["2", "2", "abaddham"]),
+    ("f(f(2) * 0)", ["2", "0", "0"]), ("(f(2) - f(2)) * f(5)", ["2", "2", "5", "0"]), ("f(5) / f(5)", ["5", "5", "1"]), ("f(5) - 5 + 5 - f(5)", ["5", "5", "0"]),
+    ("(int) f(5) * 0", ["5", "0"]), ("(f(5) > 3) && (f(1) > 3)", ["5", "1", "abaddham"]), ("(f(5) > 3) || (f(1) > 3)", ["5", "nijam"]),
+])
+@pytest.mark.parametrize("opt", OPTS)
+def test_side_effecting_operands_survive_simplification(expr, exp_lines, opt):
+    p = run(prog(*ALG_PRE, f"{expr} ni chupi"), b"", opt)
+    assert p.rc == 0, p.err
+    assert lines(p) == exp_lines
+
+
+@pytest.mark.parametrize("expr", ["1 / d * 0", "0 * (1 / d)", "(1 % d) * 0", "0 * (1 % d)", "(1 / d) - (1 / d)", "(1 / d) + 0", "(1 / d) / 1", "(1 / d) % 1", "(1 / d) == (1 / d)",
+                                  "(1 / d) < 0 && nijam", "((1 / d) * 0) / 1", "-(1 / d) + (1 / d)", "(1 / d) && abaddham", "((1 / d) * 0 == 0)"])
+@pytest.mark.parametrize("opt", OPTS)
+def test_trapping_division_inside_dead_looking_expression_still_traps(expr, opt):
+    src = prog("int d", "d ni chaduvu", "\"go\" ni chupi", f"{expr} ni chupi", "\"unreachable\" ni chupi")
+    p = run(src, b"0", opt)
+    assert p.rc == 1 and p.text == "go\n", (p.rc, p.text, p.err)
+    assert "division by zero" in p.err or "remainder by zero" in p.err
+
+
+@pytest.mark.parametrize("opt", OPTS)
+def test_trap_in_assigned_but_never_read_variable(opt):
+    src = prog("void f charya (int d) { int junk\n junk lo 10 / d pettu\n \"done\" ni chupi }", "f(2)", "f(0)")
+    p = run(src, b"", opt)
+    assert p.rc == 1 and p.text == "done\n"
+
+
+@pytest.mark.parametrize("opt", OPTS)
+def test_signed_char_constants_fold_with_sign(opt):
+    rows = [("'\\xFF' < 0", "nijam"), ("'\\x80' == -128", "nijam"), ("'\\x7F' > 0", "nijam"), ("(char) 200 < 0", "nijam"), ("(char) 200 == 200", "abaddham"),
+            ("(char) 200 == -56", "nijam"), ("'\\xFF' + 1", "0"), ("'\\xFE' * 2", "-4"), ("'\\xFF' / 2", "0"), ("'\\xFF' % 2", "-1"), ("(float) '\\xFF'", "-1"),
+            ("(bool) '\\x80'", "nijam"), ("'\\xFF' == '\\xFF'", "nijam"), ("'\\xFF' > '\\x01'", "abaddham"), ("-'\\xFF'", "1")]
+    p = run(prog(*[f"{e} ni chupi" for e, _ in rows]), b"", opt)
+    assert lines(p) == [x for _, x in rows]
+
+
+@pytest.mark.parametrize("opt", OPTS)
+def test_signed_char_variables_compare_with_sign(opt):
+    src = prog("char a", "char b", "a lo '\\xFF' pettu", "b lo '\\x01' pettu", "a < b ni chupi", "a > b ni chupi", "a == -1 ni chupi", "a + b ni chupi", "(int) a ni chupi",
+               "a / 2 ni chupi", "a * a ni chupi", "a < 0 ni chupi", "(a < 0) == nijam ni chupi", "(float) a / 2 ni chupi", "a % 3 ni chupi")
+    assert lines(run(src, b"", opt)) == ["nijam", "abaddham", "nijam", "0", "-1", "0", "1", "nijam", "nijam", "-0.5", "-1"]
+
+
+@pytest.mark.parametrize("opt", OPTS)
+def test_constant_condition_branches_with_side_effects(opt):
+    src = prog(*ALG_PRE, "nijam ayite { f(1) } lekunte { f(2) }", "abaddham ayite { f(3) } lekunte { f(4) }", "1 ayite { f(5) }", "0 ayite { f(6) }",
+               "0 unnanta varaku { f(7) }", "f(8) ayite { f(9) } lekunte { f(10) }", "f(0) ayite { f(11) } lekunte { f(12) }", "cnt ni chupi")
+    assert lines(run(src, b"", opt)) == ["1", "4", "5", "8", "9", "0", "12", "7"]
+
+
+@pytest.mark.parametrize("opt", OPTS)
+def test_loop_invariant_looking_code_is_not_hoisted_across_side_effects(opt):
+    src = prog("int g", "int bump charya () { g lo g + 1 pettu\n g ivvu }", "int total", "prati i 0 nundi 4 varaku { total lo total + g * 10 + bump() pettu }", "total ni chupi", "g ni chupi")
+    t, g_ = 0, 0
+    for i in range(4):
+        left = g_
+        g_ += 1
+        t += left * 10 + g_
+    assert lines(run(src, b"", opt)) == [str(t), str(g_)]
