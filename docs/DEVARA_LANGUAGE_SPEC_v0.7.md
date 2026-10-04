@@ -1,6 +1,6 @@
 # Devara Language Specification
 
-**Specification version:** 0.6  
+**Specification version:** 0.7  
 **Status:** Canonical project specification; formal grammar reviewed for internal consistency and written in EBNF notation adapted from ISO/IEC 14977  
 **Language:** Devara  
 **Specification notation:** EBNF-style notation, following ISO/IEC 14977:1996
