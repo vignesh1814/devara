@@ -27,9 +27,6 @@ def run_both(types, data, opt):
     src = program(types)
     tree = parse_ast(src)
     ref = run_ast(tree, data, max_steps=1_000_000)
-    strict = run_ast(tree, data, max_steps=1_000_000, strict_tokens=True)
-    if (ref.stdout, ref.status) != (strict.stdout, strict.status):
-        return  # P7 token-vs-prefix ambiguity (Q-010): the spec does not decide this input
     p = cli("run", src, (opt,), data)
     assert p.out == ref.stdout, f"stdout differs\ntypes={types}\ndata={data!r}\nref={ref.stdout!r}\ngot={p.out!r}\nstderr={p.err}"
     assert p.rc == ref.status, f"exit differs types={types} data={data!r} ref={ref.status} ({ref.error}) got={p.rc} {p.err}"

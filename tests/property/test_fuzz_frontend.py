@@ -4,6 +4,7 @@ Invariant (master prompt §14): arbitrary input yields exit 0 or 1 with well-for
 never a hang, never a Python traceback.  Calls `compiler.cli.main` in-process (same code path as ./devara) for speed.
 """
 import contextlib
+import os
 import io
 import random
 import signal
@@ -40,7 +41,7 @@ def _alarm(signum, frame):
 def run_cli_inproc(cmd, text: str):
     """Run the CLI entry point in a big-stack thread exactly like `./devara` does (deep nesting needs the stack)."""
     import threading
-    path = WORK / "fuzz_input.tel"
+    path = WORK / f"fuzz_input_{os.getpid()}.tel"
     path.write_bytes(text.encode("latin-1", "replace"))
     box = []
 

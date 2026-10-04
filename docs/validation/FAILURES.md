@@ -10,6 +10,9 @@ Regression tests live in `tests/validation/` and are never marked xfail.
 |---|---|---|---|---|
 | F-001 | low | CLI / exit status | OPEN | `tests/validation/test_cli_extra.py::test_F001_build_to_unwritable_output_is_io_error_not_ice`, `::test_F001_build_output_is_a_directory_is_io_error` |
 | F-002 | low | semantic (P24/P25) | OPEN | `tests/validation/test_semantic_rules.py::test_F002_*` |
+| F-003 | low | lexer (Q-011) | OPEN | `test_round2_rulings.py::test_Q011_leading_zero_with_8_or_9_is_invalid_number` |
+| F-004 | low | CLI (Q-012, F-001 wording) | OPEN (awaiting developer fix) | `test_round2_rulings.py::test_Q012_*`, `::test_F001_message_format` |
+| F-005 | low | parser (N-001, ruled a bug) | OPEN (awaiting developer fix) | `test_round2_rulings.py::test_N001_too_deep_*` |
 | N-001 | note | robustness | NOTE | `tests/validation/test_cli_extra.py` (nesting up to 3000 passes) |
 | N-002 | note | performance | NOTE | - |
 
@@ -60,3 +63,20 @@ exercises depths up to 400 and requires exit 0/1.
 
 `1 + 1 + ... + 1` with 4000 / 8000 / 16000 terms parses in 0.8 s / 1.1 s / 23 s (`./devara parse`), and sema adds a similar
 amount. Realistic programs (tens of terms) are unaffected; 20000 sequential statements compile in ~16 s. Observation only.
+
+## F-003 `0` followed by digits containing 8/9 is only rejected for two-digit forms (plan §M, Q-011)
+
+* Reproducer: `echo 078 > n.tel; ./devara lex n.tel` -> tokens `07` `8` (also `0189` -> `01`,`89`; `00009` -> `0000`,`9`).
+* Expected: lexical `INVALID_NUMBER` for any `0` + decimal digits that include `8` or `9` (only a digit run followed by a letter/underscore splits per P15). `08`/`09` already behave correctly.
+* Status: OPEN.
+
+## F-004 Round-2 CLI rulings not yet implemented (Q-012, F-001 message)
+
+* `./devara build bad.s -o out` (invalid assembly) must exit 1 with `FILE: assembler error: ...`; currently exit 3 ICE.
+* `build -o /nonexistent/dir/out` must exit 2 with `cannot write output '<path>'`; currently exit 3 (see F-001).
+* Status: OPEN, developer fix pending.
+
+## F-005 Nesting limit (plan §M, N-001 now ruled a bug)
+
+* `"(" * 30000 + "1" + ")" * 30000 + " ni chupi"` must exit 1 with `syntax error [INVALID_EXPRESSION]` (implementation limit; supported depth >= 1000), not exit 3 / process kill. Observed: ICE exit 3 at 20000 and the process was killed (rc -9, likely memory) at larger depths in the test harness.
+* Status: OPEN, developer fix pending.

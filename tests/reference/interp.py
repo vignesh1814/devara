@@ -196,10 +196,9 @@ _PRIM = {"INT": "int", "FLOAT": "float", "BOOL": "bool", "CHAR": "char", "PADHAM
 
 # --------------------------------------------------------------------------- the interpreter
 class Interp:
-    def __init__(self, stdin: bytes, max_steps: int | None, strict_tokens: bool = False):
+    def __init__(self, stdin: bytes, max_steps: int | None, strict_tokens: bool = True):
         # strict_tokens=True: a numeric read consumes a whole whitespace-delimited token (any trailing junk is an
-        # error); False: C++ `cin >>` prefix semantics. P7 is ambiguous (OPEN_QUESTIONS Q-010); fuzz tests compare
-        # both readings and skip inputs on which they disagree.
+        # error); False: C++ `cin >>` prefix semantics. ruled strict by the design authority (plan §M, Q-010); default True.
         self.strict_tokens = strict_tokens
         self.inp = stdin
         self.pos = 0
@@ -692,7 +691,7 @@ class Interp:
 
 
 # --------------------------------------------------------------------------- public API
-def run_ast(ast_data, stdin: bytes = b"", max_steps: int | None = 5_000_000, strict_tokens: bool = False) -> Result:
+def run_ast(ast_data, stdin: bytes = b"", max_steps: int | None = 5_000_000, strict_tokens: bool = True) -> Result:
     """Interpret ``ast_data`` (the ``data`` member of ``parse --json``).
 
     Runs in a thread with a large stack so that deep Devara recursion (>10^4 frames) works."""
