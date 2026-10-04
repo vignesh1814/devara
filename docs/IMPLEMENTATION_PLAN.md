@@ -351,3 +351,14 @@ Binding from now on. These rulings refine §C; they do not change any frozen L-d
 | Q-007 | **Confirmed:** after each body execution the loop variable becomes (its current value) + 1. Modifications made in the body therefore affect the iteration. The end bound is still evaluated only once (L17). |
 | Q-008 | **Confirmed:** `padham a[]` parameters and `padham` arrays are legal. |
 | Q-009 | Diagnostics are sorted by (line, column, category). Tests may compare either the set of categories or the ordered list. |
+
+## M. Design-authority rulings (round 2)
+
+| Ref | Ruling |
+|---|---|
+| F-001 | Confirmed bug. Failing to write the requested output path (missing directory, path is a directory, no permission) is an I/O error: exit **2** with `FILE: error: cannot write output '<path>': <reason>`. It is not an ICE. Check this before invoking the toolchain. |
+| Q-010 | **Strict tokens** (the current behaviour): the whole whitespace-delimited token must match the type's form (P7/P8). `3.5` or `12abc` read as `int`, or `1x` read as `float`/`bool`, is runtime error `invalid input`. There is no C++-style prefix parsing. |
+| Q-011 | `0` followed by decimal digits that include `8` or `9` (`09`, `078`) is lexical error **`INVALID_NUMBER`** (the current behaviour). P15 (two tokens) applies only to a digit sequence followed by a letter or underscore. |
+| Q-012 | A user-supplied `.s` file that the assembler/linker rejects is a user-input error: exit **1** with `FILE: assembler error: <tool output>`. Exit 3 stays reserved for generated code. |
+| N-001 | Exceeding the nesting depth is an implementation limit, not a compiler bug: exit **1** with `FILE:LINE:COL: syntax error [INVALID_EXPRESSION]: nesting too deep (implementation limit)` (or the position of the last token reached), and no ICE. The supported depth must stay ≥ 1000. |
+| N-002 | Performance: compile time for long left-associative chains should be roughly linear. Profile it, and fix it if the cause is cheap to remove (e.g. repeated list copies or recursion-limit resets). Low priority; correctness first. |
