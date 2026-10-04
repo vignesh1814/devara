@@ -1,0 +1,80 @@
+# ID: DSA-115
+# Category: misc
+# Algorithm: array parameters of every element type, aliasing and in-place mutation
+# Exercises: float a[], char a[], bool a[], padham a[] parameters (L25 non-copying), same array passed twice, mutation visible to caller, partial index of 2-D char array
+# Difficulty: medium
+# Expected: see oracle
+float mean charya (float a[], int n) {
+    float s
+    s lo 0 pettu
+    prati i 0 nundi n varaku { s lo s + a[i] pettu }
+    s / n ivvu
+}
+
+void reverse_chars charya (char a[], int n) {
+    prati i 0 nundi n / 2 varaku {
+        char t
+        t lo a[i] pettu
+        a[i] lo a[n - 1 - i] pettu
+        a[n - 1 - i] lo t pettu
+    }
+}
+
+int count_true charya (bool a[], int n) {
+    int c
+    c lo 0 pettu
+    prati i 0 nundi n varaku { a[i] ayite { c lo c + 1 pettu } }
+    c ivvu
+}
+
+padham join charya (padham a[], int n) {
+    padham r
+    r lo "" pettu
+    prati i 0 nundi n varaku {
+        i > 0 ayite { r lo r + "-" pettu }
+        r lo r + a[i] pettu
+    }
+    r ivvu
+}
+
+void double_into charya (int src[], int dst[], int n) {
+    prati i 0 nundi n varaku { dst[i] lo src[i] * 2 pettu }
+}
+
+float f[4]
+f[0] lo 1.5 pettu
+f[1] lo 2.5 pettu
+f[2] lo 3.5 pettu
+f[3] lo 4.5 pettu
+mean(f, 4) ni chupi
+mean(f, 2) ni chupi
+char word[5]
+word[0] lo 'd' pettu
+word[1] lo 'e' pettu
+word[2] lo 'v' pettu
+word[3] lo 'a' pettu
+word[4] lo 'r' pettu
+reverse_chars(word, 5)
+prati i 0 nundi 5 varaku { word[i] ni chupi }
+bool flags[6]
+flags[1] lo nijam pettu
+flags[4] lo nijam pettu
+flags[5] lo nijam pettu
+count_true(flags, 6) ni chupi
+padham parts[3]
+parts[0] lo "x" pettu
+parts[1] lo "yy" pettu
+parts[2] lo "zzz" pettu
+join(parts, 3) ni chupi
+join(parts, 1) ni chupi
+int v[5]
+prati i 0 nundi 5 varaku { v[i] lo i + 1 pettu }
+double_into(v, v, 5)
+prati i 0 nundi 5 varaku { v[i] ni chupi }
+char grid[2][3]
+grid[1][0] lo 'p' pettu
+grid[1][1] lo 'q' pettu
+grid[1][2] lo 'r' pettu
+reverse_chars(grid[1], 3)
+grid[1][0] ni chupi
+grid[1][2] ni chupi

@@ -1,0 +1,41 @@
+# ID: DSA-078
+# Category: datastructures
+# Algorithm: spiral traversal and anti-diagonal sums of a 5x5 matrix
+# Exercises: boundary shrinking while loops, direction handling with four loops, 2-D index arithmetic, row-major fill formula
+# Difficulty: medium
+# Expected: spiral order of the matrix filled with i*5+j+1, then main/anti diagonal sums
+int m[5][5]
+
+prati i 0 nundi 5 varaku {
+    prati j 0 nundi 5 varaku { m[i][j] lo i * 5 + j + 1 pettu }
+}
+int top
+int bottom
+int left
+int right
+top lo 0 pettu
+bottom lo 4 pettu
+left lo 0 pettu
+right lo 4 pettu
+top <= bottom && left <= right unnanta varaku {
+    prati j left nundi right + 1 varaku { m[top][j] ni chupi }
+    top lo top + 1 pettu
+    prati i top nundi bottom + 1 varaku { m[i][right] ni chupi }
+    right lo right - 1 pettu
+    top <= bottom ayite {
+        pratisari (int j lo right pettu; j >= left; j--) { m[bottom][j] ni chupi }
+        bottom lo bottom - 1 pettu
+    }
+    left <= right ayite {
+        pratisari (int i lo bottom pettu; i >= top; i--) { m[i][left] ni chupi }
+        left lo left + 1 pettu
+    }
+}
+int d1
+int d2
+prati i 0 nundi 5 varaku {
+    d1 lo d1 + m[i][i] pettu
+    d2 lo d2 + m[i][4 - i] pettu
+}
+d1 ni chupi
+d2 ni chupi

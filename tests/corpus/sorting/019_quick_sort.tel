@@ -1,0 +1,42 @@
+# ID: DSA-019
+# Category: sorting
+# Algorithm: quick sort (Lomuto partition)
+# Exercises: recursion on sub-ranges, void recursion, pivot selection, partition function returning index
+# Difficulty: medium
+# Expected: sorted values one per line
+int partition charya (int a[], int left, int right) {
+    int pivot
+    int store
+    pivot lo a[right] pettu
+    store lo left pettu
+    prati j left nundi right varaku {
+        a[j] < pivot ayite {
+            int t
+            t lo a[store] pettu
+            a[store] lo a[j] pettu
+            a[j] lo t pettu
+            store lo store + 1 pettu
+        }
+    }
+    int t
+    t lo a[store] pettu
+    a[store] lo a[right] pettu
+    a[right] lo t pettu
+    store ivvu
+}
+
+void quick_sort charya (int a[], int left, int right) {
+    left < right ayite {
+        int p
+        p lo partition(a, left, right) pettu
+        quick_sort(a, left, p - 1)
+        quick_sort(a, p + 1, right)
+    }
+}
+
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku { a[i] ni chaduvu }
+quick_sort(a, 0, n - 1)
+prati i 0 nundi n varaku { a[i] ni chupi }

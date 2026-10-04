@@ -1,0 +1,13 @@
+# ID: DSA-128
+# Category: misc
+# Algorithm: runtime error: negative runtime array dimension in a 2-D declaration
+# Exercises: dims evaluated left to right, second dimension invalid
+# Difficulty: easy
+# Expected: runtime error "invalid array size" after one line of output
+int r
+int c
+r ni chaduvu
+c ni chaduvu
+"start" ni chupi
+int m[r][c]
+"never" ni chupi

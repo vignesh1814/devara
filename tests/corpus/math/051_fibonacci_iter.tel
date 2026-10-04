@@ -1,0 +1,17 @@
+# ID: DSA-051
+# Category: math
+# Algorithm: iterative Fibonacci past the 64-bit limit
+# Exercises: two-variable rolling update, wraparound addition, range loop with tail printing, simultaneous-assignment via temp
+# Difficulty: easy
+# Expected: F(0..10) then F(88..100) with signed 64-bit wrap
+int a
+int b
+a lo 0 pettu
+b lo 1 pettu
+prati i 0 nundi 101 varaku {
+    i <= 10 || i >= 88 ayite { a ni chupi }
+    int t
+    t lo a + b pettu
+    a lo b pettu
+    b lo t pettu
+}

@@ -1,0 +1,36 @@
+# ID: DSA-015
+# Category: sorting
+# Algorithm: bubble sort with early exit
+# Exercises: nested loops, bool flag, aapu, swap helper, pass counter, input, output
+# Difficulty: easy
+# Expected: number of passes taken, then the sorted values one per line
+void swap charya (int a[], int i, int j) {
+    int t
+    t lo a[i] pettu
+    a[i] lo a[j] pettu
+    a[j] lo t pettu
+}
+
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku { a[i] ni chaduvu }
+int passes
+passes lo 0 pettu
+int end
+end lo n - 1 pettu
+nijam unnanta varaku {
+    bool swapped
+    swapped lo abaddham pettu
+    passes lo passes + 1 pettu
+    prati j 0 nundi end varaku {
+        a[j] > a[j + 1] ayite {
+            swap(a, j, j + 1)
+            swapped lo nijam pettu
+        }
+    }
+    !swapped ayite { aapu }
+    end lo end - 1 pettu
+}
+passes ni chupi
+prati i 0 nundi n varaku { a[i] ni chupi }

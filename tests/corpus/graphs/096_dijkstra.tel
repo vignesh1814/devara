@@ -1,0 +1,69 @@
+# ID: DSA-096
+# Category: graphs
+# Algorithm: Dijkstra shortest paths (O(V^2)) with path reconstruction
+# Exercises: weighted matrix (0 = no edge), INF sentinel, min-selection loop, relaxation guarded by INF, predecessor array and reversed path printing
+# Difficulty: hard
+# Expected: shortest distance to every node (-1 if unreachable), then the path to the target
+int w[10][10]
+int dist[10]
+int pred[10]
+bool done[10]
+int n
+int m
+n ni chaduvu
+m ni chaduvu
+prati i 0 nundi m varaku {
+    int u
+    int v
+    int c
+    u ni chaduvu
+    v ni chaduvu
+    c ni chaduvu
+    w[u][v] lo c pettu
+    w[v][u] lo c pettu
+}
+int src
+int dst
+src ni chaduvu
+dst ni chaduvu
+prati i 0 nundi n varaku {
+    dist[i] lo 1000000000 pettu
+    pred[i] lo -1 pettu
+}
+dist[src] lo 0 pettu
+prati round 0 nundi n varaku {
+    int u
+    u lo -1 pettu
+    prati i 0 nundi n varaku {
+        !done[i] && dist[i] < 1000000000 && (u == -1 || dist[i] < dist[u]) ayite { u lo i pettu }
+    }
+    u == -1 ayite { aapu }
+    done[u] lo nijam pettu
+    prati v 0 nundi n varaku {
+        w[u][v] > 0 && dist[u] + w[u][v] < dist[v] ayite {
+            dist[v] lo dist[u] + w[u][v] pettu
+            pred[v] lo u pettu
+        }
+    }
+}
+prati i 0 nundi n varaku {
+    dist[i] == 1000000000 ayite {
+        -1 ni chupi
+    } lekunte {
+        dist[i] ni chupi
+    }
+}
+int path[10]
+int len
+len lo 0 pettu
+int cur
+cur lo dst pettu
+dist[dst] < 1000000000 ayite {
+    cur != -1 unnanta varaku {
+        path[len] lo cur pettu
+        len lo len + 1 pettu
+        cur lo pred[cur] pettu
+    }
+}
+len ni chupi
+pratisari (int k lo len - 1 pettu; k >= 0; k--) { path[k] ni chupi }

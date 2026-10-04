@@ -1,0 +1,13 @@
+# ID: DSA-121
+# Category: misc
+# Algorithm: runtime error: INT64_MIN / -1 (L38); INT64_MIN % -1 is NOT an error (P28)
+# Exercises: overflow-in-division trap, remainder form allowed, exit status 1
+# Difficulty: medium
+# Expected: 0 (the remainder), then the division error
+int m
+int d
+m lo -9223372036854775807 - 1 pettu
+d ni chaduvu
+m % d ni chupi
+m / d ni chupi
+"unreachable" ni chupi

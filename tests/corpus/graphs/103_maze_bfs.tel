@@ -1,0 +1,60 @@
+# ID: DSA-103
+# Category: graphs
+# Algorithm: shortest path in a grid maze with BFS (4 directions via direction arrays)
+# Exercises: direction tables dr[]/dc[] filled by assignment, queue of encoded cells (r*cols+c), distance grid, bounds && wall checks, unreachable result
+# Difficulty: hard
+# Expected: shortest number of steps from (0,0) to bottom-right, or -1; then the number of cells reachable
+int wall[10][10]
+int dist[10][10]
+int dr[4]
+int dc[4]
+int queue[100]
+int rows
+int cols
+dr[0] lo -1 pettu
+dr[1] lo 1 pettu
+dr[2] lo 0 pettu
+dr[3] lo 0 pettu
+dc[0] lo 0 pettu
+dc[1] lo 0 pettu
+dc[2] lo -1 pettu
+dc[3] lo 1 pettu
+rows ni chaduvu
+cols ni chaduvu
+prati i 0 nundi rows varaku {
+    prati j 0 nundi cols varaku {
+        wall[i][j] ni chaduvu
+        dist[i][j] lo -1 pettu
+    }
+}
+int head
+int tail
+head lo 0 pettu
+tail lo 0 pettu
+wall[0][0] == 0 ayite {
+    queue[tail] lo 0 pettu
+    tail lo tail + 1 pettu
+    dist[0][0] lo 0 pettu
+}
+head < tail unnanta varaku {
+    int cur
+    int r
+    int c
+    cur lo queue[head] pettu
+    head lo head + 1 pettu
+    r lo cur / cols pettu
+    c lo cur % cols pettu
+    prati k 0 nundi 4 varaku {
+        int nr
+        int nc
+        nr lo r + dr[k] pettu
+        nc lo c + dc[k] pettu
+        nr >= 0 && nr < rows && nc >= 0 && nc < cols && wall[nr][nc] == 0 && dist[nr][nc] == -1 ayite {
+            dist[nr][nc] lo dist[r][c] + 1 pettu
+            queue[tail] lo nr * cols + nc pettu
+            tail lo tail + 1 pettu
+        }
+    }
+}
+dist[rows - 1][cols - 1] ni chupi
+tail ni chupi

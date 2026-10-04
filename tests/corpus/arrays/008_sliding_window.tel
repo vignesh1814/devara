@@ -1,0 +1,40 @@
+# ID: DSA-008
+# Category: arrays
+# Algorithm: sliding window maximum-sum of size k
+# Exercises: window update by add/subtract, pratisari tho-modhalu with --, long arithmetic, first-max tie rule
+# Difficulty: medium
+# Expected: max window sum and its start index; count of windows whose sum is at least 15
+int n
+int k
+n ni chaduvu
+k ni chaduvu
+int a[n]
+prati i 0 nundi n varaku {
+    a[i] ni chaduvu
+}
+int sum
+sum lo 0 pettu
+prati i 0 nundi k varaku {
+    sum lo sum + a[i] pettu
+}
+int best
+int where
+int big
+best lo sum pettu
+where lo 0 pettu
+big lo 0 pettu
+sum >= 15 ayite { big lo big + 1 pettu }
+int s
+pratisari (s 1 tho modhalu; s + k <= n; s++) {
+    sum lo sum + a[s + k - 1] - a[s - 1] pettu
+    sum > best ayite {
+        best lo sum pettu
+        where lo s pettu
+    }
+    sum >= 15 ayite {
+        big lo big + 1 pettu
+    }
+}
+best ni chupi
+where ni chupi
+big ni chupi

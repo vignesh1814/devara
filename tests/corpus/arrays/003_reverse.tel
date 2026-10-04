@@ -1,0 +1,31 @@
+# ID: DSA-003
+# Category: arrays
+# Algorithm: in-place array reversal
+# Exercises: while loop, two indices, swap through temp, input, array parameter mutated by callee
+# Difficulty: easy
+# Expected: the input numbers in reverse order, one per line
+void reverse charya (int a[], int n) {
+    int lo_i
+    int hi_i
+    lo_i lo 0 pettu
+    hi_i lo n - 1 pettu
+    lo_i < hi_i unnanta varaku {
+        int tmp
+        tmp lo a[lo_i] pettu
+        a[lo_i] lo a[hi_i] pettu
+        a[hi_i] lo tmp pettu
+        lo_i lo lo_i + 1 pettu
+        hi_i lo hi_i - 1 pettu
+    }
+}
+
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku {
+    a[i] ni chaduvu
+}
+reverse(a, n)
+prati i 0 nundi n varaku {
+    a[i] ni chupi
+}

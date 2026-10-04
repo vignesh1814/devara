@@ -1,0 +1,46 @@
+# ID: DSA-111
+# Category: misc
+# Algorithm: zero-initialised globals and arrays of every element type; globals modified from functions
+# Exercises: L21 zero initialisation for int/float/bool/char/padham, zero-filled global and local arrays (P22), 2-D global array, function sees only earlier globals, top-level statements run in order
+# Difficulty: medium
+# Expected: zeros everywhere, then the effect of function calls on globals
+int gi
+float gf
+bool gb
+char gc
+padham gs
+int garr[3]
+int gm[2][2]
+
+void bump charya () {
+    gi lo gi + 1 pettu
+    garr[1] lo garr[1] + 10 pettu
+    gm[1][0] lo gm[1][0] + 5 pettu
+}
+
+gi ni chupi
+gf ni chupi
+gb ni chupi
+(int) gc ni chupi
+gs ni chupi
+podavu(gs) ni chupi
+garr[0] ni chupi
+garr[1] ni chupi
+garr[2] ni chupi
+gm[0][0] + gm[0][1] + gm[1][0] + gm[1][1] ni chupi
+gc ni chupi
+int la[3]
+bool lb[2]
+float lf[2]
+padham ls[2]
+char lc[2]
+la[0] + la[1] + la[2] ni chupi
+lb[0] ni chupi
+lf[1] ni chupi
+podavu(ls[1]) ni chupi
+(int) lc[0] ni chupi
+bump()
+bump()
+gi ni chupi
+garr[1] ni chupi
+gm[1][0] ni chupi

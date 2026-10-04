@@ -1,0 +1,51 @@
+# ID: DSA-098
+# Category: graphs
+# Algorithm: connected components labelling with DFS and component sizes
+# Exercises: recursion returning size, label array, outer loop over unvisited roots, int-returning DFS, largest component
+# Difficulty: medium
+# Expected: label of each node, number of components, size of each component in label order, largest size
+int adj[12][12]
+int label[12]
+int n
+
+int dfs charya (int u, int id) {
+    label[u] lo id pettu
+    int size
+    size lo 1 pettu
+    prati v 0 nundi n varaku {
+        adj[u][v] == 1 && label[v] == 0 ayite {
+            size lo size + dfs(v, id) pettu
+        }
+    }
+    size ivvu
+}
+
+int m
+n ni chaduvu
+m ni chaduvu
+prati i 0 nundi m varaku {
+    int u
+    int v
+    u ni chaduvu
+    v ni chaduvu
+    adj[u][v] lo 1 pettu
+    adj[v][u] lo 1 pettu
+}
+int comps
+int sizes[12]
+comps lo 0 pettu
+prati r 0 nundi n varaku {
+    label[r] == 0 ayite {
+        comps lo comps + 1 pettu
+        sizes[comps - 1] lo dfs(r, comps) pettu
+    }
+}
+prati i 0 nundi n varaku { label[i] ni chupi }
+comps ni chupi
+int big
+big lo 0 pettu
+prati i 0 nundi comps varaku {
+    sizes[i] ni chupi
+    sizes[i] > big ayite { big lo sizes[i] pettu }
+}
+big ni chupi

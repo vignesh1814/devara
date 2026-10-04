@@ -1,0 +1,26 @@
+# ID: DSA-116
+# Category: misc
+# Algorithm: char arithmetic, ASCII ordering and character tables
+# Exercises: char output of generated alphabets, char - char -> int, char + int -> int, comparisons, char as array index, (char) casts, char in conditions, signedness of high chars via casts
+# Difficulty: easy
+# Expected: see oracle
+prati k 0 nundi 26 varaku { (char) ('a' + k) ni chupi }
+prati k 0 nundi 10 varaku { (char) ('0' + k) ni chupi }
+'z' - 'a' ni chupi
+'a' < 'b' ni chupi
+'A' < 'a' ni chupi
+'9' - '0' ni chupi
+(int) 'a' ni chupi
+(int) '\n' ni chupi
+(int) '\x7f' ni chupi
+(int) '\0' ni chupi
+(char) 0x41 ni chupi
+(char) ('a' + 25) ni chupi
+int pos[128]
+prati k 0 nundi 128 varaku { pos[k] lo k pettu }
+pos['A'] ni chupi
+pos['~'] ni chupi
+char c
+c lo 'm' pettu
+c lo c + 1 pettu
+c ni chupi

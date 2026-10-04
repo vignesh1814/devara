@@ -1,0 +1,48 @@
+# ID: DSA-088
+# Category: dp
+# Algorithm: unique paths with obstacles and minimum-cost path
+# Exercises: reading a 2-D grid from input, boundary handling in dp, two independent tables, min of two neighbours via if
+# Difficulty: medium
+# Expected: number of obstacle-free monotone paths, then the minimum path cost
+int obs[8][8]
+int cost[8][8]
+int ways[8][8]
+int best[8][8]
+int r
+int c
+r ni chaduvu
+c ni chaduvu
+prati i 0 nundi r varaku {
+    prati j 0 nundi c varaku { obs[i][j] ni chaduvu }
+}
+prati i 0 nundi r varaku {
+    prati j 0 nundi c varaku { cost[i][j] ni chaduvu }
+}
+prati i 0 nundi r varaku {
+    prati j 0 nundi c varaku {
+        obs[i][j] == 1 ayite { saagu }
+        i == 0 && j == 0 ayite {
+            ways[i][j] lo 1 pettu
+        } lekunte {
+            i > 0 ayite { ways[i][j] lo ways[i][j] + ways[i - 1][j] pettu }
+            j > 0 ayite { ways[i][j] lo ways[i][j] + ways[i][j - 1] pettu }
+        }
+    }
+}
+ways[r - 1][c - 1] ni chupi
+prati i 0 nundi r varaku {
+    prati j 0 nundi c varaku {
+        i == 0 && j == 0 ayite {
+            best[i][j] lo cost[i][j] pettu
+        } lekunte i == 0 ayite {
+            best[i][j] lo best[i][j - 1] + cost[i][j] pettu
+        } lekunte j == 0 ayite {
+            best[i][j] lo best[i - 1][j] + cost[i][j] pettu
+        } lekunte best[i - 1][j] < best[i][j - 1] ayite {
+            best[i][j] lo best[i - 1][j] + cost[i][j] pettu
+        } lekunte {
+            best[i][j] lo best[i][j - 1] + cost[i][j] pettu
+        }
+    }
+}
+best[r - 1][c - 1] ni chupi

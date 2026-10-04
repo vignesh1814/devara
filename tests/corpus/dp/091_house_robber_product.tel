@@ -1,0 +1,42 @@
+# ID: DSA-091
+# Category: dp
+# Algorithm: house robber (max non-adjacent sum) and maximum product subarray
+# Exercises: rolling dp variables, swap on negative multiplier, max/min tracking, negative numbers and zeros
+# Difficulty: medium
+# Expected: max non-adjacent sum, maximum product of a contiguous subarray
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku { a[i] ni chaduvu }
+int take
+int skip
+take lo 0 pettu
+skip lo 0 pettu
+prati i 0 nundi n varaku {
+    int ntake
+    int nskip
+    ntake lo skip + a[i] pettu
+    nskip lo take pettu
+    skip > nskip ayite { nskip lo skip pettu }
+    take lo ntake pettu
+    skip lo nskip pettu
+}
+take > skip ayite { take ni chupi } lekunte { skip ni chupi }
+int mx
+int mn
+int ans
+mx lo a[0] pettu
+mn lo a[0] pettu
+ans lo a[0] pettu
+prati i 1 nundi n varaku {
+    a[i] < 0 ayite {
+        int t
+        t lo mx pettu
+        mx lo mn pettu
+        mn lo t pettu
+    }
+    a[i] > mx * a[i] ayite { mx lo a[i] pettu } lekunte { mx lo mx * a[i] pettu }
+    a[i] < mn * a[i] ayite { mn lo a[i] pettu } lekunte { mn lo mn * a[i] pettu }
+    mx > ans ayite { ans lo mx pettu }
+}
+ans ni chupi

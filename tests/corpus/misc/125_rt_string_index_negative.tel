@@ -1,0 +1,12 @@
+# ID: DSA-125
+# Category: misc
+# Algorithm: runtime error: negative padham index
+# Exercises: negative index computed at run time
+# Difficulty: easy
+# Expected: runtime error "string index out of range" immediately (nothing printed except the leading line)
+padham s
+s lo "xyz" pettu
+int i
+i ni chaduvu
+"go" ni chupi
+s[i - 1] ni chupi

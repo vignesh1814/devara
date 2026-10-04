@@ -1,0 +1,35 @@
+# ID: DSA-112
+# Category: misc
+# Algorithm: boolean operators, precedence and bool/arithmetic interplay
+# Exercises: truth tables via nested range loops with (bool) casts, ! && || precedence, == on bools, relational chains, unary minus on bool, bool in arithmetic
+# Difficulty: medium
+# Expected: truth tables then precedence probes
+prati x 0 nundi 2 varaku {
+    prati y 0 nundi 2 varaku {
+        bool p
+        bool q
+        p lo (bool) x pettu
+        q lo (bool) y pettu
+        p && q ni chupi
+        p || q ni chupi
+        p == q ni chupi
+        p != q ni chupi
+        !p || q ni chupi
+    }
+}
+nijam || abaddham && abaddham ni chupi
+(nijam || abaddham) && abaddham ni chupi
+!abaddham == nijam ni chupi
+!(abaddham == nijam) ni chupi
+1 < 2 == 2 > 1 ni chupi
+3 > 2 > 1 ni chupi
+!5 ni chupi
+!0.0 ni chupi
+!0 ni chupi
+-nijam ni chupi
+nijam * 3 ni chupi
+nijam == 1 ni chupi
+abaddham == 0 ni chupi
+2 && 3 ni chupi
+0 || 0.5 ni chupi
+'a' && 0 ni chupi

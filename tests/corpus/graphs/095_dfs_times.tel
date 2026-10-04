@@ -1,0 +1,43 @@
+# ID: DSA-095
+# Category: graphs
+# Algorithm: recursive depth-first search with discovery and finish times
+# Exercises: recursion with global visited/time arrays, increasing timestamps, neighbour order, pre-order printing, multiple roots loop
+# Difficulty: medium
+# Expected: DFS preorder over all roots, then discovery and finish time per node
+int adj[10][10]
+bool visited[10]
+int disc[10]
+int fin[10]
+int clock
+int n
+
+void dfs charya (int u) {
+    visited[u] lo nijam pettu
+    clock lo clock + 1 pettu
+    disc[u] lo clock pettu
+    u ni chupi
+    prati v 0 nundi n varaku {
+        adj[u][v] == 1 && !visited[v] ayite { dfs(v) }
+    }
+    clock lo clock + 1 pettu
+    fin[u] lo clock pettu
+}
+
+int m
+n ni chaduvu
+m ni chaduvu
+prati i 0 nundi m varaku {
+    int u
+    int v
+    u ni chaduvu
+    v ni chaduvu
+    adj[u][v] lo 1 pettu
+    adj[v][u] lo 1 pettu
+}
+prati r 0 nundi n varaku {
+    !visited[r] ayite { dfs(r) }
+}
+prati i 0 nundi n varaku {
+    disc[i] ni chupi
+    fin[i] ni chupi
+}

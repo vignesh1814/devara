@@ -1,0 +1,36 @@
+# ID: DSA-005
+# Category: arrays
+# Algorithm: prefix sums, suffix sums and range-sum queries
+# Exercises: multiple arrays, descending pratisari with prefix decrement, range queries, int arithmetic
+# Difficulty: easy
+# Expected: prefix array, suffix array, then range sums
+int n
+n ni chaduvu
+int a[n]
+int pre[n + 1]
+int suf[n + 1]
+prati i 0 nundi n varaku {
+    a[i] ni chaduvu
+}
+prati i 0 nundi n varaku {
+    pre[i + 1] lo pre[i] + a[i] pettu
+}
+int j
+pratisari (j lo n - 1 pettu; j >= 0; --j) {
+    suf[j] lo suf[j + 1] + a[j] pettu
+}
+prati i 0 nundi n + 1 varaku {
+    pre[i] ni chupi
+}
+prati i 0 nundi n + 1 varaku {
+    suf[i] ni chupi
+}
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int l
+    int r
+    l ni chaduvu
+    r ni chaduvu
+    pre[r + 1] - pre[l] ni chupi
+}

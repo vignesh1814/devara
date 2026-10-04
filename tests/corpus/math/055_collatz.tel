@@ -1,0 +1,35 @@
+# ID: DSA-055
+# Category: math
+# Algorithm: Collatz step counts and the longest chain below a bound
+# Exercises: while loop with if/else on parity, 64-bit intermediate values, running maximum with tie rule (first wins)
+# Difficulty: medium
+# Expected: steps for each query; then the starting value below 3000 with the most steps, and that step count
+int steps charya (int n) {
+    int c
+    c lo 0 pettu
+    n != 1 unnanta varaku {
+        n % 2 == 0 ayite { n lo n / 2 pettu } lekunte { n lo 3 * n + 1 pettu }
+        c lo c + 1 pettu
+    }
+    c ivvu
+}
+
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int x
+    x ni chaduvu
+    steps(x) ni chupi
+}
+int best
+int arg
+best lo 0 pettu
+arg lo 1 pettu
+prati n 1 nundi 3000 varaku {
+    steps(n) > best ayite {
+        best lo steps(n) pettu
+        arg lo n pettu
+    }
+}
+arg ni chupi
+best ni chupi

@@ -1,0 +1,41 @@
+# ID: DSA-071
+# Category: recursion
+# Algorithm: subset enumeration by include/exclude recursion
+# Exercises: two-way recursion, accumulating parameter, global counters, target match counting, maximum subset sum not exceeding a limit
+# Difficulty: medium
+# Expected: number of subsets (2^n), number summing to target, best sum <= limit, and the subsets of size 2 summing to target (index pairs)
+int a[20]
+int n
+int target
+int limit
+int hits
+int best
+int total
+
+void go charya (int i, int sum, int picked) {
+    i == n ayite {
+        total lo total + 1 pettu
+        sum == target ayite { hits lo hits + 1 pettu }
+        sum <= limit && sum > best ayite { best lo sum pettu }
+    } lekunte {
+        go(i + 1, sum, picked)
+        go(i + 1, sum + a[i], picked + 1)
+    }
+}
+
+n ni chaduvu
+target ni chaduvu
+limit ni chaduvu
+prati i 0 nundi n varaku { a[i] ni chaduvu }
+go(0, 0, 0)
+total ni chupi
+hits ni chupi
+best ni chupi
+prati i 0 nundi n varaku {
+    prati j i + 1 nundi n varaku {
+        a[i] + a[j] == target ayite {
+            i ni chupi
+            j ni chupi
+        }
+    }
+}

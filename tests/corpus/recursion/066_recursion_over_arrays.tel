@@ -1,0 +1,60 @@
+# ID: DSA-066
+# Category: recursion
+# Algorithm: recursive sum, maximum, count, reverse and fast power
+# Exercises: recursion with index parameter, array parameter forwarded, void recursion mutating array, bool predicate counting, divide-and-conquer power with wraparound
+# Difficulty: medium
+# Expected: sum, max, count of even elements, reversed array, then powers
+int sum_rec charya (int a[], int i, int n) {
+    i == n ayite { 0 ivvu }
+    a[i] + sum_rec(a, i + 1, n) ivvu
+}
+
+int max_rec charya (int a[], int i, int n) {
+    i == n - 1 ayite { a[i] ivvu }
+    int rest
+    rest lo max_rec(a, i + 1, n) pettu
+    a[i] > rest ayite { a[i] ivvu }
+    rest ivvu
+}
+
+int even_count charya (int a[], int i, int n) {
+    i == n ayite { 0 ivvu }
+    int here
+    here lo 0 pettu
+    a[i] % 2 == 0 ayite { here lo 1 pettu }
+    here + even_count(a, i + 1, n) ivvu
+}
+
+void rev charya (int a[], int l, int r) {
+    l < r ayite {
+        int t
+        t lo a[l] pettu
+        a[l] lo a[r] pettu
+        a[r] lo t pettu
+        rev(a, l + 1, r - 1)
+    }
+}
+
+int power charya (int b, int e) {
+    e == 0 ayite { 1 ivvu }
+    int h
+    h lo power(b, e / 2) pettu
+    e % 2 == 0 ayite { h * h ivvu }
+    h * h * b ivvu
+}
+
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku { a[i] ni chaduvu }
+sum_rec(a, 0, n) ni chupi
+max_rec(a, 0, n) ni chupi
+even_count(a, 0, n) ni chupi
+rev(a, 0, n - 1)
+prati i 0 nundi n varaku { a[i] ni chupi }
+power(2, 10) ni chupi
+power(3, 39) ni chupi
+power(3, 40) ni chupi
+power(7, 30) ni chupi
+power(-2, 63) ni chupi
+power(5, 0) ni chupi

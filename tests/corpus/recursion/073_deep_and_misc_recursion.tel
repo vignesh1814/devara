@@ -1,0 +1,37 @@
+# ID: DSA-073
+# Category: recursion
+# Algorithm: deep linear recursion, recursive padham palindrome, digit counting and recursive gcd
+# Exercises: recursion depth 10000, accumulate-on-return, padham parameters in recursion, mixed return types (int, bool)
+# Difficulty: medium
+# Expected: sum 1..10000, count of digits, palindrome flags, gcd
+int sum_to charya (int n) {
+    n == 0 ayite { 0 ivvu }
+    n + sum_to(n - 1) ivvu
+}
+
+int digits charya (int n) {
+    n < 10 ayite { 1 ivvu }
+    1 + digits(n / 10) ivvu
+}
+
+bool pal charya (padham s, int i, int j) {
+    i >= j ayite { nijam ivvu }
+    s[i] != s[j] ayite { abaddham ivvu }
+    pal(s, i + 1, j - 1) ivvu
+}
+
+int gcd charya (int a, int b) {
+    b == 0 ayite { a ivvu }
+    gcd(b, a % b) ivvu
+}
+
+sum_to(10000) ni chupi
+digits(0) ni chupi
+digits(9) ni chupi
+digits(10) ni chupi
+digits(9223372036854775807) ni chupi
+pal("racecar", 0, 6) ni chupi
+pal("abca", 0, 3) ni chupi
+pal("x", 0, 0) ni chupi
+gcd(1071, 462) ni chupi
+gcd(17, 0) ni chupi

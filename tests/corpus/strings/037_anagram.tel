@@ -1,0 +1,28 @@
+# ID: DSA-037
+# Category: strings
+# Algorithm: anagram detection by letter counts
+# Exercises: two count arrays compared, padham parameters, function returning bool, loop over pairs of lines
+# Difficulty: medium
+# Expected: nijam/abaddham for each pair of lines
+bool is_anagram charya (padham a, padham b) {
+    podavu(a) != podavu(b) ayite { abaddham ivvu }
+    int cnt[26]
+    prati i 0 nundi podavu(a) varaku {
+        cnt[a[i] - 'a'] lo cnt[a[i] - 'a'] + 1 pettu
+        cnt[b[i] - 'a'] lo cnt[b[i] - 'a'] - 1 pettu
+    }
+    prati k 0 nundi 26 varaku {
+        cnt[k] != 0 ayite { abaddham ivvu }
+    }
+    nijam ivvu
+}
+
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    padham x
+    padham y
+    x ni chaduvu
+    y ni chaduvu
+    is_anagram(x, y) ni chupi
+}

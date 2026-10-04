@@ -1,0 +1,32 @@
+# ID: DSA-085
+# Category: dp
+# Algorithm: 0/1 knapsack with item reconstruction
+# Exercises: 2-D dp table (global), weights/values arrays, backtracking from dp[n][W], descending pratisari, && inside conditions
+# Difficulty: medium
+# Expected: best value, then the chosen item indices (0-based) from last to first
+int w[20]
+int v[20]
+int dp[21][51]
+int n
+int cap
+n ni chaduvu
+cap ni chaduvu
+prati i 0 nundi n varaku { w[i] ni chaduvu }
+prati i 0 nundi n varaku { v[i] ni chaduvu }
+prati i 1 nundi n + 1 varaku {
+    prati c 0 nundi cap + 1 varaku {
+        dp[i][c] lo dp[i - 1][c] pettu
+        w[i - 1] <= c && dp[i - 1][c - w[i - 1]] + v[i - 1] > dp[i][c] ayite {
+            dp[i][c] lo dp[i - 1][c - w[i - 1]] + v[i - 1] pettu
+        }
+    }
+}
+dp[n][cap] ni chupi
+int c
+c lo cap pettu
+pratisari (int i lo n pettu; i >= 1; i--) {
+    dp[i][c] != dp[i - 1][c] ayite {
+        i - 1 ni chupi
+        c lo c - w[i - 1] pettu
+    }
+}

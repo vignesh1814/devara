@@ -1,0 +1,59 @@
+# ID: DSA-079
+# Category: datastructures
+# Algorithm: binary min-heap priority queue (insert, extract-min)
+# Exercises: sift-up and sift-down on arrays, parent (i-1)/2 integer division, global heap state, interleaved commands, empty guard
+# Difficulty: hard
+# Expected: extracted minima in order of commands (-1 if empty)
+int h[64]
+int hs
+
+void swap charya (int i, int j) {
+    int t
+    t lo h[i] pettu
+    h[i] lo h[j] pettu
+    h[j] lo t pettu
+}
+
+void insert charya (int v) {
+    int i
+    h[hs] lo v pettu
+    i lo hs pettu
+    hs lo hs + 1 pettu
+    i > 0 && h[(i - 1) / 2] > h[i] unnanta varaku {
+        swap(i, (i - 1) / 2)
+        i lo (i - 1) / 2 pettu
+    }
+}
+
+int extract charya () {
+    hs == 0 ayite { -1 ivvu }
+    int top
+    top lo h[0] pettu
+    hs lo hs - 1 pettu
+    h[0] lo h[hs] pettu
+    int i
+    i lo 0 pettu
+    nijam unnanta varaku {
+        int s
+        s lo i pettu
+        2 * i + 1 < hs && h[2 * i + 1] < h[s] ayite { s lo 2 * i + 1 pettu }
+        2 * i + 2 < hs && h[2 * i + 2] < h[s] ayite { s lo 2 * i + 2 pettu }
+        s == i ayite { aapu }
+        swap(i, s)
+        i lo s pettu
+    }
+    top ivvu
+}
+
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int v
+    v ni chaduvu
+    v == -1 ayite {
+        extract() ni chupi
+    } lekunte {
+        insert(v)
+    }
+}
+hs ni chupi

@@ -1,0 +1,48 @@
+# ID: DSA-002
+# Category: arrays
+# Algorithm: insertion and deletion at a position
+# Exercises: global array, shifting loops with while, functions with side effects on arrays, void functions, call statements
+# Difficulty: easy
+# Expected: array contents after a series of inserts and deletes, printed by show()
+int data[20]
+int size
+
+void show charya (int a[], int n) {
+    n ni chupi
+    prati i 0 nundi n varaku {
+        a[i] ni chupi
+    }
+}
+
+void insert_at charya (int a[], int pos, int value) {
+    int k
+    k lo size pettu
+    k > pos unnanta varaku {
+        a[k] lo a[k - 1] pettu
+        k lo k - 1 pettu
+    }
+    a[pos] lo value pettu
+    size lo size + 1 pettu
+}
+
+void delete_at charya (int a[], int pos) {
+    int k
+    pratisari (k lo pos pettu; k < size - 1; k lo k + 1 pettu) {
+        a[k] lo a[k + 1] pettu
+    }
+    size lo size - 1 pettu
+}
+
+size lo 0 pettu
+prati i 0 nundi 6 varaku {
+    insert_at(data, i, (i + 1) * 10)
+}
+show(data, size)
+insert_at(data, 0, 5)
+insert_at(data, 3, 25)
+insert_at(data, size, 99)
+show(data, size)
+delete_at(data, 0)
+delete_at(data, 2)
+delete_at(data, size - 1)
+show(data, size)

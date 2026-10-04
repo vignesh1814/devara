@@ -1,0 +1,68 @@
+# ID: DSA-080
+# Category: datastructures
+# Algorithm: disjoint-set union with path halving and union by size
+# Exercises: iterative find with path halving, size array, component counting, largest component, query flags as bool output
+# Difficulty: medium
+# Expected: for each query whether two nodes are connected; then number of components and largest component size
+int parent[50]
+int sz[50]
+
+int find charya (int x) {
+    parent[x] != x unnanta varaku {
+        parent[x] lo parent[parent[x]] pettu
+        x lo parent[x] pettu
+    }
+    x ivvu
+}
+
+void unite charya (int a, int b) {
+    a lo find(a) pettu
+    b lo find(b) pettu
+    a != b ayite {
+        sz[a] < sz[b] ayite {
+            int t
+            t lo a pettu
+            a lo b pettu
+            b lo t pettu
+        }
+        parent[b] lo a pettu
+        sz[a] lo sz[a] + sz[b] pettu
+    }
+}
+
+int n
+int m
+n ni chaduvu
+m ni chaduvu
+prati i 0 nundi n varaku {
+    parent[i] lo i pettu
+    sz[i] lo 1 pettu
+}
+prati i 0 nundi m varaku {
+    int a
+    int b
+    a ni chaduvu
+    b ni chaduvu
+    unite(a, b)
+}
+int q
+q ni chaduvu
+prati i 0 nundi q varaku {
+    int a
+    int b
+    a ni chaduvu
+    b ni chaduvu
+    find(a) == find(b) ni chupi
+}
+int comps
+int biggest
+comps lo 0 pettu
+biggest lo 0 pettu
+prati i 0 nundi n varaku {
+    find(i) == i ayite {
+        comps lo comps + 1 pettu
+        sz[i] > biggest ayite { biggest lo sz[i] pettu }
+    }
+}
+comps ni chupi
+biggest ni chupi

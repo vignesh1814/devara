@@ -1,0 +1,30 @@
+# ID: DSA-063
+# Category: recursion
+# Algorithm: recursive factorial, Fibonacci (tree recursion) and digit sum
+# Exercises: self-recursion, base cases via early return inside if-block, tree recursion with two calls per frame, int arithmetic, return of call results in expressions
+# Difficulty: easy
+# Expected: n!, fib(n), digit sum for each n
+int fact charya (int n) {
+    n <= 1 ayite { 1 ivvu }
+    n * fact(n - 1) ivvu
+}
+
+int fib charya (int n) {
+    n < 2 ayite { n ivvu }
+    fib(n - 1) + fib(n - 2) ivvu
+}
+
+int digsum charya (int n) {
+    n < 10 ayite { n ivvu }
+    n % 10 + digsum(n / 10) ivvu
+}
+
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int n
+    n ni chaduvu
+    fact(n) ni chupi
+    fib(n) ni chupi
+    digsum(fact(n)) ni chupi
+}

@@ -1,0 +1,45 @@
+# ID: DSA-094
+# Category: graphs
+# Algorithm: breadth-first search on an undirected graph (adjacency matrix)
+# Exercises: queue as array with head/tail, dist array initialised to -1, neighbour scan in index order, unreachable nodes, edge input
+# Difficulty: medium
+# Expected: BFS visit order, then dist from the source for every node (-1 if unreachable)
+int adj[10][10]
+int dist[10]
+int queue[10]
+int n
+int m
+n ni chaduvu
+m ni chaduvu
+prati i 0 nundi m varaku {
+    int u
+    int v
+    u ni chaduvu
+    v ni chaduvu
+    adj[u][v] lo 1 pettu
+    adj[v][u] lo 1 pettu
+}
+int src
+src ni chaduvu
+prati i 0 nundi n varaku { dist[i] lo -1 pettu }
+int head
+int tail
+head lo 0 pettu
+tail lo 0 pettu
+queue[tail] lo src pettu
+tail lo tail + 1 pettu
+dist[src] lo 0 pettu
+head < tail unnanta varaku {
+    int u
+    u lo queue[head] pettu
+    head lo head + 1 pettu
+    u ni chupi
+    prati v 0 nundi n varaku {
+        adj[u][v] == 1 && dist[v] == -1 ayite {
+            dist[v] lo dist[u] + 1 pettu
+            queue[tail] lo v pettu
+            tail lo tail + 1 pettu
+        }
+    }
+}
+prati i 0 nundi n varaku { dist[i] ni chupi }

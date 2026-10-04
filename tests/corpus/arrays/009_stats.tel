@@ -1,0 +1,41 @@
+# ID: DSA-009
+# Category: arrays
+# Algorithm: min, max, mean, second largest
+# Exercises: float arithmetic and %g output, int to float cast, comparisons chain, bool flags
+# Difficulty: easy
+# Expected: min, max, sum, mean (float), second largest distinct value
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku {
+    a[i] ni chaduvu
+}
+int mn
+int mx
+int sum
+mn lo a[0] pettu
+mx lo a[0] pettu
+sum lo 0 pettu
+prati i 0 nundi n varaku {
+    a[i] < mn ayite { mn lo a[i] pettu }
+    a[i] > mx ayite { mx lo a[i] pettu }
+    sum lo sum + a[i] pettu
+}
+mn ni chupi
+mx ni chupi
+sum ni chupi
+(float) sum / n ni chupi
+int second
+bool seen
+seen lo abaddham pettu
+second lo 0 pettu
+prati i 0 nundi n varaku {
+    a[i] != mx ayite {
+        !seen || a[i] > second ayite {
+            second lo a[i] pettu
+            seen lo nijam pettu
+        }
+    }
+}
+seen ni chupi
+second ni chupi

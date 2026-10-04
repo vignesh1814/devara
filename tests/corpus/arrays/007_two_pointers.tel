@@ -1,0 +1,47 @@
+# ID: DSA-007
+# Category: arrays
+# Algorithm: two pointers on a sorted array (pair with given sum)
+# Exercises: bool function, while with && condition, else-if chain, output of bool via nijam/abaddham
+# Difficulty: medium
+# Expected: bool result, then the pair indices, then count of all pairs with the sum
+bool has_pair charya (int a[], int n, int target) {
+    int i
+    int j
+    i lo 0 pettu
+    j lo n - 1 pettu
+    i < j unnanta varaku {
+        a[i] + a[j] == target ayite {
+            nijam ivvu
+        } lekunte a[i] + a[j] < target ayite {
+            i lo i + 1 pettu
+        } lekunte {
+            j lo j - 1 pettu
+        }
+    }
+    abaddham ivvu
+}
+
+int count_pairs charya (int a[], int n, int target) {
+    int c
+    c lo 0 pettu
+    prati i 0 nundi n varaku {
+        prati j i + 1 nundi n varaku {
+            a[i] + a[j] == target ayite {
+                c lo c + 1 pettu
+            }
+        }
+    }
+    c ivvu
+}
+
+int n
+int target
+n ni chaduvu
+target ni chaduvu
+int a[n]
+prati i 0 nundi n varaku {
+    a[i] ni chaduvu
+}
+has_pair(a, n, target) ni chupi
+has_pair(a, n, target + 1000) ni chupi
+count_pairs(a, n, target) ni chupi

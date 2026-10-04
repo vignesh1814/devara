@@ -1,0 +1,63 @@
+# ID: DSA-106
+# Category: misc
+# Algorithm: scoping rules: globals, parameters, nested blocks, loop variables, sibling scopes
+# Exercises: parameter shadows global, block-local shadows parameter/global, shadow ends at block end, loop var shadows global, same name in sibling blocks, function scope sharing parameter and top block, recursion with local state
+# Difficulty: medium
+# Expected: see oracle
+int x
+int y
+x lo 100 pettu
+y lo 200 pettu
+
+int show charya (int x) {
+    x ni chupi
+    x lo x + 1 pettu
+    y ni chupi
+    x ivvu
+}
+
+void blocks charya () {
+    x ni chupi
+    nijam ayite {
+        int x
+        x lo 7 pettu
+        x ni chupi
+        nijam ayite {
+            int x
+            x lo 8 pettu
+            x ni chupi
+        }
+        x ni chupi
+    }
+    x ni chupi
+    prati x 0 nundi 2 varaku { x ni chupi }
+    x ni chupi
+    nijam ayite {
+        int z
+        z lo 1 pettu
+        z ni chupi
+    }
+    nijam ayite {
+        int z
+        z lo 2 pettu
+        z ni chupi
+    }
+}
+
+int depth charya (int n) {
+    int local
+    local lo n * 10 pettu
+    n > 0 ayite {
+        int r
+        r lo depth(n - 1) pettu
+    }
+    local ni chupi
+    local ivvu
+}
+
+show(5) ni chupi
+x ni chupi
+blocks()
+depth(2) ni chupi
+pratisari (int y lo 0 pettu; y < 2; y++) { y ni chupi }
+y ni chupi

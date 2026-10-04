@@ -1,0 +1,38 @@
+# ID: DSA-031
+# Category: searching
+# Algorithm: ternary search for the minimum of a convex integer function plus exponential search bound
+# Exercises: function calls inside conditions, int arithmetic with negative values, doubling loop, bool short-circuit
+# Difficulty: hard
+# Expected: argmin and min value of f(x) = (x - 37)^2 + 5 on [-1000, 1000]; then the first power of two exceeding a threshold
+int f charya (int x) {
+    (x - 37) * (x - 37) + 5 ivvu
+}
+
+int lo_b
+int hi_b
+lo_b lo -1000 pettu
+hi_b lo 1000 pettu
+hi_b - lo_b > 2 unnanta varaku {
+    int m1
+    int m2
+    m1 lo lo_b + (hi_b - lo_b) / 3 pettu
+    m2 lo hi_b - (hi_b - lo_b) / 3 pettu
+    f(m1) < f(m2) ayite {
+        hi_b lo m2 - 1 pettu
+    } lekunte {
+        lo_b lo m1 + 1 pettu
+    }
+}
+int best
+best lo lo_b pettu
+prati x lo_b nundi hi_b + 1 varaku {
+    f(x) < f(best) ayite { best lo x pettu }
+}
+best ni chupi
+f(best) ni chupi
+int p
+p lo 1 pettu
+int threshold
+threshold ni chaduvu
+p <= threshold unnanta varaku { p lo p * 2 pettu }
+p ni chupi

@@ -1,0 +1,38 @@
+# ID: DSA-038
+# Category: strings
+# Algorithm: Knuth-Morris-Pratt pattern matching
+# Exercises: failure-function array sized by podavu (runtime dimension), while with && on padham chars, index arithmetic, output of every match
+# Difficulty: hard
+# Expected: number of matches and their start indices
+padham text
+padham pat
+text ni chaduvu
+pat ni chaduvu
+int n
+int m
+n lo podavu(text) pettu
+m lo podavu(pat) pettu
+int fail[m]
+int k
+k lo 0 pettu
+prati i 1 nundi m varaku {
+    k > 0 && pat[i] != pat[k] unnanta varaku { k lo fail[k - 1] pettu }
+    pat[i] == pat[k] ayite { k lo k + 1 pettu }
+    fail[i] lo k pettu
+}
+int found
+found lo 0 pettu
+int res[n + 1]
+k lo 0 pettu
+prati i 0 nundi n varaku {
+    k > 0 && text[i] != pat[k] unnanta varaku { k lo fail[k - 1] pettu }
+    text[i] == pat[k] ayite { k lo k + 1 pettu }
+    k == m ayite {
+        res[found] lo i - m + 1 pettu
+        found lo found + 1 pettu
+        k lo fail[k - 1] pettu
+    }
+}
+found ni chupi
+prati i 0 nundi found varaku { res[i] ni chupi }
+prati i 0 nundi m varaku { fail[i] ni chupi }

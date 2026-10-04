@@ -1,0 +1,45 @@
+# ID: DSA-026
+# Category: searching
+# Algorithm: lower_bound and upper_bound
+# Exercises: half-open binary search, two functions sharing a pattern, count of equal elements as difference, ranges
+# Difficulty: medium
+# Expected: lower bound, upper bound and occurrence count for each query value
+int lower_bound charya (int a[], int n, int key) {
+    int l
+    int r
+    l lo 0 pettu
+    r lo n pettu
+    l < r unnanta varaku {
+        int mid
+        mid lo (l + r) / 2 pettu
+        a[mid] < key ayite { l lo mid + 1 pettu } lekunte { r lo mid pettu }
+    }
+    l ivvu
+}
+
+int upper_bound charya (int a[], int n, int key) {
+    int l
+    int r
+    l lo 0 pettu
+    r lo n pettu
+    l < r unnanta varaku {
+        int mid
+        mid lo (l + r) / 2 pettu
+        a[mid] <= key ayite { l lo mid + 1 pettu } lekunte { r lo mid pettu }
+    }
+    l ivvu
+}
+
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku { a[i] ni chaduvu }
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int key
+    key ni chaduvu
+    lower_bound(a, n, key) ni chupi
+    upper_bound(a, n, key) ni chupi
+    upper_bound(a, n, key) - lower_bound(a, n, key) ni chupi
+}

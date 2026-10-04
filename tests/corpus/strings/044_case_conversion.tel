@@ -1,0 +1,49 @@
+# ID: DSA-044
+# Category: strings
+# Algorithm: upper, lower and toggle case; capitalize words
+# Exercises: char-to-char assignment with narrowing, small helper functions on char, bool state across loop, char parameters and returns
+# Difficulty: easy
+# Expected: upper, lower, toggled and title-cased versions of the line
+char to_upper charya (char c) {
+    c >= 'a' && c <= 'z' ayite { (char) (c - 32) ivvu }
+    c ivvu
+}
+
+char to_lower charya (char c) {
+    c >= 'A' && c <= 'Z' ayite { (char) (c + 32) ivvu }
+    c ivvu
+}
+
+padham s
+s ni chaduvu
+padham up
+padham low
+padham tog
+padham title
+up lo "" pettu
+low lo "" pettu
+tog lo "" pettu
+title lo "" pettu
+bool start
+start lo nijam pettu
+prati i 0 nundi podavu(s) varaku {
+    char c
+    c lo s[i] pettu
+    up lo up + (padham) to_upper(c) pettu
+    low lo low + (padham) to_lower(c) pettu
+    to_upper(c) == c ayite {
+        tog lo tog + (padham) to_lower(c) pettu
+    } lekunte {
+        tog lo tog + (padham) to_upper(c) pettu
+    }
+    start ayite {
+        title lo title + (padham) to_upper(c) pettu
+    } lekunte {
+        title lo title + (padham) to_lower(c) pettu
+    }
+    start lo c == ' ' pettu
+}
+up ni chupi
+low ni chupi
+tog ni chupi
+title ni chupi

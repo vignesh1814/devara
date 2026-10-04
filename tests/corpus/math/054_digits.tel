@@ -1,0 +1,52 @@
+# ID: DSA-054
+# Category: math
+# Algorithm: digit sum, number reversal, palindromic and Armstrong numbers
+# Exercises: / and % by 10, accumulator loops, helper functions, bool results, three-digit scanning
+# Difficulty: easy
+# Expected: for each input digit sum, reversal and palindrome flag; then Armstrong numbers 100..999
+int digit_sum charya (int n) {
+    int s
+    s lo 0 pettu
+    n > 0 unnanta varaku {
+        s lo s + n % 10 pettu
+        n lo n / 10 pettu
+    }
+    s ivvu
+}
+
+int reverse_num charya (int n) {
+    int r
+    r lo 0 pettu
+    n > 0 unnanta varaku {
+        r lo r * 10 + n % 10 pettu
+        n lo n / 10 pettu
+    }
+    r ivvu
+}
+
+bool armstrong charya (int n) {
+    int d
+    d lo n pettu
+    int s
+    s lo 0 pettu
+    d > 0 unnanta varaku {
+        int x
+        x lo d % 10 pettu
+        s lo s + x * x * x pettu
+        d lo d / 10 pettu
+    }
+    s == n ivvu
+}
+
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int x
+    x ni chaduvu
+    digit_sum(x) ni chupi
+    reverse_num(x) ni chupi
+    reverse_num(x) == x ni chupi
+}
+prati n 100 nundi 1000 varaku {
+    armstrong(n) ayite { n ni chupi }
+}

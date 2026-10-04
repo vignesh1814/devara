@@ -1,0 +1,17 @@
+# ID: DSA-068
+# Category: recursion
+# Algorithm: Ackermann function
+# Exercises: doubly nested recursive call as argument, deep call chains (depth ~ 250), argument evaluation order of nested calls
+# Difficulty: medium
+# Expected: A(0,0), A(1,1), A(2,3), A(3,3), A(3,5)
+int ack charya (int m, int n) {
+    m == 0 ayite { n + 1 ivvu }
+    n == 0 ayite { ack(m - 1, 1) ivvu }
+    ack(m - 1, ack(m, n - 1)) ivvu
+}
+
+ack(0, 0) ni chupi
+ack(1, 1) ni chupi
+ack(2, 3) ni chupi
+ack(3, 3) ni chupi
+ack(3, 5) ni chupi

@@ -1,0 +1,39 @@
+# ID: DSA-043
+# Category: strings
+# Algorithm: run-length encoding and decoding
+# Exercises: digit char building ('0' + count), while scanning, padham accumulation, decoding by repeating chars, round-trip equality
+# Difficulty: medium
+# Expected: encoded form (counts are single digits <= 9), decoded form and round-trip check
+padham encode charya (padham s) {
+    padham r
+    r lo "" pettu
+    int i
+    i lo 0 pettu
+    i < podavu(s) unnanta varaku {
+        int j
+        j lo i pettu
+        j < podavu(s) && s[j] == s[i] && j - i < 9 unnanta varaku { j lo j + 1 pettu }
+        r lo r + (padham) s[i] + (padham) (char) ('0' + (j - i)) pettu
+        i lo j pettu
+    }
+    r ivvu
+}
+
+padham decode charya (padham s) {
+    padham r
+    r lo "" pettu
+    pratisari (int i lo 0 pettu; i < podavu(s); i lo i + 2 pettu) {
+        int c
+        c lo s[i + 1] - '0' pettu
+        prati k 0 nundi c varaku { r lo r + (padham) s[i] pettu }
+    }
+    r ivvu
+}
+
+padham s
+s ni chaduvu
+padham e
+e lo encode(s) pettu
+e ni chupi
+decode(e) ni chupi
+decode(e) == s ni chupi

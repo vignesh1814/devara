@@ -1,0 +1,12 @@
+# ID: DSA-050
+# Category: math
+# Algorithm: factorial table with signed 64-bit wraparound
+# Exercises: integer overflow wrap (L37), running product, output of negative wrapped values
+# Difficulty: medium
+# Expected: n! for n = 1..25, with n! >= 21 wrapping modulo 2^64 as signed
+int f
+f lo 1 pettu
+prati i 1 nundi 26 varaku {
+    f lo f * i pettu
+    f ni chupi
+}

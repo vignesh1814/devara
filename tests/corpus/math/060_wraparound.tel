@@ -1,0 +1,36 @@
+# ID: DSA-060
+# Category: math
+# Algorithm: signed 64-bit wraparound audit
+# Exercises: INT64_MAX/MIN boundaries via -9223372036854775807 - 1, +,-,* overflow wrap (L37), INT64_MIN % -1 == 0 (P28), hash accumulation wrap
+# Difficulty: medium
+# Expected: results of boundary arithmetic modulo 2^64 in two's complement
+int mx
+int mn
+mx lo 9223372036854775807 pettu
+mn lo -9223372036854775807 - 1 pettu
+mx ni chupi
+mn ni chupi
+mx + 1 ni chupi
+mx + mx ni chupi
+mx * 2 ni chupi
+mx * mx ni chupi
+mn - 1 ni chupi
+mn * -1 ni chupi
+mn * mn ni chupi
+mn % -1 ni chupi
+mn / 1 ni chupi
+mn / 2 ni chupi
+mn + mn ni chupi
+3037000500 * 3037000500 ni chupi
+mx - mn ni chupi
+mn - mx ni chupi
+int h
+h lo 7 pettu
+prati i 1 nundi 60 varaku {
+    h lo h * 31 + i pettu
+}
+h ni chupi
+int s
+s lo 1 pettu
+prati i 0 nundi 70 varaku { s lo s * 3 pettu }
+s ni chupi

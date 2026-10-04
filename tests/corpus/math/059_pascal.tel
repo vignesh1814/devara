@@ -1,0 +1,30 @@
+# ID: DSA-059
+# Category: math
+# Algorithm: Pascal's triangle and binomial coefficients
+# Exercises: 2-D array with row-major fill, zero-filled neighbours, index arithmetic p[i-1][j-1], queries reading nCr from the table
+# Difficulty: medium
+# Expected: central coefficient and row sum for each row 0..14, then nCr for each query
+int p[15][15]
+
+prati i 0 nundi 15 varaku {
+    p[i][0] lo 1 pettu
+    prati j 1 nundi i + 1 varaku {
+        p[i][j] lo p[i - 1][j - 1] + p[i - 1][j] pettu
+    }
+}
+prati i 0 nundi 15 varaku {
+    int s
+    s lo 0 pettu
+    prati j 0 nundi i + 1 varaku { s lo s + p[i][j] pettu }
+    p[i][i / 2] ni chupi
+    s ni chupi
+}
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int a
+    int r
+    a ni chaduvu
+    r ni chaduvu
+    p[a][r] ni chupi
+}

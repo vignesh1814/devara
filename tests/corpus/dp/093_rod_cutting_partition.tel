@@ -1,0 +1,41 @@
+# ID: DSA-093
+# Category: dp
+# Algorithm: rod cutting for maximum revenue and equal-sum subset partition
+# Exercises: unbounded-style dp with inner max, bool dp table (zero-filled false), sums to 200, nested conditions, bool output
+# Difficulty: medium
+# Expected: max revenue for each rod length 1..8, then whether the numbers can be split into two equal-sum halves
+int price[9]
+int best[9]
+price[1] lo 1 pettu
+price[2] lo 5 pettu
+price[3] lo 8 pettu
+price[4] lo 9 pettu
+price[5] lo 10 pettu
+price[6] lo 17 pettu
+price[7] lo 17 pettu
+price[8] lo 20 pettu
+prati len 1 nundi 9 varaku {
+    prati cut 1 nundi len + 1 varaku {
+        price[cut] + best[len - cut] > best[len] ayite {
+            best[len] lo price[cut] + best[len - cut] pettu
+        }
+    }
+    best[len] ni chupi
+}
+int n
+n ni chaduvu
+int a[n]
+int total
+total lo 0 pettu
+prati i 0 nundi n varaku {
+    a[i] ni chaduvu
+    total lo total + a[i] pettu
+}
+bool can[201]
+can[0] lo nijam pettu
+prati i 0 nundi n varaku {
+    pratisari (int s lo 200 pettu; s >= a[i]; s--) {
+        can[s - a[i]] ayite { can[s] lo nijam pettu }
+    }
+}
+total % 2 == 0 && can[total / 2] ni chupi

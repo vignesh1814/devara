@@ -1,0 +1,51 @@
+# ID: DSA-018
+# Category: sorting
+# Algorithm: top-down merge sort with inversion count
+# Exercises: recursion, global scratch array, long-valued return from recursive calls, int arithmetic, array parameters
+# Difficulty: medium
+# Expected: inversion count then sorted values
+int scratch[200]
+
+int merge_sort charya (int a[], int left, int right) {
+    right - left < 1 ayite { 0 ivvu }
+    int mid
+    int inv
+    mid lo left + (right - left) / 2 pettu
+    inv lo merge_sort(a, left, mid) + merge_sort(a, mid + 1, right) pettu
+    int i
+    int j
+    int k
+    i lo left pettu
+    j lo mid + 1 pettu
+    k lo left pettu
+    i <= mid && j <= right unnanta varaku {
+        a[i] <= a[j] ayite {
+            scratch[k] lo a[i] pettu
+            i lo i + 1 pettu
+        } lekunte {
+            scratch[k] lo a[j] pettu
+            j lo j + 1 pettu
+            inv lo inv + (mid - i + 1) pettu
+        }
+        k lo k + 1 pettu
+    }
+    i <= mid unnanta varaku {
+        scratch[k] lo a[i] pettu
+        i lo i + 1 pettu
+        k lo k + 1 pettu
+    }
+    j <= right unnanta varaku {
+        scratch[k] lo a[j] pettu
+        j lo j + 1 pettu
+        k lo k + 1 pettu
+    }
+    prati x left nundi right + 1 varaku { a[x] lo scratch[x] pettu }
+    inv ivvu
+}
+
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku { a[i] ni chaduvu }
+merge_sort(a, 0, n - 1) ni chupi
+prati i 0 nundi n varaku { a[i] ni chupi }

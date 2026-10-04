@@ -1,0 +1,56 @@
+# ID: DSA-077
+# Category: datastructures
+# Algorithm: matrix multiplication, transpose and trace on global 2-D arrays
+# Exercises: three nested loops, 2-D arrays a[i][k]*b[k][j], reading a matrix, accumulation, transposition into another array, matrix power by repeated multiplication
+# Difficulty: medium
+# Expected: product matrix row-major, trace, transposed product row-major, A^5 top-left element
+int a[3][3]
+int b[3][3]
+int c[3][3]
+int t[3][3]
+int p[3][3]
+int r[3][3]
+
+void mul charya () {
+    prati i 0 nundi 3 varaku {
+        prati j 0 nundi 3 varaku {
+            int s
+            s lo 0 pettu
+            prati k 0 nundi 3 varaku { s lo s + a[i][k] * b[k][j] pettu }
+            c[i][j] lo s pettu
+        }
+    }
+}
+
+prati i 0 nundi 3 varaku {
+    prati j 0 nundi 3 varaku { a[i][j] ni chaduvu }
+}
+prati i 0 nundi 3 varaku {
+    prati j 0 nundi 3 varaku { b[i][j] ni chaduvu }
+}
+mul()
+prati i 0 nundi 3 varaku {
+    prati j 0 nundi 3 varaku { c[i][j] ni chupi }
+}
+c[0][0] + c[1][1] + c[2][2] ni chupi
+prati i 0 nundi 3 varaku {
+    prati j 0 nundi 3 varaku { t[j][i] lo c[i][j] pettu }
+}
+prati i 0 nundi 3 varaku {
+    prati j 0 nundi 3 varaku { t[i][j] ni chupi }
+}
+# A^5 by repeated multiplication using the shared mul(): result in r, current power in p
+prati i 0 nundi 3 varaku {
+    prati j 0 nundi 3 varaku { p[i][j] lo a[i][j] pettu }
+}
+prati step 1 nundi 5 varaku {
+    prati i 0 nundi 3 varaku {
+        prati j 0 nundi 3 varaku { b[i][j] lo p[i][j] pettu }
+    }
+    mul()
+    prati i 0 nundi 3 varaku {
+        prati j 0 nundi 3 varaku { p[i][j] lo c[i][j] pettu }
+    }
+}
+p[0][0] ni chupi
+p[2][1] ni chupi

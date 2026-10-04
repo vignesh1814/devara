@@ -1,0 +1,43 @@
+# ID: DSA-089
+# Category: dp
+# Algorithm: Levenshtein edit distance
+# Exercises: helper min3, dp base row/column initialisation per query, padham parameters, global dp reused across calls
+# Difficulty: medium
+# Expected: edit distance for each pair of lines
+int dp[31][31]
+
+int min3 charya (int a, int b, int c) {
+    int m
+    m lo a pettu
+    b < m ayite { m lo b pettu }
+    c < m ayite { m lo c pettu }
+    m ivvu
+}
+
+int edit charya (padham s, padham t) {
+    int n
+    int m
+    n lo podavu(s) pettu
+    m lo podavu(t) pettu
+    prati i 0 nundi n + 1 varaku { dp[i][0] lo i pettu }
+    prati j 0 nundi m + 1 varaku { dp[0][j] lo j pettu }
+    prati i 1 nundi n + 1 varaku {
+        prati j 1 nundi m + 1 varaku {
+            int sub
+            sub lo 1 pettu
+            s[i - 1] == t[j - 1] ayite { sub lo 0 pettu }
+            dp[i][j] lo min3(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + sub) pettu
+        }
+    }
+    dp[n][m] ivvu
+}
+
+int q
+q ni chaduvu
+prati k 0 nundi q varaku {
+    padham x
+    padham y
+    x ni chaduvu
+    y ni chaduvu
+    edit(x, y) ni chupi
+}

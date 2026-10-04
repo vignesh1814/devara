@@ -1,0 +1,25 @@
+# ID: DSA-035
+# Category: strings
+# Algorithm: letter frequency counting
+# Exercises: char arithmetic (s[i] - 'a'), char range comparison, int to char to padham casts, padham concatenation, output of padham with embedded colon
+# Difficulty: medium
+# Expected: for each letter present (a..z, case-folded) a line "x:count"
+padham s
+s ni chaduvu
+int cnt[26]
+prati i 0 nundi podavu(s) varaku {
+    char c
+    c lo s[i] pettu
+    c >= 'A' && c <= 'Z' ayite { c lo c + 32 pettu }
+    c >= 'a' && c <= 'z' ayite {
+        cnt[c - 'a'] lo cnt[c - 'a'] + 1 pettu
+    }
+}
+prati k 0 nundi 26 varaku {
+    cnt[k] > 0 ayite {
+        padham line
+        line lo (padham) (char) ('a' + k) + ":" pettu
+        line ni chupi
+        cnt[k] ni chupi
+    }
+}

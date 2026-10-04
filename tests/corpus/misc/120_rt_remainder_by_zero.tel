@@ -1,0 +1,14 @@
+# ID: DSA-120
+# Category: misc
+# Algorithm: runtime error: integer remainder by zero
+# Exercises: % with a zero divisor read at run time (not constant folded), exit status 1
+# Difficulty: easy
+# Expected: two remainders then runtime error "remainder by zero", exit 1
+int n
+n ni chaduvu
+prati d 3 nundi 0 varaku { 0 ni chupi }
+int d
+prati k 0 nundi 4 varaku {
+    d lo 2 - k pettu
+    17 % d ni chupi
+}

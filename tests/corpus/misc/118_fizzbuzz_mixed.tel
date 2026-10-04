@@ -1,0 +1,23 @@
+# ID: DSA-118
+# Category: misc
+# Algorithm: FizzBuzz with padham/int outputs, plus a multiplication table via nested loops
+# Exercises: if / else-if chain with % tests, mixing padham and int output statements, nested loop with output per cell, saagu
+# Difficulty: easy
+# Expected: FizzBuzz 1..30 then a 4x4 multiplication table
+prati i 1 nundi 31 varaku {
+    i % 15 == 0 ayite {
+        "FizzBuzz" ni chupi
+    } lekunte i % 5 == 0 ayite {
+        "Buzz" ni chupi
+    } lekunte i % 3 == 0 ayite {
+        "Fizz" ni chupi
+    } lekunte {
+        i ni chupi
+    }
+}
+prati r 1 nundi 5 varaku {
+    prati c 1 nundi 5 varaku {
+        r == c ayite { saagu }
+        r * c ni chupi
+    }
+}

@@ -1,0 +1,45 @@
+# ID: DSA-087
+# Category: dp
+# Algorithm: longest common subsequence with reconstruction
+# Exercises: 2-D dp over two padham inputs, char equality, backtracking by index decrement, prepend building (char cast to padham), padham output
+# Difficulty: medium
+# Expected: LCS length and one LCS string (preferring the up move on ties)
+int dp[41][41]
+padham a
+padham b
+a ni chaduvu
+b ni chaduvu
+int n
+int m
+n lo podavu(a) pettu
+m lo podavu(b) pettu
+prati i 1 nundi n + 1 varaku {
+    prati j 1 nundi m + 1 varaku {
+        a[i - 1] == b[j - 1] ayite {
+            dp[i][j] lo dp[i - 1][j - 1] + 1 pettu
+        } lekunte dp[i - 1][j] >= dp[i][j - 1] ayite {
+            dp[i][j] lo dp[i - 1][j] pettu
+        } lekunte {
+            dp[i][j] lo dp[i][j - 1] pettu
+        }
+    }
+}
+dp[n][m] ni chupi
+padham res
+res lo "" pettu
+int i
+int j
+i lo n pettu
+j lo m pettu
+i > 0 && j > 0 unnanta varaku {
+    a[i - 1] == b[j - 1] ayite {
+        res lo (padham) a[i - 1] + res pettu
+        i lo i - 1 pettu
+        j lo j - 1 pettu
+    } lekunte dp[i - 1][j] >= dp[i][j - 1] ayite {
+        i lo i - 1 pettu
+    } lekunte {
+        j lo j - 1 pettu
+    }
+}
+res ni chupi

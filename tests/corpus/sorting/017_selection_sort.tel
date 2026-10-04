@@ -1,0 +1,30 @@
+# ID: DSA-017
+# Category: sorting
+# Algorithm: selection sort, printed descending
+# Exercises: min-index search, pratisari with declaration init, descending output loop with pratisari (int k lo n - 1 pettu; ...; k--)
+# Difficulty: easy
+# Expected: values in descending order, then count of swaps performed
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku { a[i] ni chaduvu }
+int swaps
+swaps lo 0 pettu
+pratisari (int i lo 0 pettu; i < n - 1; i++) {
+    int m
+    m lo i pettu
+    pratisari (int j lo i + 1 pettu; j < n; j++) {
+        a[j] < a[m] ayite { m lo j pettu }
+    }
+    m != i ayite {
+        int t
+        t lo a[i] pettu
+        a[i] lo a[m] pettu
+        a[m] lo t pettu
+        swaps lo swaps + 1 pettu
+    }
+}
+pratisari (int k lo n - 1 pettu; k >= 0; k--) {
+    a[k] ni chupi
+}
+swaps ni chupi

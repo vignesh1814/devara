@@ -1,0 +1,26 @@
+# ID: DSA-034
+# Category: strings
+# Algorithm: palindrome test for several lines
+# Exercises: int then padham input mixing (P9), two-index comparison, early exit with return in bool function, empty line input
+# Difficulty: easy
+# Expected: nijam/abaddham per input line
+bool is_pal charya (padham s) {
+    int i
+    int j
+    i lo 0 pettu
+    j lo podavu(s) - 1 pettu
+    i < j unnanta varaku {
+        s[i] != s[j] ayite { abaddham ivvu }
+        i lo i + 1 pettu
+        j lo j - 1 pettu
+    }
+    nijam ivvu
+}
+
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    padham w
+    w ni chaduvu
+    is_pal(w) ni chupi
+}

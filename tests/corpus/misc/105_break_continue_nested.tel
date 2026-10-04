@@ -1,0 +1,49 @@
+# ID: DSA-105
+# Category: misc
+# Algorithm: aapu and saagu in every loop kind, nested
+# Exercises: aapu/saagu in while, range, pratisari; nearest-enclosing-loop rule; saagu runs the pratisari update; aapu inside if inside inner loop; labelled-free multi-level exit via flag
+# Difficulty: medium
+# Expected: see oracle
+int i
+int found
+i lo 0 pettu
+i < 10 unnanta varaku {
+    i lo i + 1 pettu
+    i % 2 == 0 ayite { saagu }
+    i > 7 ayite { aapu }
+    i ni chupi
+}
+prati a 0 nundi 6 varaku {
+    a == 2 ayite { saagu }
+    a == 5 ayite { aapu }
+    a ni chupi
+}
+pratisari (int k lo 0 pettu; k < 8; k++) {
+    k == 3 ayite { saagu }
+    k == 6 ayite { aapu }
+    k ni chupi
+}
+found lo 0 pettu
+prati r 1 nundi 10 varaku {
+    found == 0 ayite {
+        prati c 1 nundi 10 varaku {
+            r * c == 42 ayite {
+                r ni chupi
+                c ni chupi
+                found lo 1 pettu
+                aapu
+            }
+        }
+    }
+}
+int outer_count
+int inner_count
+prati x 0 nundi 4 varaku {
+    prati y 0 nundi 4 varaku {
+        y > x ayite { aapu }
+        inner_count lo inner_count + 1 pettu
+    }
+    outer_count lo outer_count + 1 pettu
+}
+outer_count ni chupi
+inner_count ni chupi

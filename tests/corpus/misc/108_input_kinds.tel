@@ -1,0 +1,44 @@
+# ID: DSA-108
+# Category: misc
+# Algorithm: every input kind and the token/line interaction rules
+# Exercises: int, float, char, bool (words and 1/0, mixed case), padham line input after a token (P9), consecutive padham lines, blank lines, whitespace skipping across lines, array element and ni chaduvu into array cells
+# Difficulty: medium
+# Expected: each value echoed back in its output format
+int i
+float f
+char c
+bool b1
+bool b2
+bool b3
+bool b4
+padham line1
+padham line2
+padham line3
+int arr[3]
+i ni chaduvu
+f ni chaduvu
+c ni chaduvu
+b1 ni chaduvu
+b2 ni chaduvu
+b3 ni chaduvu
+b4 ni chaduvu
+line1 ni chaduvu
+line2 ni chaduvu
+arr[0] ni chaduvu
+arr[2] ni chaduvu
+line3 ni chaduvu
+i ni chupi
+f ni chupi
+c ni chupi
+b1 ni chupi
+b2 ni chupi
+b3 ni chupi
+b4 ni chupi
+line1 ni chupi
+line2 ni chupi
+arr[0] ni chupi
+arr[1] ni chupi
+arr[2] ni chupi
+line3 ni chupi
+podavu(line1) ni chupi
+podavu(line2) ni chupi

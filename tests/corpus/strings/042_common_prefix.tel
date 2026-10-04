@@ -1,0 +1,27 @@
+# ID: DSA-042
+# Category: strings
+# Algorithm: longest common prefix of several words
+# Exercises: array of lengths, padham taken from a line each, prefix grown by concatenation then shrunk by rebuild, early exit with aapu from nested loop
+# Difficulty: medium
+# Expected: the longest common prefix and its length
+int n
+n ni chaduvu
+padham first
+first ni chaduvu
+int len
+len lo podavu(first) pettu
+prati w 1 nundi n varaku {
+    padham s
+    s ni chaduvu
+    int k
+    k lo 0 pettu
+    k < len && k < podavu(s) && first[k] == s[k] unnanta varaku {
+        k lo k + 1 pettu
+    }
+    len lo k pettu
+}
+padham p
+p lo "" pettu
+prati i 0 nundi len varaku { p lo p + (padham) first[i] pettu }
+p ni chupi
+len ni chupi

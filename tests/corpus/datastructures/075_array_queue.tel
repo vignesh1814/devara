@@ -1,0 +1,39 @@
+# ID: DSA-075
+# Category: datastructures
+# Algorithm: circular queue with head/tail/size
+# Exercises: modulo wraparound of indices, full/empty guards that print status codes, enqueue/dequeue as functions, bool results
+# Difficulty: medium
+# Expected: dequeued values and status flags per command
+int buf[5]
+int head
+int size
+
+bool enqueue charya (int v) {
+    size == 5 ayite { abaddham ivvu }
+    buf[(head + size) % 5] lo v pettu
+    size lo size + 1 pettu
+    nijam ivvu
+}
+
+int dequeue charya () {
+    size == 0 ayite { -1 ivvu }
+    int v
+    v lo buf[head] pettu
+    head lo (head + 1) % 5 pettu
+    size lo size - 1 pettu
+    v ivvu
+}
+
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int cmd
+    cmd ni chaduvu
+    cmd > 0 ayite {
+        enqueue(cmd) ni chupi
+    } lekunte {
+        dequeue() ni chupi
+    }
+}
+size ni chupi
+head ni chupi

@@ -1,0 +1,27 @@
+# ID: DSA-049
+# Category: math
+# Algorithm: sieve of Eratosthenes
+# Exercises: runtime-sized bool array (zero-filled, P22), nested pratisari with declaration init, assignment update with step i, ! on array element, counting and listing
+# Difficulty: medium
+# Expected: number of primes <= n, the primes below 50, and the largest prime <= n
+int n
+n ni chaduvu
+bool composite[n + 1]
+int count
+int last
+count lo 0 pettu
+last lo 0 pettu
+pratisari (int i lo 2 pettu; i <= n; i++) {
+    !composite[i] ayite {
+        count lo count + 1 pettu
+        last lo i pettu
+        pratisari (int j lo i * i pettu; j <= n; j lo j + i pettu) {
+            composite[j] lo nijam pettu
+        }
+    }
+}
+count ni chupi
+prati i 2 nundi 50 varaku {
+    i <= n && !composite[i] ayite { i ni chupi }
+}
+last ni chupi

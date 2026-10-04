@@ -1,0 +1,60 @@
+# ID: DSA-117
+# Category: misc
+# Algorithm: power-of-two test, popcount, parity, binary digit extraction, integer log2, perfect squares
+# Exercises: % and / by 2 loops, bool results, nested function calls, boundary values 0/1/INT64_MAX, count loops
+# Difficulty: easy
+# Expected: see oracle
+bool is_pow2 charya (int n) {
+    n < 1 ayite { abaddham ivvu }
+    n > 1 unnanta varaku {
+        n % 2 != 0 ayite { abaddham ivvu }
+        n lo n / 2 pettu
+    }
+    nijam ivvu
+}
+
+int popcount charya (int n) {
+    int c
+    c lo 0 pettu
+    n > 0 unnanta varaku {
+        c lo c + n % 2 pettu
+        n lo n / 2 pettu
+    }
+    c ivvu
+}
+
+int log2floor charya (int n) {
+    int k
+    k lo 0 pettu
+    n > 1 unnanta varaku {
+        n lo n / 2 pettu
+        k lo k + 1 pettu
+    }
+    k ivvu
+}
+
+bool is_square charya (int n) {
+    n < 0 ayite { abaddham ivvu }
+    int l
+    int r
+    l lo 0 pettu
+    r lo 3037000499 pettu
+    l < r unnanta varaku {
+        int mid
+        mid lo l + (r - l) / 2 pettu
+        mid * mid < n ayite { l lo mid + 1 pettu } lekunte { r lo mid pettu }
+    }
+    l * l == n ivvu
+}
+
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    int x
+    x ni chaduvu
+    is_pow2(x) ni chupi
+    popcount(x) ni chupi
+    popcount(x) % 2 == 1 ni chupi
+    log2floor(x) ni chupi
+    is_square(x) ni chupi
+}

@@ -1,0 +1,31 @@
+# ID: DSA-039
+# Category: strings
+# Algorithm: Caesar cipher encrypt and decrypt
+# Exercises: char casts both ways, modulo on char-derived ints, padham building, round trip, non-letters passed through, negative-free modulo
+# Difficulty: medium
+# Expected: encrypted line then decrypted (original) line
+padham shift_text charya (padham s, int k) {
+    padham r
+    r lo "" pettu
+    prati i 0 nundi podavu(s) varaku {
+        char c
+        c lo s[i] pettu
+        c >= 'a' && c <= 'z' ayite {
+            c lo (char) ((c - 'a' + k) % 26 + 'a') pettu
+        } lekunte c >= 'A' && c <= 'Z' ayite {
+            c lo (char) ((c - 'A' + k) % 26 + 'A') pettu
+        }
+        r lo r + (padham) c pettu
+    }
+    r ivvu
+}
+
+int k
+k ni chaduvu
+padham s
+s ni chaduvu
+padham e
+e lo shift_text(s, k) pettu
+e ni chupi
+shift_text(e, 26 - k) ni chupi
+shift_text(e, 26 - k) == s ni chupi

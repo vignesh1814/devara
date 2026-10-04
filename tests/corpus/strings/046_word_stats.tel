@@ -1,0 +1,47 @@
+# ID: DSA-046
+# Category: strings
+# Algorithm: word count and longest word in a line
+# Exercises: state machine over characters, in-word flag, running maximum, padham slice by manual copy, tab and space separators
+# Difficulty: medium
+# Expected: number of words, length of the longest word, the first longest word
+padham s
+s ni chaduvu
+int words
+int best
+int cur
+int start
+int best_start
+bool inside
+words lo 0 pettu
+best lo 0 pettu
+cur lo 0 pettu
+start lo 0 pettu
+best_start lo 0 pettu
+inside lo abaddham pettu
+prati i 0 nundi podavu(s) + 1 varaku {
+    bool sep
+    sep lo i == podavu(s) || s[i] == ' ' || s[i] == '\t' pettu
+    sep ayite {
+        inside ayite {
+            cur > best ayite {
+                best lo cur pettu
+                best_start lo start pettu
+            }
+            inside lo abaddham pettu
+        }
+        cur lo 0 pettu
+    } lekunte {
+        !inside ayite {
+            inside lo nijam pettu
+            words lo words + 1 pettu
+            start lo i pettu
+        }
+        cur lo cur + 1 pettu
+    }
+}
+words ni chupi
+best ni chupi
+padham w
+w lo "" pettu
+prati k best_start nundi best_start + best varaku { w lo w + (padham) s[k] pettu }
+w ni chupi

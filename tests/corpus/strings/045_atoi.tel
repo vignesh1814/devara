@@ -1,0 +1,32 @@
+# ID: DSA-045
+# Category: strings
+# Algorithm: atoi with sign, whitespace skipping and stop at first non-digit
+# Exercises: leading space skip, sign handling, digit accumulation with wraparound-free range, char arithmetic, multiple lines
+# Difficulty: medium
+# Expected: parsed value for each line
+int atoi charya (padham s) {
+    int i
+    int sign
+    int v
+    i lo 0 pettu
+    sign lo 1 pettu
+    v lo 0 pettu
+    i < podavu(s) && s[i] == ' ' unnanta varaku { i lo i + 1 pettu }
+    i < podavu(s) && (s[i] == '-' || s[i] == '+') ayite {
+        s[i] == '-' ayite { sign lo -1 pettu }
+        i lo i + 1 pettu
+    }
+    i < podavu(s) && s[i] >= '0' && s[i] <= '9' unnanta varaku {
+        v lo v * 10 + (s[i] - '0') pettu
+        i lo i + 1 pettu
+    }
+    sign * v ivvu
+}
+
+int q
+q ni chaduvu
+prati t 0 nundi q varaku {
+    padham s
+    s ni chaduvu
+    atoi(s) ni chupi
+}

@@ -1,0 +1,25 @@
+# ID: DSA-030
+# Category: searching
+# Algorithm: peak element by binary search
+# Exercises: boundary conditions, neighbour comparison, ternary-free if chain, unimodal data
+# Difficulty: medium
+# Expected: index of a peak in a mountain array (strictly increasing then strictly decreasing)
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku { a[i] ni chaduvu }
+int l
+int r
+l lo 0 pettu
+r lo n - 1 pettu
+l < r unnanta varaku {
+    int mid
+    mid lo (l + r) / 2 pettu
+    a[mid] < a[mid + 1] ayite {
+        l lo mid + 1 pettu
+    } lekunte {
+        r lo mid pettu
+    }
+}
+l ni chupi
+a[l] ni chupi

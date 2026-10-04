@@ -1,0 +1,12 @@
+# ID: DSA-119
+# Category: misc
+# Algorithm: runtime error: integer division by zero (P11, L38)
+# Exercises: stdout flushed before error, exit status 1, no output after the failure
+# Difficulty: easy
+# Expected: "before" then runtime error "division by zero", exit 1
+"before" ni chupi
+int d
+d ni chaduvu
+10 / 2 ni chupi
+10 / d ni chupi
+"after" ni chupi

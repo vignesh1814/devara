@@ -1,0 +1,25 @@
+# ID: DSA-022
+# Category: sorting
+# Algorithm: Shell sort with halving gaps
+# Exercises: integer division of gap, three nested loops, gap-strided insertion, while inside pratisari
+# Difficulty: medium
+# Expected: sorted values one per line
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku { a[i] ni chaduvu }
+int gap
+pratisari (gap lo n / 2 pettu; gap > 0; gap lo gap / 2 pettu) {
+    prati i gap nundi n varaku {
+        int tmp
+        int j
+        tmp lo a[i] pettu
+        j lo i pettu
+        j >= gap && a[j - gap] > tmp unnanta varaku {
+            a[j] lo a[j - gap] pettu
+            j lo j - gap pettu
+        }
+        a[j] lo tmp pettu
+    }
+}
+prati i 0 nundi n varaku { a[i] ni chupi }
