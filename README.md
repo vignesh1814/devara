@@ -17,7 +17,8 @@ Python 3.11 standard library only (plus `gcc` to assemble/link and a small C run
 ./devara build prog.tel -o prog           # executable
 ./devara lex|parse|sema|ir|opt|asm prog.tel [--json] [-O0|-O1]
 pytest -m "not slow"                      # fast suite      |  pytest   # everything
-python3 scripts/run_corpus.py             # end-to-end corpus statistics
+python3 scripts/run_corpus.py [-j N]      # end-to-end corpus statistics (parallel, default: CPU count)
+DEVARA_RT_STATS=1 ./prog                  # print live heap arrays + strings at exit: devara-rt: live=<n>
 ```
 
 Docs: `docs/DEVARA_LANGUAGE_SPEC_v0.7.md` (language), `docs/IMPLEMENTATION_PLAN.md` (decisions and

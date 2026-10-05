@@ -66,12 +66,10 @@ Corpus: ~0.17 s average compile (dominated by process start + `gcc` link), progr
 ## Known technical debt
 
 * No register allocation (every value has a stack slot); generated code is correct but slow.
-* Heap arrays (non-constant or > 64 KiB dimensions) and all padham values are never freed (P22).
+* Back-end `.rodata` string constants have no refcount header: lowering interns every literal once at the start of `$entry` (`dv_rt_strlit`); a header-aware back end could emit them statically with `refcnt = -1`.
 * Global scalars live in memory, so constants are not propagated through them.
 * Deep recursion beyond the 8 MiB stack segfaults and buffered stdout is lost (P38: undefined).
 * Out-of-bounds array access is undefined (L32); the IR interpreter oracle raises instead.
-* `scripts/run_corpus.py` spawns one `./devara build` process per program.
-* `tests/audit_scripts/*` are legacy print scripts, not tests.
 
 ## Open questions / conventions
 
