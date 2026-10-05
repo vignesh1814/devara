@@ -8,7 +8,7 @@ import pytest
 ROOT = Path(__file__).parent.parent.parent
 DEVARA = str(ROOT / "devara")
 
-SRC = """void f charya (int n) {
+SRC = """void f charya (int n) {{
 float b
 b lo ({init}) pettu
 n > 0 ayite {{ b lo {branch} pettu }}
