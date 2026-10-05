@@ -145,6 +145,26 @@ def tdiv(a, b):
     return q if (a < 0) == (b < 0) else -q
 
 
+def _strtod_token(tok) -> float:
+    """C strtod over one whole token (Q-013): decimal, hex floats, inf/infinity, nan(...)."""
+    t = tok.decode("latin-1") if isinstance(tok, (bytes, bytearray)) else tok
+    if "_" in t or t[:1].isspace():
+        raise ValueError(t)
+    body = t.lstrip("+-")
+    neg = t.startswith("-")
+    if body[:2].lower() == "0x":
+        m = body[2:]
+        if not m or m.lower().count("p") > 1:
+            raise ValueError(t)
+        if "p" not in m.lower():
+            m += "p0"
+        v = float.fromhex("0x" + m)
+        return -v if neg else v
+    if body.lower().startswith("nan(") and body.endswith(")"):
+        return float("-nan" if neg else "nan")
+    return float(t)
+
+
 def fmt_g(x: float) -> str:
     return "%g" % x
 
@@ -290,7 +310,7 @@ class Interp:
         tok = self._token()
         if ty == "float":
             try:
-                return ("float", float(tok))
+                return ("float", _strtod_token(tok))
             except ValueError:
                 raise RuntimeErr("invalid input")
         if ty == "bool":

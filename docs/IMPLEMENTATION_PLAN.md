@@ -365,3 +365,14 @@ Binding from now on. These rulings refine §C; they do not change any frozen L-d
 | Q-012 | A user-supplied `.s` file that the assembler/linker rejects is a user-input error: exit **1** with `FILE: assembler error: <tool output>`. Exit 3 stays reserved for generated code. |
 | N-001 | Exceeding the nesting depth is an implementation limit, not a compiler bug: exit **1** with `FILE:LINE:COL: syntax error [INVALID_EXPRESSION]: nesting too deep (implementation limit)` (or the position of the last token reached), and no ICE. The supported depth must stay ≥ 1000. |
 | N-002 | Performance: compile time for long left-associative chains should be roughly linear. Profile it, and fix it if the cause is cheap to remove (e.g. repeated list copies or recursion-limit resets). Low priority; correctness first. |
+
+## N. Design-authority rulings (round 3)
+
+| Ref | Ruling |
+|---|---|
+| F-006 | Confirmed bug, fixed (`955f151`): constant propagation compares float constants by bit pattern, so `+0.0` and `-0.0` stay distinct. |
+| Q-013 | Float input accepts exactly what C `strtod` accepts as one whole token (P7). This includes hex floats (`0x10` → 16) and `inf`/`nan`. The reference interpreter must match. |
+| Q-014 | `\r\n` in **program input** behaves like `\n` on every platform (P9 as amended). A padham line never ends with `\r`, and a `\r` counts as whitespace for token reads. A lone `\r` not followed by `\n` is data. |
+| P41 | **Targets.** `--target linux` (System V, ELF) and `--target windows` (Microsoft x64 ABI, PE/COFF, MinGW-w64). Program output is byte-identical on both (binary stdout, no CRLF translation). |
+| P42 | **Memory.** Heap arrays are freed at scope exit on every path. `padham` is reference-counted (literals immortal). With `DEVARA_RT_STATS=1` a normally-exiting program prints `devara-rt: live=<n>` to stderr, and n must be 0. This supersedes the "never freed" note in P22. |
+| P43 | **Optimization levels.** `-O0` is the reference stack-slot code generator. `-O1` (the default) adds IR optimization, linear-scan register allocation, a peephole pass and loop rotation. Output at `-O0` and `-O1` must be identical. |
