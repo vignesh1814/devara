@@ -9,6 +9,11 @@ from compiler.semantic import typed as T
 from compiler.semantic.checker import const_eval
 from compiler.semantic.types import ArrayType, PrimType
 
+try:                                  # constant-size arrays up to this size live in the stack frame
+    from compiler.codegen.x86_64 import FRAME_ARRAY_LIMIT
+except ImportError:                   # pragma: no cover - back end without a frame policy
+    FRAME_ARRAY_LIMIT = 64 * 1024
+
 IT = I.IRType
 
 _CMP = {
@@ -64,7 +69,11 @@ class Lowerer:
         self.nlabel = 0
         self.locals: dict[int, I.Reg] = {}
         self.larrays: dict[int, ArrInfo] = {}
-        self.loops: dict[int, tuple[str, str]] = {}   # loop_id -> (break label, continue label)
+        # loop_id -> (break label, continue label, scope depth of the loop body)
+        self.loops: dict[int, tuple[str, str, int]] = {}
+        # lexical scopes of the function being lowered, innermost last; each holds the
+        # cleanups (in declaration order) to run when the scope is left
+        self.scopes: list[list[tuple]] = []
         self.ret = IT.VOID
 
     # ── module ──
@@ -114,6 +123,7 @@ class Lowerer:
         self.locals = {}
         self.larrays = {}
         self.loops = {}
+        self.scopes = []
         self.start(self.label("entry"))
 
     def finish_function(self, name: str, params: list[I.Reg], ret: IT) -> I.IRFunction:
@@ -180,13 +190,53 @@ class Lowerer:
         self.begin_function()
         self.ret = IT.VOID
         self.block(self.tp.entry)
+        if self.cur is not None:
+            self.global_epilogue()
         return self.finish_function(I.ENTRY_FUNCTION, [], IT.VOID)
 
     # ── statements ──
 
     def block(self, b: T.TBlock) -> None:
+        """Lower a block as one lexical scope; falling off its end runs the scope's cleanups."""
+        self.scopes.append([])
         for s in b.stmts:
             self.stmt(s)
+        self.pop_scope()
+
+    # ── scope cleanups (P22) ──
+
+    def pop_scope(self) -> None:
+        """Leave the innermost scope on the fallthrough path (skipped when it is unreachable:
+        the jump/return that ended the path already ran the cleanups)."""
+        entries = self.scopes.pop()
+        if self.cur is not None:
+            for ent in reversed(entries):
+                self.emit_cleanup(ent)
+
+    def unwind(self, depth: int) -> None:
+        """Run the cleanups of every scope above ``depth`` (innermost first) without leaving
+        them lexically: used by ivvu (depth 0) and aapu/saagu (depth of the loop body)."""
+        for entries in reversed(self.scopes[depth:]):
+            for ent in reversed(entries):
+                self.emit_cleanup(ent)
+
+    def emit_cleanup(self, ent: tuple) -> None:
+        kind = ent[0]
+        if kind == "heap":                       # ("heap", base)
+            self.emit(I.RtCall(None, "dv_rt_freearray", [ent[1]]))
+        else:
+            raise AssertionError(kind)
+
+    def global_epilogue(self) -> None:
+        """End of the program entry: release global storage, then the runtime shutdown hook."""
+        for sid in reversed(self.tp.globals):
+            sym = self.syms[sid]
+            info = self.garrays.get(sid)
+            if info is not None and info.kind == "ptr":
+                p = self.temp(IT.ADDR)
+                self.emit(I.Load(p, I.GlobalRef(info.name)))
+                self.emit(I.RtCall(None, "dv_rt_freearray", [p]))
+        self.emit(I.RtCall(None, "dv_rt_shutdown", []))
 
     def stmt(self, s: T.TStmt) -> None:
         getattr(self, "s_" + type(s).__name__)(s)
@@ -213,7 +263,14 @@ class Lowerer:
             self.emit(I.BinOp("MUL", t, total, d))
             total = t
         base = self.temp(IT.ADDR)
-        self.emit(I.NewArray(base, total))
+        # Small constant-size local arrays live in the stack frame (NewArray with a constant
+        # count: the back end zero-fills them and they need no freeing). Everything else is
+        # allocated explicitly on the heap and freed when its scope is left.
+        frame = info is None and self.frame_size(dims) is not None
+        if frame:
+            self.emit(I.NewArray(base, I.Const(IT.I64, self.frame_size(dims))))
+        else:
+            self.emit(I.RtCall(base, "dv_rt_newarray", [total]))
         if info is not None:       # global array with run-time dimensions
             self.emit(I.Store(I.GlobalRef(sym.name), base))
             for j, d in enumerate(dims):
@@ -230,6 +287,21 @@ class Lowerer:
                 self.emit(I.Copy(r, d))
                 snap.append(r)
         self.larrays[s.symbol] = ArrInfo("local", sym.name, breg, snap)
+        if not frame:
+            self.scopes[-1].append(("heap", breg))
+
+    @staticmethod
+    def frame_size(dims: list[I.Operand]) -> int | None:
+        """Element count if every dimension is a positive constant and the array is small
+        enough for the frame, else None."""
+        n = 1
+        for d in dims:
+            if not (isinstance(d, I.Const) and d.value >= 1):
+                return None
+            n *= d.value
+            if n * 8 > FRAME_ARRAY_LIMIT:
+                return None
+        return n
 
     def lvalue(self, target: T.TExpr):
         """Resolve an assignment target; address computed *before* the value (P40)."""
@@ -301,14 +373,19 @@ class Lowerer:
         self.call(s.call, want_value=False)
 
     def s_TReturn(self, s: T.TReturn) -> None:
-        v = self.expr(s.value) if s.value is not None else None
+        v = self.expr(s.value) if s.value is not None else None   # value first, then cleanups
+        self.unwind(0)
         self.terminate(I.Return(v))
 
     def s_TBreak(self, s: T.TBreak) -> None:
-        self.jump(self.loops[s.loop_id][0])
+        target, _, depth = self.loops[s.loop_id]
+        self.unwind(depth)
+        self.jump(target)
 
     def s_TContinue(self, s: T.TContinue) -> None:
-        self.jump(self.loops[s.loop_id][1])
+        _, target, depth = self.loops[s.loop_id]
+        self.unwind(depth)
+        self.jump(target)
 
     def s_TIf(self, s: T.TIf) -> None:
         then_l = self.label("then")
@@ -330,7 +407,7 @@ class Lowerer:
         self.start(cond_l)
         self.cond(s.condition, body_l, exit_l)
         self.start(body_l)
-        self.loops[s.loop_id] = (exit_l, cond_l)
+        self.loops[s.loop_id] = (exit_l, cond_l, len(self.scopes))
         self.block(s.body)
         self.jump(cond_l)
         self.start(exit_l)
@@ -350,7 +427,7 @@ class Lowerer:
         self.emit(I.Cmp("LT", c, var, endr))
         self.terminate(I.Branch(c, body_l, exit_l))
         self.start(body_l)
-        self.loops[s.loop_id] = (exit_l, incr_l)
+        self.loops[s.loop_id] = (exit_l, incr_l, len(self.scopes))
         self.block(s.body)
         self.jump(incr_l)
         self.start(incr_l)
@@ -359,6 +436,7 @@ class Lowerer:
         self.start(exit_l)
 
     def s_TFor(self, s: T.TFor) -> None:
+        self.scopes.append([])               # the loop scope holds the init declarations
         for i in s.init:
             self.stmt(i)
         cond_l, body_l = self.label("fcond"), self.label("fbody")
@@ -367,13 +445,14 @@ class Lowerer:
         self.start(cond_l)
         self.cond(s.condition, body_l, exit_l)
         self.start(body_l)
-        self.loops[s.loop_id] = (exit_l, upd_l)
+        self.loops[s.loop_id] = (exit_l, upd_l, len(self.scopes))
         self.block(s.body)
         self.jump(upd_l)
         self.start(upd_l)
         self.stmt(s.update)
         self.jump(cond_l)
         self.start(exit_l)
+        self.pop_scope()
 
     # ── conditions (short-circuit via branches) ──
 

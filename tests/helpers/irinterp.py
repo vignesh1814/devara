@@ -262,6 +262,12 @@ class Interp:
         elif name == "dv_rt_checkdim":
             if a[0] < 1:
                 raise RuntimeFailure("invalid array size")
+        elif name == "dv_rt_newarray":
+            if a[0] < 1:
+                raise RuntimeFailure("invalid array size")
+            return Addr([0] * a[0], 0)
+        elif name in ("dv_rt_freearray", "dv_rt_shutdown"):
+            pass
         else:
             raise AssertionError(name)
         return None

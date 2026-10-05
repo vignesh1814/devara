@@ -3,7 +3,12 @@
  * Calling convention: every value is passed/returned as a 64-bit integer
  * (bool/char widened: bool 0/1, char sign-extended) or a double (f64).
  * A padham value is a pointer to  { int64_t len; char bytes[len + 1]; }  or NULL (= "").
- * Strings and heap arrays are never freed (documented debt, P22).
+ * Heap arrays (dv_rt_newarray) are freed explicitly by compiler-generated code at scope exit
+ * (dv_rt_freearray); constant-size arrays live in the caller's frame. Strings are never freed yet.
+ *
+ * Leak accounting: the runtime counts live heap arrays; with the environment variable
+ * DEVARA_RT_STATS=1, dv_rt_shutdown (called at the end of the program entry, i.e. at normal exit
+ * only) prints "devara-rt: live=<n>" to stderr.
  */
 #include <errno.h>
 #include <math.h>
@@ -13,6 +18,8 @@
 #include <string.h>
 
 typedef struct dv_str { int64_t len; char bytes[]; } dv_str;
+
+static int64_t live_arrays = 0;
 
 /* ── errors (P11) ── */
 
@@ -35,7 +42,25 @@ void *dv_rt_newarray(int64_t n) {
     if (n < 1 || (uint64_t)n > SIZE_MAX / 8) fail("invalid array size");
     void *p = calloc((size_t)n, 8);
     if (!p) fail("invalid array size");
+    live_arrays++;
     return p;
+}
+
+/* Free a heap array obtained from dv_rt_newarray (compiler-generated, at scope exit). */
+void dv_rt_freearray(void *p) {
+    if (!p) return;
+    live_arrays--;
+    free(p);
+}
+
+/* Called once at the end of the program entry (normal exit only). */
+void dv_rt_shutdown(void) {
+    const char *e = getenv("DEVARA_RT_STATS");
+    if (e && e[0] == '1' && e[1] == 0) {
+        fflush(stdout);
+        fprintf(stderr, "devara-rt: live=%lld\n", (long long)live_arrays);
+        fflush(stderr);
+    }
 }
 
 /* ── output (P1–P6): every value is followed by '\n' ── */

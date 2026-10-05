@@ -23,6 +23,11 @@ RUNTIME: dict[str, tuple[tuple[T, ...], T]] = {
     "dv_rt_char2str": ((T.CHAR,), T.STR),
     "dv_rt_str2char": ((T.STR,), T.CHAR),
     "dv_rt_checkdim": ((T.I64,), T.VOID),
+    # heap arrays (P22): allocation is explicit in the IR, freed at scope exit
+    "dv_rt_newarray": ((T.I64,), T.ADDR),
+    "dv_rt_freearray": ((T.ADDR,), T.VOID),
+    # end of the program entry: leak accounting hook (DEVARA_RT_STATS=1)
+    "dv_rt_shutdown": ((), T.VOID),
 }
 
 # Calls with no observable effect and no possible runtime error: removable when unused.
