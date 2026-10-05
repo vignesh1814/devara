@@ -29,8 +29,8 @@ def crlf_to_lf(data: bytes) -> bytes:
 
 
 def vs_reference(src, data=b"", opts=OPTS, expect_status=None):
-    """Windows output == reference interpreter run on the input with CRLF translated to LF (== Linux behaviour)."""
-    ref = reference(src, crlf_to_lf(data))
+    """Windows output == reference interpreter on the same bytes (both drop exactly one \\r before each \\n, Q-014)."""
+    ref = reference(src, data)
     if expect_status is not None:
         assert ref.status == expect_status
     for opt in opts:
