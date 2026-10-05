@@ -13,6 +13,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import shlex
 import shutil
 import subprocess
 import tempfile
@@ -101,10 +102,10 @@ def run_opt(module, level: int):
     return optimize(module, level)
 
 
-def run_codegen(module) -> str:
+def run_codegen(module, target=None) -> str:
     from compiler.codegen.x86_64 import generate
 
-    return generate(module)
+    return generate(module, target)
 
 
 # ── Envelopes ──
@@ -153,23 +154,78 @@ _register_serializable()
 
 # ── Toolchain ──
 
-def runtime_object(cache_dir: Path | None = None) -> Path:
-    """Compile ``runtime/devara_rt.c`` once per content hash and cache the object."""
+def _split_command(text: str) -> list[str]:
+    return shlex.split(text, posix=(os.name != "nt"))
+
+
+def cc_command(target=None) -> list[str]:
+    """The C compiler driver (``$DEVARA_CC``, default ``gcc``) as an argv prefix.
+
+    Without ``DEVARA_CC``, a Windows-target build on a non-Windows host uses the
+    MinGW-w64 cross compiler when it is installed.
+    """
+    from compiler.codegen.target import get_target, host_target
+
+    tg = get_target(target)
+    env = os.environ.get("DEVARA_CC", "").strip()
+    if env:
+        return _split_command(env)
+    if tg.is_windows and not host_target().is_windows and shutil.which("x86_64-w64-mingw32-gcc"):
+        return ["x86_64-w64-mingw32-gcc"]
+    return ["gcc"]
+
+
+def runner_command() -> list[str]:
+    """Prefix used to execute produced programs (``$DEVARA_RUNNER``, e.g. ``wine``)."""
+    return _split_command(os.environ.get("DEVARA_RUNNER", "").strip())
+
+
+def executable_path(path: Path, target=None) -> Path:
+    """Give ``path`` the target's executable suffix when it has no suffix at all."""
+    from compiler.codegen.target import get_target
+
+    tg = get_target(target)
+    if tg.exe_suffix and not path.suffix:
+        return path.with_name(path.name + tg.exe_suffix)
+    return path
+
+
+def run_executable(exe: Path, target=None, **kwargs) -> subprocess.CompletedProcess:
+    """Run a built program (through ``$DEVARA_RUNNER`` if set); kwargs go to ``subprocess.run``."""
+    from compiler.codegen.target import get_target, host_target
+
+    tg = get_target(target)
+    runner = runner_command()
+    if not runner and tg.name != host_target().name:
+        raise InternalCompilerError(
+            f"cannot run a {tg.name} executable on this host: set DEVARA_RUNNER (e.g. wine)")
+    return subprocess.run([*runner, str(exe)], **kwargs)
+
+
+def runtime_object(cache_dir: Path | None = None, target=None) -> Path:
+    """Compile ``runtime/devara_rt.c`` once per (content, target, compiler) and cache the object."""
+    from compiler.codegen.target import get_target
+
+    tg = get_target(target)
+    cc = cc_command(tg)
     src = RUNTIME_SRC.read_bytes()
-    digest = hashlib.sha256(src).hexdigest()[:16]
+    digest = hashlib.sha256(src + b"\0" + " ".join(cc).encode()).hexdigest()[:16]
     cache = cache_dir or (REPO_ROOT / "build" / "rtcache")
     try:
         cache.mkdir(parents=True, exist_ok=True)
     except OSError:
         cache = Path(tempfile.gettempdir()) / "devara_rtcache"
         cache.mkdir(parents=True, exist_ok=True)
-    obj = cache / f"devara_rt_{digest}.o"
+    obj = cache / f"devara_rt_{tg.name}_{digest}.o"
     if not obj.exists():
         tmp = obj.with_suffix(f".{os.getpid()}.tmp")
-        proc = subprocess.run(
-            ["gcc", "-O2", "-c", str(RUNTIME_SRC), "-o", str(tmp)],
-            capture_output=True, text=True,
-        )
+        try:
+            proc = subprocess.run(
+                [*cc, "-O2", "-c", "-x", "c", str(RUNTIME_SRC), "-o", str(tmp)],
+                capture_output=True, text=True,
+            )
+        except OSError as e:
+            raise InternalCompilerError(f"cannot run C compiler {cc[0]!r}: {e}") from None
         if proc.returncode != 0:
             raise InternalCompilerError(f"runtime failed to compile:\n{proc.stderr}")
         os.replace(tmp, obj)
@@ -184,16 +240,25 @@ class AssemblerError(InternalCompilerError):
         super().__init__(f"assembler/linker rejected generated code:\n{tool_output}")
 
 
-def link_executable(asm_text: str, out: Path) -> None:
+# Windows default stack is 1-2 MiB; match the 8 MiB Linux main-thread default.
+WINDOWS_STACK_BYTES = 8 * 1024 * 1024
+
+
+def link_executable(asm_text: str, out: Path, target=None) -> None:
     """Assemble ``asm_text`` and link with the runtime into ``out``."""
-    if shutil.which("gcc") is None:
-        raise InternalCompilerError("gcc not found: cannot assemble/link")
-    rt = runtime_object()
+    from compiler.codegen.target import get_target
+
+    tg = get_target(target)
+    cc = cc_command(tg)
+    if shutil.which(cc[0]) is None:
+        raise InternalCompilerError(f"{cc[0]} not found: cannot assemble/link (set DEVARA_CC)")
+    rt = runtime_object(target=tg)
     with tempfile.TemporaryDirectory(prefix="devara_") as tmp:
         asm_path = Path(tmp) / "prog.s"
-        asm_path.write_text(asm_text)
+        asm_path.write_bytes(asm_text.encode("latin-1"))
+        flags = [f"-Wl,--stack,{WINDOWS_STACK_BYTES}"] if tg.is_windows else ["-no-pie"]
         proc = subprocess.run(
-            ["gcc", "-no-pie", str(asm_path), str(rt), "-o", str(out), "-lm"],
+            [*cc, *flags, str(asm_path), str(rt), "-o", str(out), "-lm"],
             capture_output=True, text=True,
         )
         if proc.returncode != 0:

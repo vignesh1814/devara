@@ -5,14 +5,30 @@
  * A padham value is a pointer to  { int64_t len; char bytes[len + 1]; }  or NULL (= "").
  * Strings and heap arrays are never freed (documented debt, P22).
  */
+#if defined(_WIN32) && !defined(__USE_MINGW_ANSI_STDIO)
+#define __USE_MINGW_ANSI_STDIO 1   /* C99 printf/scanf: %g, %lld identical to glibc */
+#endif
 #include <errno.h>
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+#include <fcntl.h>
+#include <io.h>
+#endif
 
 typedef struct dv_str { int64_t len; char bytes[]; } dv_str;
+
+/* Called once by the generated `main`: byte-exact standard streams on Windows (no CRLF translation). */
+void dv_rt_init(void) {
+#ifdef _WIN32
+    _setmode(_fileno(stdin), _O_BINARY);
+    _setmode(_fileno(stdout), _O_BINARY);
+    _setmode(_fileno(stderr), _O_BINARY);
+#endif
+}
 
 /* ── errors (P11) ── */
 
@@ -169,6 +185,7 @@ dv_str *dv_rt_input_str(void) {
         buf[n++] = (char)c;
         c = in_get();
     }
+    if (c == '\n' && n > 0 && buf[n - 1] == '\r') n--;   /* CRLF line ending */
     dv_str *s = make_str(buf, (int64_t)n);
     free(buf);
     return s;

@@ -17,10 +17,12 @@ import threading
 from pathlib import Path
 
 from compiler import driver, serialize
+from compiler.codegen.target import TARGETS as _TARGETS, get_target
 from compiler.diagnostics import Diagnostic, InternalCompilerError
 
 EXIT_OK, EXIT_USER, EXIT_USAGE, EXIT_ICE = 0, 1, 2, 3
 
+_TARGET_NAMES = tuple(_TARGETS)
 _STAGE_ORDER = {name: i for i, name in enumerate(["source", *driver.STAGES])}
 
 
@@ -37,9 +39,11 @@ def _build_parser() -> argparse.ArgumentParser:
                     help="disable optimization")
     ap.add_argument("-O1", dest="opt_level", action="store_const", const=1,
                     help="enable optimization (default)")
+    ap.add_argument("--target", choices=sorted(_TARGET_NAMES), default=None,
+                    help="code-generation target (default: host OS)")
     sub = ap.add_subparsers(dest="command", required=True, metavar="COMMAND")
 
-    def add(name: str, help_: str, *, json_flag=False, opt=False, out=False):
+    def add(name: str, help_: str, *, json_flag=False, opt=False, out=False):  # noqa: C901
         p = sub.add_parser(name, help=help_)
         p.add_argument("file", metavar="FILE", help="source file, stage JSON, or '-' for stdin")
         if json_flag:
@@ -49,6 +53,9 @@ def _build_parser() -> argparse.ArgumentParser:
                            default=argparse.SUPPRESS, help="disable optimization")
             p.add_argument("-O1", dest="opt_level", action="store_const", const=1,
                            default=argparse.SUPPRESS, help="enable optimization (default)")
+        if opt:
+            p.add_argument("--target", choices=sorted(_TARGET_NAMES), default=argparse.SUPPRESS,
+                           help="code-generation target (default: host OS)")
         if out:
             p.add_argument("-o", dest="output", metavar="OUT", help="output executable")
         return p
@@ -92,9 +99,14 @@ def _check_output_path(out: Path, filename: str) -> None:
         raise _Fail(EXIT_USAGE)
 
 
-def _link(asm_text: str, out: Path, pipe: "_Pipeline", filename: str) -> None:
+def _output_path(args, filename: str, target) -> Path:
+    out = Path(args.output) if args.output else Path(Path(filename).stem or "a.out")
+    return driver.executable_path(out, target)
+
+
+def _link(asm_text: str, out: Path, pipe: "_Pipeline", filename: str, target=None) -> None:
     try:
-        driver.link_executable(asm_text, out)
+        driver.link_executable(asm_text, out, *(() if target is None else (target,)))
     except driver.AssemblerError as e:
         if pipe.kind != "asm":
             raise                      # generated code rejected: compiler bug (exit 3)
@@ -185,8 +197,9 @@ def _fmt_tokens(tokens) -> str:
 
 def _dispatch(args) -> int:
     filename, data = _read_input(args.file)
+    target = get_target(getattr(args, "target", None))
     if args.command == "build":
-        _check_output_path(Path(args.output) if args.output else Path(Path(filename).stem or "a.out"), filename)
+        _check_output_path(_output_path(args, filename, target), filename)
     level = args.opt_level if args.opt_level is not None else 1
     pipe = _Pipeline(filename, data, level)
     cmd = args.command
@@ -221,25 +234,39 @@ def _dispatch(args) -> int:
                 from compiler.ir.verify import verify_module
 
                 verify_module(ir)
-            asm_text = driver.run_codegen(ir)
+            asm_text = driver.run_codegen(ir, target)
         if cmd == "asm":
             sys.stdout.write(asm_text)
             return EXIT_OK
         if cmd == "build":
-            out = Path(args.output) if args.output else Path(Path(filename).stem or "a.out")
-            _link(asm_text, out, pipe, filename)
+            _link(asm_text, _output_path(args, filename, target), pipe, filename, target)
             return EXIT_OK
         with tempfile.TemporaryDirectory(prefix="devara_run_") as tmp:
-            exe = Path(tmp) / "prog"
-            _link(asm_text, exe, pipe, filename)
+            exe = driver.executable_path(Path(tmp) / "prog", target)
+            _link(asm_text, exe, pipe, filename, target)
             sys.stdout.flush()
-            proc = subprocess.run([str(exe)])
+            sys.stderr.flush()
+            try:
+                proc = driver.run_executable(exe, target)
+            except InternalCompilerError as e:
+                print(f"devara: {e}", file=sys.stderr)
+                return EXIT_USAGE
             rc = proc.returncode
             return rc if rc >= 0 else 128 - rc
     return EXIT_OK
 
 
+def _robust_text_streams() -> None:
+    """Never die on an unencodable character (e.g. a legacy Windows console code page)."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(errors="backslashreplace")  # type: ignore[union-attr]
+        except (AttributeError, ValueError, OSError):
+            pass
+
+
 def main(argv: list[str] | None = None) -> int:
+    _robust_text_streams()
     ap = _build_parser()
     args = ap.parse_args(argv)
     try:
@@ -266,7 +293,12 @@ def main(argv: list[str] | None = None) -> int:
 def run_main() -> None:
     """Entry point: run ``main`` on a big-stack thread (deeply nested sources)."""
     sys.setrecursionlimit(200_000)
-    threading.stack_size(512 * 1024 * 1024)
+    for mib in (512, 256, 64, 16):
+        try:
+            threading.stack_size(mib * 1024 * 1024)
+            break
+        except (ValueError, RuntimeError):
+            continue
     result: list[int] = []
 
     def target() -> None:

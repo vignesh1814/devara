@@ -257,6 +257,8 @@ class Interp:
                 s, self.pos = self.inp[self.pos:], len(self.inp)
             else:
                 s, self.pos = self.inp[self.pos:end], end + 1
+                if s.endswith(b"\r"):          # CRLF line ending: strip the CR before the LF
+                    s = s[:-1]
             return ("padham", s.decode("latin-1"))
         self.last_token = True
         if ty == "char":

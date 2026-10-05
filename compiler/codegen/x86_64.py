@@ -11,11 +11,11 @@ from __future__ import annotations
 
 import struct
 
+from compiler.codegen.target import Target, get_target
 from compiler.ir import ir as I
 
 IT = I.IRType
 
-INT_ARGS = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"]
 FRAME_ARRAY_LIMIT = 64 * 1024     # bytes; larger constant-size arrays use the heap
 
 _SETCC = {"LT": "l", "LE": "le", "GT": "g", "GE": "ge", "EQ": "e", "NE": "ne"}
@@ -33,9 +33,38 @@ def f64_bits(v: float) -> int:
     return struct.unpack("<q", struct.pack("<d", v))[0]
 
 
+def assign_args(target: Target, types: list[IT]) -> list[tuple[str, str | int]]:
+    """ABI argument assignment: per argument ``("reg", name)`` or ``("stack", slot_index)``.
+
+    SysV classifies integer and float arguments separately; Win64 assigns by
+    position (argument ``i`` takes register ``i`` of its class, whichever class).
+    Stack slots are 8 bytes each, in argument order.
+    """
+    out: list[tuple[str, str | int]] = []
+    ni = nf = ns = 0
+    for pos, t in enumerate(types):
+        flt = t == IT.F64
+        if target.positional:
+            if pos < len(target.int_args):
+                out.append(("reg", (target.float_args if flt else target.int_args)[pos]))
+                continue
+        elif flt and nf < len(target.float_args):
+            out.append(("reg", target.float_args[nf]))
+            nf += 1
+            continue
+        elif not flt and ni < len(target.int_args):
+            out.append(("reg", target.int_args[ni]))
+            ni += 1
+            continue
+        out.append(("stack", ns))
+        ns += 1
+    return out
+
+
 class _Strings:
-    def __init__(self) -> None:
+    def __init__(self, target: Target) -> None:
         self.table: dict[bytes, str] = {}
+        self.target = target
 
     def label(self, b: bytes) -> str:
         if b not in self.table:
@@ -43,7 +72,7 @@ class _Strings:
         return self.table[b]
 
     def emit(self) -> list[str]:
-        out = ["    .section .rodata", "    .balign 8"]
+        out = self.target.rodata()
         for b, lab in self.table.items():
             out.append(f"{lab}:")
             out.append(f"    .quad {len(b)}")
@@ -55,7 +84,8 @@ class _Strings:
 
 
 class FunctionGen:
-    def __init__(self, fn: I.IRFunction, index: int, strings: _Strings) -> None:
+    def __init__(self, fn: I.IRFunction, index: int, strings: _Strings, target: Target) -> None:
+        self.target = target
         self.fn = fn
         self.idx = index
         self.strings = strings
@@ -141,8 +171,9 @@ class FunctionGen:
 
     def generate(self) -> list[str]:
         fn = self.fn
+        tg = self.target
         name = mangle_function(fn.name)
-        out = [f"    .globl {name}", f"{name}:"]
+        out = tg.function_header(name)
         # body first (to know the frame size), then assemble
         for k, b in enumerate(fn.blocks):
             self.lines.append(f"{self.lab(b.label)}:")
@@ -151,36 +182,30 @@ class FunctionGen:
             nxt = fn.blocks[k + 1].label if k + 1 < len(fn.blocks) else None
             self.terminator(b.term, nxt)
         stubs = []
-        if self.need_div0:
-            stubs += [f"{self.lab('trap_div0')}:", "    call dv_rt_trap_div0"]
-        if self.need_rem0:
-            stubs += [f"{self.lab('trap_rem0')}:", "    call dv_rt_trap_rem0"]
-        if self.need_ovf:
-            stubs += [f"{self.lab('trap_ovf')}:", "    call dv_rt_trap_divovf"]
+        for need, label, helper in ((self.need_div0, "trap_div0", "dv_rt_trap_div0"),
+                                    (self.need_rem0, "trap_rem0", "dv_rt_trap_rem0"),
+                                    (self.need_ovf, "trap_ovf", "dv_rt_trap_divovf")):
+            if need:
+                stubs.append(f"{self.lab(label)}:")
+                if tg.shadow_space:
+                    stubs.append(f"    sub rsp, {tg.shadow_space}")
+                stubs.append(f"    call {helper}")
         frame = (self.next_off + 15) & ~15
         out += ["    push rbp", "    mov rbp, rsp"]
         if frame:
+            out += tg.probe_stack(frame)
             out.append(f"    sub rsp, {frame}")
         # move parameters from ABI locations into their slots
-        ni = nf = 0
-        stack_off = 16
-        for p in fn.params:
-            if p.type == IT.F64:
-                if nf < 8:
-                    out.append(f"    movsd {self.slot(p.name)}, xmm{nf}")
-                    nf += 1
+        shadow = tg.shadow_space
+        for p, (kind, loc) in zip(fn.params, assign_args(tg, [p.type for p in fn.params])):
+            if kind == "reg":
+                if p.type == IT.F64:
+                    out.append(f"    movsd {self.slot(p.name)}, {loc}")
                 else:
-                    out.append(f"    mov rax, QWORD PTR [rbp + {stack_off}]")
-                    out.append(f"    mov {self.slot(p.name)}, rax")
-                    stack_off += 8
+                    out.append(f"    mov {self.slot(p.name)}, {loc}")
             else:
-                if ni < 6:
-                    out.append(f"    mov {self.slot(p.name)}, {INT_ARGS[ni]}")
-                    ni += 1
-                else:
-                    out.append(f"    mov rax, QWORD PTR [rbp + {stack_off}]")
-                    out.append(f"    mov {self.slot(p.name)}, rax")
-                    stack_off += 8
+                out.append(f"    mov rax, QWORD PTR [rbp + {16 + shadow + 8 * int(loc)}]")
+                out.append(f"    mov {self.slot(p.name)}, rax")
         out += self.lines + stubs
         return out
 
@@ -222,15 +247,16 @@ class FunctionGen:
             off = self.arrays.get(id(i))
             if off is not None:
                 n = i.count.value  # type: ignore[union-attr]
+                self.e("mov r11, rdi")          # rdi is callee-saved on Win64
                 self.e(f"lea rdi, [rbp - {off}]")
                 self.e(f"mov rcx, {n}")
                 self.e("xor eax, eax")
                 self.e("rep stosq")
+                self.e("mov rdi, r11")
                 self.e(f"lea rax, [rbp - {off}]")
+                self.store(i.dst)
             else:
-                self.load("rdi", i.count)
-                self.e("call dv_rt_newarray")
-            self.store(i.dst)
+                self.call("dv_rt_newarray", [i.count], i.dst)
         elif isinstance(i, I.Call):
             self.call(mangle_function(i.callee), i.args, i.dst)
         elif isinstance(i, I.RtCall):
@@ -350,34 +376,28 @@ class FunctionGen:
             self.store(i.dst)
 
     def call(self, symbol: str, args: list[I.Operand], dst: I.Reg | None, keep_rax: bool = False) -> None:
-        int_regs: list[tuple[str, I.Operand]] = []
-        flt_regs: list[tuple[str, I.Operand]] = []
-        stack: list[I.Operand] = []
-        for a in args:
-            t = a.type if not isinstance(a, I.GlobalRef) else IT.ADDR
-            if t == IT.F64:
-                if len(flt_regs) < 8:
-                    flt_regs.append((f"xmm{len(flt_regs)}", a))
-                else:
-                    stack.append(a)
-            else:
-                if len(int_regs) < 6:
-                    int_regs.append((INT_ARGS[len(int_regs)], a))
-                else:
-                    stack.append(a)
+        tg = self.target
+        types = [a.type if not isinstance(a, I.GlobalRef) else IT.ADDR for a in args]
+        assign = assign_args(tg, types)
+        stack = [a for a, (kind, _) in zip(args, assign) if kind == "stack"]
         pad = 8 if len(stack) % 2 else 0
         if pad:
             self.e("sub rsp, 8")
         for a in reversed(stack):
             self.load("rax", a)
             self.e("push rax")
-        for xmm, a in flt_regs:
-            self.loadf(xmm, a)
-        for reg, a in int_regs:
-            self.load(reg, a)
+        if tg.shadow_space:
+            self.e(f"sub rsp, {tg.shadow_space}")
+        for a, t, (kind, loc) in zip(args, types, assign):
+            if kind == "reg" and t == IT.F64:
+                self.loadf(str(loc), a)
+        for a, t, (kind, loc) in zip(args, types, assign):
+            if kind == "reg" and t != IT.F64:
+                self.load(str(loc), a)
         self.e(f"call {symbol}")
-        if stack or pad:
-            self.e(f"add rsp, {8 * len(stack) + pad}")
+        cleanup = 8 * len(stack) + pad + tg.shadow_space
+        if cleanup:
+            self.e(f"add rsp, {cleanup}")
         if dst is not None:
             if dst.type == IT.F64:
                 self.storef(dst)
@@ -411,24 +431,19 @@ class FunctionGen:
             raise TypeError(type(t))
 
 
-def generate(module: I.IRModule) -> str:
-    """Emit GNU assembler text for a verified module."""
-    strings = _Strings()
-    out = ["    .intel_syntax noprefix", "    .text"]
+def generate(module: I.IRModule, target: "Target | str | None" = None) -> str:
+    """Emit GNU assembler text for a verified module (``target`` defaults to the host)."""
+    tg = get_target(target)
+    strings = _Strings(tg)
+    out = tg.preamble()
     for k, fn in enumerate(module.functions):
-        out += FunctionGen(fn, k, strings).generate()
+        out += FunctionGen(fn, k, strings, tg).generate()
         out.append("")
-    out += [
-        "    .globl main",
-        "main:",
-        "    push rbp",
-        "    mov rbp, rsp",
-        "    call dv_entry",
-        "    xor eax, eax",
-        "    pop rbp",
-        "    ret",
-        "",
-    ]
+    out += tg.function_header("main")
+    out += ["    push rbp", "    mov rbp, rsp"]
+    if tg.shadow_space:
+        out.append(f"    sub rsp, {tg.shadow_space}")
+    out += ["    call dv_rt_init", "    call dv_entry", "    xor eax, eax", "    leave", "    ret", ""]
     if module.globals:
         out += ["    .bss", "    .balign 16"]
         for g in module.globals:
@@ -436,5 +451,6 @@ def generate(module: I.IRModule) -> str:
             out += [f"{mangle_global(g.name)}:", f"    .zero {size}"]
         out.append("")
     out += strings.emit()
-    out += ['    .section .note.GNU-stack,"",@progbits', ""]
+    out += tg.footer()
+    out.append("")
     return "\n".join(out)

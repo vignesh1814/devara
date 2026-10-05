@@ -79,6 +79,8 @@ class Input:
             s, self.pos = d[self.pos:], len(d)
         else:
             s, self.pos = d[self.pos:end], end + 1
+            if s.endswith(b"\r"):              # CRLF line ending: strip the CR before the LF
+                s = s[:-1]
         return s
 
 
