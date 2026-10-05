@@ -1,0 +1,17 @@
+int n
+n ni chaduvu
+int a[n]
+int total
+prati i 0 nundi n varaku { a[i] ni chaduvu }
+prati i 0 nundi n varaku { total lo total + a[i] pettu }
+total ni chupi
+int b[n + 1][2]
+b[n][1] lo 42 pettu
+b[n][1] ni chupi
+void f charya (int k) {
+    int loc[k]
+    loc[k - 1] lo 9 pettu
+    loc[k - 1] ni chupi
+}
+f(n)
+prati i 0 nundi 3 varaku { int tmp[n]  tmp[0] lo i pettu tmp[0] ni chupi i == 1 ayite { saagu } }

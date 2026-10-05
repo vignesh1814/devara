@@ -1,0 +1,29 @@
+int i
+i lo 0 pettu
+i < 10 unnanta varaku {
+    i lo i + 1 pettu
+    i % 2 == 0 ayite { saagu }
+    i == 9 ayite { aapu }
+    i ni chupi
+}
+"after" ni chupi
+i ni chupi
+nijam unnanta varaku {
+    i lo i - 1 pettu
+    i < 5 ayite { aapu }
+}
+i ni chupi
+int j
+j lo 0 pettu
+abaddham unnanta varaku { "never" ni chupi }
+j < 3 unnanta varaku {
+    int k
+    k lo 0 pettu
+    k < 3 unnanta varaku {
+        k lo k + 1 pettu
+        k == 2 ayite { saagu }
+        j == 1 ayite { aapu }
+        j * 10 + k ni chupi
+    }
+    j lo j + 1 pettu
+}

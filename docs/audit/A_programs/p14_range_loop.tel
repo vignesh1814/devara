@@ -1,0 +1,28 @@
+prati i 0 nundi 5 varaku { i ni chupi }
+"--" ni chupi
+prati i 5 nundi 0 varaku { i ni chupi }
+"--" ni chupi
+prati i -2 nundi 2 varaku { i ni chupi }
+"--" ni chupi
+int n
+n lo 3 pettu
+prati i 0 nundi n varaku { n lo 10 pettu i ni chupi }
+n ni chupi
+"-- modify var" ni chupi
+prati i 0 nundi 10 varaku { i ni chupi i lo i + 3 pettu }
+"-- nested" ni chupi
+prati i 1 nundi 4 varaku { prati j i nundi 4 varaku { i * 10 + j ni chupi } }
+"-- break/continue" ni chupi
+prati i 0 nundi 10 varaku { i == 2 ayite { saagu } i == 6 ayite { aapu } i ni chupi }
+"-- float bounds" ni chupi
+prati i 0.9 nundi 3.9 varaku { i ni chupi }
+"-- char bounds" ni chupi
+prati i 'a' nundi 'd' varaku { i ni chupi }
+"-- big" ni chupi
+prati i 9223372036854775805 nundi 9223372036854775807 varaku { i ni chupi }
+"-- empty body" ni chupi
+prati i 0 nundi 3 varaku { }
+int i
+i lo 99 pettu
+prati i 0 nundi 2 varaku { i ni chupi }
+i ni chupi

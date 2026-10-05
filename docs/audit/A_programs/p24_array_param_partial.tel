@@ -1,0 +1,22 @@
+void zero charya (int row[], int n) { prati i 0 nundi n varaku { row[i] lo 0 pettu } }
+int rowsum charya (int row[], int n) { int s s lo 0 pettu prati i 0 nundi n varaku { s lo s + row[i] pettu } s ivvu }
+void bump charya (int a[], int i) { a[i] lo a[i] + 1 pettu }
+int pass2 charya (int a[], int n) { rowsum(a, n) ivvu }
+int mat[4][5]
+prati i 0 nundi 4 varaku { prati j 0 nundi 5 varaku { mat[i][j] lo i + j pettu } }
+rowsum(mat[2], 5) ni chupi
+zero(mat[2], 5)
+rowsum(mat[2], 5) ni chupi
+rowsum(mat[3], 5) ni chupi
+bump(mat[3], 4)
+mat[3][4] ni chupi
+pass2(mat[1], 5) ni chupi
+int n
+n lo 3 pettu
+int rt[n][n]
+prati i 0 nundi n varaku { prati j 0 nundi n varaku { rt[i][j] lo i * n + j pettu } }
+rowsum(rt[1], n) ni chupi
+int cube[2][2][2]
+cube[1][1][0] lo 5 pettu
+rowsum(cube[1][1], 2) ni chupi
+mat[1][1] ni chupi

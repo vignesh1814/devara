@@ -1,0 +1,24 @@
+int x
+x lo 5 pettu
+-x ni chupi
++x ni chupi
+- -x ni chupi
+-(-x) ni chupi
+!x ni chupi
+!0 ni chupi
+!!7 ni chupi
+!0.0 ni chupi
+!'a' ni chupi
+!nijam ni chupi
+-nijam ni chupi
+-'a' ni chupi
++'a' ni chupi
+-2.5 ni chupi
++2.5 ni chupi
+-(1 + 2) * 3 ni chupi
+- x * x ni chupi
+-x - -x ni chupi
+x - -x ni chupi
+x + +x ni chupi
+!(x > 3) ni chupi
+!(x > 3) || x == 5 ni chupi

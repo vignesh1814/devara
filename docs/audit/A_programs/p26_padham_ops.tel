@@ -1,0 +1,32 @@
+padham s
+padham t
+s lo "hello" pettu
+t lo " world" pettu
+s + t ni chupi
+podavu(s + t) ni chupi
+s[0] ni chupi
+s[4] ni chupi
+(int) s[1] ni chupi
+s[1] == 'e' ni chupi
+s[1 + 1] ni chupi
+s == "hello" ni chupi
+s != t ni chupi
+(padham) 'x' ni chupi
+(padham) 'x' + "y" ni chupi
+"" + "" ni chupi
+podavu("") ni chupi
+podavu("a\0b") ni chupi
+"nul\0inside" ni chupi
+s + s + s ni chupi
+t lo s pettu
+t == s ni chupi
+padham u
+u ni chupi
+podavu(u) ni chupi
+u == "" ni chupi
+prati i 0 nundi podavu(s) varaku { s[i] ni chupi }
+padham acc
+prati i 0 nundi 5 varaku { acc lo acc + (padham) 'a' pettu }
+acc ni chupi
+podavu(acc) ni chupi
+"é" ni chupi

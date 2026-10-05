@@ -1,0 +1,24 @@
+int fact charya (int n) { n <= 1 ayite { 1 ivvu } n * fact(n - 1) ivvu }
+int fib charya (int n) { n < 2 ayite { n ivvu } fib(n - 1) + fib(n - 2) ivvu }
+int ack charya (int m, int n) {
+    m == 0 ayite { n + 1 ivvu }
+    n == 0 ayite { ack(m - 1, 1) ivvu }
+    ack(m - 1, ack(m, n - 1)) ivvu
+}
+int gcd charya (int a, int b) { b == 0 ayite { a ivvu } gcd(b, a % b) ivvu }
+int sumto charya (int n, int acc) { n == 0 ayite { acc ivvu } sumto(n - 1, acc + n) ivvu }
+int power charya (int b, int e) {
+    e == 0 ayite { 1 ivvu }
+    int h
+    h lo power(b, e / 2) pettu
+    e % 2 == 0 ayite { h * h ivvu }
+    h * h * b ivvu
+}
+fact(10) ni chupi
+fact(20) ni chupi
+fact(21) ni chupi
+fib(20) ni chupi
+ack(2, 3) ni chupi
+gcd(1071, 462) ni chupi
+sumto(100000, 0) ni chupi
+power(3, 13) ni chupi

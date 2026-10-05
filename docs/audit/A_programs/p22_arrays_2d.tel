@@ -1,0 +1,24 @@
+int m[3][4]
+prati i 0 nundi 3 varaku { prati j 0 nundi 4 varaku { m[i][j] lo i * 10 + j pettu } }
+prati i 0 nundi 3 varaku { prati j 0 nundi 4 varaku { m[i][j] ni chupi } }
+int tr charya (int x[], int n) {
+    int s
+    s lo 0 pettu
+    prati i 0 nundi n varaku { s lo s + x[i] pettu }
+    s ivvu
+}
+tr(m[0], 4) ni chupi
+tr(m[1], 4) ni chupi
+tr(m[2], 4) ni chupi
+int r
+int c
+r lo 2 pettu
+c lo 5 pettu
+float g[r][c]
+prati i 0 nundi r varaku { prati j 0 nundi c varaku { g[i][j] lo i + j / 10.0 pettu } }
+g[1][4] ni chupi
+g[0][0] ni chupi
+bool flag[2][2]
+flag[1][0] lo nijam pettu
+flag[1][0] ni chupi
+flag[0][1] ni chupi

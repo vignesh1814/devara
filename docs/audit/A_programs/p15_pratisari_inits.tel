@@ -1,0 +1,18 @@
+int i
+# form 1: ident expr tho modhalu
+pratisari (i 3 tho modhalu; i < 6; i lo i + 1 pettu) { i ni chupi }
+i ni chupi
+# form 2: assignment init
+pratisari (i lo 10 pettu; i < 13; i lo i + 1 pettu) { i ni chupi }
+# form 3a: declaration with initializer
+pratisari (int k lo 20 pettu; k < 23; k lo k + 1 pettu) { k ni chupi }
+# form 3b: declaration without initializer
+pratisari (int m; nijam; m lo 0 pettu) { m lo 1 pettu m ni chupi aapu }
+float f
+pratisari (f 0.5 tho modhalu; f < 3.0; f lo f + 1.0 pettu) { f ni chupi }
+pratisari (float g lo 1.5 pettu; g < 4.0; g lo g * 2.0 pettu) { g ni chupi }
+pratisari (char c lo 'a' pettu; c < 'e'; c lo c + 1 pettu) { c ni chupi }
+pratisari (bool b lo nijam pettu; b; b lo abaddham pettu) { b ni chupi }
+# shadow outer i by declared loop var
+pratisari (int i lo 100 pettu; i < 102; i lo i + 1 pettu) { i ni chupi }
+i ni chupi

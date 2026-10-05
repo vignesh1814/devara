@@ -1,0 +1,5 @@
+int a
+a lo -9223372036854775807 - 1 pettu
+int b
+b lo -1 pettu
+a / b ni chupi

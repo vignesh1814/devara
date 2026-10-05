@@ -1,0 +1,22 @@
+int count
+prati i 0 nundi 5 varaku {
+    prati j 0 nundi 5 varaku {
+        j == 3 ayite { aapu }
+        j == 1 ayite { saagu }
+        count lo count + 1 pettu
+        i * 10 + j ni chupi
+    }
+    i == 3 ayite { aapu }
+}
+count ni chupi
+pratisari (int i lo 0 pettu; i < 6; i++) {
+    i == 2 ayite { saagu }
+    int k
+    k lo 0 pettu
+    k < 3 unnanta varaku {
+        k lo k + 1 pettu
+        k == 2 ayite { saagu }
+        i + k ni chupi
+    }
+    i == 4 ayite { aapu }
+}

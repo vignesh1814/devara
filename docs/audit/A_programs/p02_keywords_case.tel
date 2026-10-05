@@ -1,0 +1,29 @@
+# keywords are case-insensitive; identifiers are case-sensitive
+INT X
+int x
+X LO 5 PETTU
+x Lo 7 pEttu
+X + x NI Chupi
+Nijam Ayite { "yes" ni chupi } LEKUNTE { "no" ni chupi }
+x < 10 UNNANTA VARAKU { x lo x + 1 pettu }
+x ni chupi
+PRATI I 0 NUNDI 3 VARAKU { I ni chupi }
+PRATISARI (INT j LO 0 PETTU; j < 2; ++j) { j ni chupi }
+Int Fn CHARYA (Int A) { A * 2 IVVU }
+Fn(21) ni chupi
+FLOAT F
+F lo 1.5 pettu
+BOOL B
+B lo ABADDHAM pettu
+CHAR C
+C lo 'z' pettu
+PADHAM P
+P lo "kw" pettu
+F ni chupi
+B ni chupi
+C ni chupi
+P ni chupi
+VOID V CHARYA () { 1 ni CHUPI }
+V()
+x < 100 unnanta VARAKU { x lo x + 50 pettu Aapu }
+prati k 0 nundi 3 varaku { k == 1 ayite { SAAGU } k ni chupi }

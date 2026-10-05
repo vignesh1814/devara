@@ -1,0 +1,6 @@
+int a
+a lo 3 pettu
+# crlf comment
+a ni chupi
+"x\ty" ni chupi
+   	   a * 2 ni chupi # trailing comment no newline

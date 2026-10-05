@@ -1,0 +1,21 @@
+int a[5]
+int i
+pratisari (i 0 tho modhalu; i < 3; i++) { i ni chupi }
+pratisari (i 0 tho modhalu; i < 3; ++i) { i ni chupi }
+pratisari (i 3 tho modhalu; i > 0; i--) { i ni chupi }
+pratisari (i 3 tho modhalu; i > 0; --i) { i ni chupi }
+pratisari (i 0 tho modhalu; i < 6; i lo i + 2 pettu) { i ni chupi }
+pratisari (int j lo 0 pettu; j < 3; j++) { a[j] lo j * j pettu }
+a[0] ni chupi
+a[1] ni chupi
+a[2] ni chupi
+a[2] lo 0 pettu
+a[2] lo 0 pettu
+pratisari (i 0 tho modhalu; a[2] < 3; a[2]++) { "e" ni chupi }
+a[2] lo 3 pettu
+pratisari (i 0 tho modhalu; a[2] > 0; --a[2]) { "d" ni chupi }
+float f
+pratisari (f 0.0 tho modhalu; f < 1.0; f++) { f ni chupi }
+char c
+pratisari (c 'a' tho modhalu; c < 'd'; c++) { c ni chupi }
+pratisari (c 'c' tho modhalu; c > 'a'; --c) { c ni chupi }

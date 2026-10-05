@@ -1,0 +1,28 @@
+# literals: decimal, octal, hex, float, bool, char escapes, strings
+int a
+a lo 075 pettu
+a ni chupi
+0xFF ni chupi
+0X2A ni chupi
+0 ni chupi
+00 ni chupi
+3.14 ni chupi
+0.5 ni chupi
+10.0 ni chupi
+nijam ni chupi
+abaddham ni chupi
+'A' ni chupi
+'\n' ni chupi
+'\x41' ni chupi
+'\t' ni chupi
+'\0' ni chupi
+'\\' ni chupi
+'\'' ni chupi
+"Hello" ni chupi
+"tab\there \"quoted\" back\\slash \x41\x42" ni chupi
+"" ni chupi
+9223372036854775807 ni chupi
+0x7FFFFFFFFFFFFFFF ni chupi
+1000000.0 ni chupi
+0.000001 ni chupi
+123456789.0 ni chupi

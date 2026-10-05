@@ -1,0 +1,27 @@
+int add charya (int a, int b) { a + b ivvu }
+float half charya (float x) { x / 2.0 ivvu }
+bool isneg charya (int x) { x < 0 ivvu }
+char next charya (char c) { c + 1 ivvu }
+padham greet charya (padham n) { "hello " + n ivvu }
+void say charya (padham s, int n) {
+    prati i 0 nundi n varaku { s ni chupi }
+}
+void nothing charya () { }
+int zero charya () { 0 ivvu }
+add(2, 3) ni chupi
+half(5.0) ni chupi
+half(5) ni chupi
+isneg(-1) ni chupi
+isneg(1) ni chupi
+next('a') ni chupi
+greet("world") ni chupi
+say("hi", 2)
+nothing()
+zero() ni chupi
+add(add(1, 2), add(3, add(4, 5))) ni chupi
+add(1, 2)
+zero()
+greet("x")
+podavu("hello") ni chupi
+podavu(greet("ab")) ni chupi
+podavu("") ni chupi

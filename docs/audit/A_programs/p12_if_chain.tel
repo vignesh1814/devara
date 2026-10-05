@@ -1,0 +1,32 @@
+int classify charya (int n) {
+    n < 0 ayite { -1 ivvu }
+    lekunte n == 0 ayite { 0 ivvu }
+    lekunte n < 10 ayite { 1 ivvu }
+    lekunte n < 100 ayite { 2 ivvu }
+    lekunte { 3 ivvu }
+}
+classify(-5) ni chupi
+classify(0) ni chupi
+classify(7) ni chupi
+classify(70) ni chupi
+classify(700) ni chupi
+int a
+int b
+a lo 3 pettu
+b lo 4 pettu
+a < b ayite {
+    b < 10 ayite { "inner-true" ni chupi } lekunte { "inner-false" ni chupi }
+} lekunte {
+    "outer-false" ni chupi
+}
+a > b ayite { "x" ni chupi }
+a ayite { "nonzero int cond" ni chupi }
+0.5 ayite { "float cond" ni chupi }
+'a' ayite { "char cond" ni chupi }
+nijam ayite { "const true" ni chupi }
+abaddham ayite { "const false" ni chupi } lekunte { "const false else" ni chupi }
+1 ayite { 
+  2 ayite { 
+     3 ayite { "deep" ni chupi }
+  }
+}

@@ -1,0 +1,34 @@
+int i
+float f
+char c
+bool b
+padham s
+padham u
+i lo 65 pettu
+f lo 65.0 pettu
+c lo 'A' pettu
+b lo nijam pettu
+s lo "abc" pettu
+u lo "abd" pettu
+i == f ni chupi
+i == c ni chupi
+f == c ni chupi
+b == 1 ni chupi
+b == i ni chupi
+b == c ni chupi
+i < f ni chupi
+c < i ni chupi
+c >= 'A' ni chupi
+b < 2 ni chupi
+b > abaddham ni chupi
+s == u ni chupi
+s != u ni chupi
+s == "abc" ni chupi
+"abc" == "abc" ni chupi
+s + "d" == "abcd" ni chupi
+s == s ni chupi
+i <= 65 ni chupi
+i >= 66 ni chupi
+f != 65.5 ni chupi
+c == 65 ni chupi
+'a' > 'Z' ni chupi

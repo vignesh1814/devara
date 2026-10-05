@@ -1,0 +1,5 @@
+int n
+n lo 3 pettu
+int m
+m lo 0 pettu
+int a[n][m]

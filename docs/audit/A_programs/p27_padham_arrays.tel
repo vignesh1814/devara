@@ -1,0 +1,20 @@
+padham names[3]
+names[0] lo "ann" pettu
+names[1] lo "bob" pettu
+names[2] lo names[0] + names[1] pettu
+prati i 0 nundi 3 varaku { names[i] ni chupi }
+void show charya (padham a[], int n) { prati i 0 nundi n varaku { a[i] ni chupi } }
+show(names, 3)
+padham grid[2][2]
+grid[1][1] lo "z" pettu
+grid[0][0] ni chupi
+podavu(grid[0][0]) ni chupi
+grid[1][1] ni chupi
+void setp charya (padham a[], int i, padham v) { a[i] lo v pettu }
+setp(names, 0, "changed")
+names[0] ni chupi
+setp(grid[1], 0, "row")
+grid[1][0] ni chupi
+padham tmp
+tmp lo names[2] pettu
+tmp[3] ni chupi

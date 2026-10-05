@@ -1,0 +1,11 @@
+bool iseven charya (int n) { n == 0 ayite { nijam ivvu } isodd(n - 1) ivvu }
+bool isodd charya (int n) { n == 0 ayite { abaddham ivvu } iseven(n - 1) ivvu }
+iseven(10) ni chupi
+isodd(10) ni chupi
+isodd(7) ni chupi
+void ping charya (int n) { n > 0 ayite { "ping" ni chupi pong(n - 1) } }
+void pong charya (int n) { n > 0 ayite { "pong" ni chupi ping(n - 1) } }
+ping(4)
+int use_later charya (int x) { later(x) + 1 ivvu }
+int later charya (int x) { x * 2 ivvu }
+use_later(5) ni chupi

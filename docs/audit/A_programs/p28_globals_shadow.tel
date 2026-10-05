@@ -1,0 +1,39 @@
+int g
+g lo 5 pettu
+int getg charya () { g ivvu }
+void setg charya (int v) { g lo v pettu }
+int shadow charya (int g) { g lo g + 1 pettu g ivvu }
+int blockshadow charya () {
+    int g
+    g lo 100 pettu
+    nijam ayite { int g  g lo 200 pettu g ni chupi }
+    g ni chupi
+    g ivvu
+}
+getg() ni chupi
+setg(9)
+getg() ni chupi
+shadow(1) ni chupi
+g ni chupi
+blockshadow() ni chupi
+g ni chupi
+float h
+h ni chupi
+bool bb
+bb ni chupi
+char cc
+(int) cc ni chupi
+padham ss
+ss ni chupi
+int z[3]
+z[2] ni chupi
+int late
+late lo 4 pettu
+int uselate charya () { late ivvu }
+uselate() ni chupi
+int g2
+g2 lo 1 pettu
+int cnt charya () { g2 lo g2 * 2 pettu g2 ivvu }
+cnt() ni chupi
+cnt() ni chupi
+cnt() ni chupi

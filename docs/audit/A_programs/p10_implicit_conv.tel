@@ -1,0 +1,48 @@
+int i
+float f
+bool b
+char c
+f lo 3 pettu
+f ni chupi
+i lo 3.99 pettu
+i ni chupi
+i lo -3.99 pettu
+i ni chupi
+b lo 5 pettu
+b ni chupi
+b lo 0.0 pettu
+b ni chupi
+b lo 'a' pettu
+b ni chupi
+c lo 321 pettu
+c ni chupi
+c lo 65.7 pettu
+c ni chupi
+c lo nijam pettu
+(int) c ni chupi
+i lo nijam pettu
+i ni chupi
+i lo 'a' pettu
+i ni chupi
+f lo 'a' pettu
+f ni chupi
+f lo nijam pettu
+f ni chupi
+i lo nijam + nijam pettu
+i ni chupi
+'a' + 1 ni chupi
+'a' + 'b' ni chupi
+'a' * 2.0 ni chupi
+nijam + 1 ni chupi
+c lo 'a' + 1 pettu
+c ni chupi
+int fn charya (float x) { x ivvu }
+fn(7.9) ni chupi
+float g charya (int x) { x ivvu }
+g(7) ni chupi
+bool h charya (int x) { x ivvu }
+h(7) ni chupi
+h(0) ni chupi
+char k charya (int x) { x ivvu }
+k(66) ni chupi
+k(322) ni chupi

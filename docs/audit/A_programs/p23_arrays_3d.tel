@@ -1,0 +1,11 @@
+int t[2][3][4]
+prati i 0 nundi 2 varaku { prati j 0 nundi 3 varaku { prati k 0 nundi 4 varaku { t[i][j][k] lo i * 100 + j * 10 + k pettu } } }
+t[1][2][3] ni chupi
+t[0][1][2] ni chupi
+int s charya (int v[], int n) { int r  r lo 0 pettu prati i 0 nundi n varaku { r lo r + v[i] pettu } r ivvu }
+s(t[1][2], 4) ni chupi
+s(t[0][0], 4) ni chupi
+int cnt
+cnt lo 0 pettu
+prati i 0 nundi 2 varaku { prati j 0 nundi 3 varaku { cnt lo cnt + s(t[i][j], 4) pettu } }
+cnt ni chupi

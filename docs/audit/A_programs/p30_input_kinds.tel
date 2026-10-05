@@ -1,0 +1,37 @@
+int i
+float f
+bool b
+char c
+padham s
+padham line2
+i ni chaduvu
+f ni chaduvu
+b ni chaduvu
+c ni chaduvu
+s ni chaduvu
+line2 ni chaduvu
+i ni chupi
+f ni chupi
+b ni chupi
+c ni chupi
+s ni chupi
+line2 ni chupi
+int a[3]
+a[1] ni chaduvu
+a[1] ni chupi
+padham ps[2]
+ps[1] ni chaduvu
+ps[1] ni chupi
+float fl[2]
+fl[0] ni chaduvu
+fl[0] ni chupi
+char cs[2]
+cs[1] ni chaduvu
+cs[1] ni chupi
+bool bs[2]
+bs[0] ni chaduvu
+bs[0] ni chupi
+i ni chaduvu
+i ni chupi
+b ni chaduvu
+b ni chupi

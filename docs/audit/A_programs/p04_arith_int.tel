@@ -1,0 +1,48 @@
+int a
+int b
+a lo 17 pettu
+b lo 5 pettu
+a + b ni chupi
+a - b ni chupi
+b - a ni chupi
+a * b ni chupi
+a / b ni chupi
+a % b ni chupi
+-a / b ni chupi
+-a % b ni chupi
+a / -b ni chupi
+a % -b ni chupi
+-a / -b ni chupi
+-a % -b ni chupi
+# wrapping
+int big
+big lo 9223372036854775807 pettu
+big + 1 ni chupi
+big * 2 ni chupi
+big * big ni chupi
+int mn
+mn lo -big - 1 pettu
+mn ni chupi
+-mn ni chupi
+mn - 1 ni chupi
+mn % -1 ni chupi
+mn * -1 ni chupi
+0 - mn ni chupi
+mn / 2 ni chupi
+a * 8 ni chupi
+a / 2 ni chupi
+-a / 2 ni chupi
+-a % 8 ni chupi
+a % 8 ni chupi
+a * 0 ni chupi
+a + 0 ni chupi
+a - a ni chupi
+a * 1 ni chupi
+a / 1 ni chupi
+a * 3 ni chupi
+a * 10 ni chupi
+a * 100 ni chupi
+a / 3 ni chupi
+a / 7 ni chupi
+a % 3 ni chupi
+a % 10 ni chupi

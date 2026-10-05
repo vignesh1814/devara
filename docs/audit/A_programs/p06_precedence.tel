@@ -1,0 +1,32 @@
+int a
+a lo 2 pettu
+2 + 3 * 4 ni chupi
+(2 + 3) * 4 ni chupi
+10 - 4 - 3 ni chupi
+100 / 10 / 5 ni chupi
+100 % 7 * 2 ni chupi
+2 * 3 % 4 ni chupi
+-a * -a ni chupi
+- - a ni chupi
+-+a ni chupi
+!a ni chupi
+!!a ni chupi
+!a == 0 ni chupi
+1 < 2 == 2 > 1 ni chupi
+1 + 2 < 4 ni chupi
+1 < 2 < 3 ni chupi
+3 > 2 > 1 ni chupi
+nijam || abaddham && abaddham ni chupi
+(nijam || abaddham) && abaddham ni chupi
+a == 2 && a != 3 || a > 10 ni chupi
+a < 3 == nijam ni chupi
+1 == 1 == 1 ni chupi
+2 == 2 == 2 ni chupi
+(int) 3.9 + 1 ni chupi
+(int) (3.9 + 1) ni chupi
+-(int) 2.5 ni chupi
+!(bool) 0 ni chupi
+(float) a / 4 ni chupi
+(float) (a / 4) ni chupi
+1 + 2 * 3 - 4 / 2 % 3 ni chupi
+a + a * a - a / a ni chupi

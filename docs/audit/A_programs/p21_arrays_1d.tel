@@ -1,0 +1,39 @@
+int a[5]
+prati i 0 nundi 5 varaku { a[i] lo i * i pettu }
+prati i 0 nundi 5 varaku { a[i] ni chupi }
+int sum charya (int v[], int n) {
+    int s
+    s lo 0 pettu
+    prati i 0 nundi n varaku { s lo s + v[i] pettu }
+    s ivvu
+}
+sum(a, 5) ni chupi
+void fill charya (int v[], int n, int x) { prati i 0 nundi n varaku { v[i] lo x pettu } }
+fill(a, 3, 7)
+prati i 0 nundi 5 varaku { a[i] ni chupi }
+float f[3]
+f[0] lo 1.5 pettu
+f[1] lo f[0] * 2 pettu
+f[2] lo f[0] + f[1] pettu
+f[2] ni chupi
+bool b[3]
+b[1] lo nijam pettu
+b[0] ni chupi
+b[1] ni chupi
+char c[4]
+c[0] lo 'd' pettu
+c[1] lo 'e' pettu
+c[0] ni chupi
+c[1] ni chupi
+(int) c[2] ni chupi
+a[1 + 1] lo a[0] + a[4] pettu
+a[2] ni chupi
+a[a[0] - 6] ni chupi
+int n
+n lo 3 pettu
+int d[n * 2]
+prati i 0 nundi n * 2 varaku { d[i] lo i + 100 pettu }
+sum(d, 6) ni chupi
+a[2.7] ni chupi
+a['\0'] ni chupi
+a[nijam] ni chupi

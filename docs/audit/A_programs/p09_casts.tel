@@ -1,0 +1,47 @@
+# casts between all type pairs (explicit)
+int i
+float f
+bool b
+char c
+padham s
+i lo 321 pettu
+f lo -3.99 pettu
+(int) i ni chupi
+(float) i ni chupi
+(bool) i ni chupi
+(char) i ni chupi
+(int) f ni chupi
+(float) f ni chupi
+(bool) f ni chupi
+(char) f ni chupi
+b lo nijam pettu
+(int) b ni chupi
+(float) b ni chupi
+(bool) b ni chupi
+(char) b ni chupi
+c lo 'x' pettu
+(int) c ni chupi
+(float) c ni chupi
+(bool) c ni chupi
+(char) c ni chupi
+(padham) c ni chupi
+s lo "q" pettu
+(char) s ni chupi
+(padham) s ni chupi
+(bool) 0.0 ni chupi
+(bool) -0.0 ni chupi
+(int) 1000000000000000000000000000000.0 ni chupi
+(int) -1000000000000000000000000000000.0 ni chupi
+(char) 200 ni chupi
+(int) (char) 200 ni chupi
+(char) 65 ni chupi
+(int) 2.5 ni chupi
+(int) -2.5 ni chupi
+(float) 9007199254740993 ni chupi
+(int) (float) 9007199254740993 ni chupi
+(bool) (char) 256 ni chupi
+(bool) (0.0 / 0.0) ni chupi
+(int) (0.0 / 0.0) ni chupi
+((int) 3.7) ni chupi
+(padham) 'a' + (padham) 'b' ni chupi
+(int)(float)(char)(int)7 ni chupi

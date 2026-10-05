@@ -1,0 +1,26 @@
+int x
+x lo 1 pettu
+nijam ayite {
+    int x
+    x lo 2 pettu
+    nijam ayite {
+        int x
+        x lo 3 pettu
+        x ni chupi
+    }
+    x ni chupi
+}
+x ni chupi
+int f charya (int p) {
+    p lo p + 1 pettu
+    p ivvu
+}
+f(1) ni chupi
+prati x 7 nundi 9 varaku { x ni chupi }
+x ni chupi
+pratisari (int x lo 50 pettu; x < 52; x++) { x ni chupi }
+x ni chupi
+int i
+i lo 0 pettu
+i < 2 unnanta varaku { i lo i + 1 pettu int i  i lo 10 pettu i ni chupi saagu }
+i ni chupi

@@ -1,0 +1,21 @@
+int cnt
+int t charya (int v) { cnt lo cnt + 1 pettu "t" ni chupi v ivvu }
+int f charya (int v) { cnt lo cnt + 1 pettu "f" ni chupi v ivvu }
+t(1) && t(1) ni chupi
+t(0) && t(1) ni chupi
+t(1) || t(0) ni chupi
+t(0) || t(1) ni chupi
+f(0) || f(0) || t(1) ni chupi
+f(1) && f(1) && f(0) && t(1) ni chupi
+!t(0) ni chupi
+cnt ni chupi
+bool r
+r lo t(1) && f(0) || t(1) pettu
+r ni chupi
+t(5) && t(7) ni chupi
+t(0) || 3 ni chupi
+t(2) ayite { "ok" ni chupi }
+int x
+x lo 0 pettu
+x != 0 && 10 / x > 1 ni chupi
+x == 0 || 10 / x > 1 ni chupi
