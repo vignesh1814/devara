@@ -15,6 +15,7 @@ Regression tests live in `tests/validation/` and are never marked xfail.
 | F-005 | low | parser (N-001, ruled a bug) | FIXED (developer c3c2b2f; regression tests pass) | `test_round2_rulings.py::test_N001_too_deep_*` |
 | N-001 | note | robustness | NOTE | `tests/validation/test_cli_extra.py` (nesting up to 3000 passes) |
 | N-002 | note | performance | FIXED (linear: 64000-term chain parses in 1.8 s) | - |
+| F-006 | medium | optimizer (-O1) / L49, §F "must preserve observable behavior" | OPEN | `tests/validation/test_regalloc_stress.py::test_F006_*`, `tests/property/test_differential_pressure.py` (seed 276, size 6) |
 
 ---
 
@@ -84,3 +85,36 @@ amount. Realistic programs (tens of terms) are unaffected; 20000 sequential stat
 ## Status after merge of developer c3c2b2f
 
 All of F-001..F-005 are fixed and their regression tests pass in the final full run (5155 passed, 1 skipped). N-001/N-002 were ruled bugs/perf items by the design authority and are fixed (N-001 is covered by `test_round2_rulings.py::test_N001_*`). No open findings remain.
+
+## F-006 -O1 prints `-0` instead of `0` (or vice versa): constant propagation merges `0.0` and `-0.0` at control-flow joins
+
+* **Reproducer** (found by the high-register-pressure differential generator, reduced by hand)
+
+  ```sh
+  cat > z.tel <<'EOF'
+  void f charya (int n) {
+  float b
+  b lo (-0.0) pettu
+  n > 0 ayite { b lo 0.0 pettu }
+  b ni chupi
+  }
+  int n
+  n ni chaduvu
+  f(n)
+  EOF
+  echo 1 | ./devara -O0 run z.tel     # 0     (correct: the branch ran, b = +0.0)
+  echo 1 | ./devara -O1 run z.tel     # -0    (wrong)
+  ```
+  Same with the roles swapped (`b lo 0.0`, then `b lo (-0.0)` -> `-O1` prints `0` where `-0` is correct), and with a loop:
+  `float a lo (-0.0); b lo a; prati i 0 nundi 5 varaku { b lo a - a }` then `b ni chupi` prints `0` at -O0 and `-0` at -O1
+  (`a - a` is `+0.0` in IEEE round-to-nearest).
+* **Expected** (spec L39/L49, plan §F optimizer contract "must preserve observable behavior (output...)"): -O1 output equals -O0
+  output and the reference interpreter; `0.0` and `-0.0` are different values (they print differently, `1.0 / x` differs).
+* **Actual**: `./devara opt z.tel` shows the assignment in the branch/loop body deleted and `rtcall dv_rt_output_f64(-0.0f)`.
+* **Probable cause**: `compiler/opt/passes.py::_meet_consts` compares lattice values with `e[k] != out[k]`; `Const(0.0) == Const(-0.0)`
+  in Python, so the two constants are treated as the same value at a join and one is kept. The comparison must be bitwise
+  for floats (e.g. compare `struct.pack('<d', v)` or `math.copysign`), and any other place that compares float constants
+  with `==` (CSE/algebraic/copy-prop) needs the same treatment. NaN is safe (`nan != nan` drops the fact).
+* **Status**: OPEN. Tests: `test_regalloc_stress.py::test_F006_signed_zero_constants_are_not_merged_at_control_flow_joins`
+  (4 programs x -O1) and `tests/property/test_differential_pressure.py::test_pressure_small_programs_match_reference`
+  (hypothesis finds seed 276).
