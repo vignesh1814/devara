@@ -35,7 +35,7 @@ Every fix will come with a regression test in `tests/regression/`, and the full 
 | # | Finding | Effort | Proposed fix |
 |---|---|---|---|
 | 12 | **F13** -O1 compiles about 10× slower than -O0 (52 s for 50,000 lines), with 45 verifications per function. | S | Iterate each function to its own fixed point and verify only the functions a pass changed, or verify once per round. Run the full verifier after every pass only under a debug flag. |
-| 13 | **F16** CI never run, and native Windows never verified. | — | Pushing this audit triggers `.github/workflows/ci.yml`. Check the `windows-latest` job result, and run `python scripts/check_machine.py` on the owner's Windows machine. |
+| 13 | **F16** The Windows CI job failed during test collection (`os.geteuid`), so native Windows was never tested. | XS (done) | Collection fixed in this branch. Next, fix whatever the first real `windows-latest` run reports, and run `python scripts/check_machine.py` on the owner's Windows machine. |
 | 14 | **F14** Intermittent Windows-target test failure under parallel wine (UNCONFIRMED). | XS | Make the Windows test helper ignore known wine stderr noise (lines starting with `wine:` / `fixme:`), or set `WINEDEBUG=-all`, and capture the full failure if it recurs. |
 | 15 | Repository leftovers: `main.py`, the duplicated `examples/`, and `docs/DEVARA_STAGE_2_DESIGN_v1.1_FINAL (3).md`. | XS | Remove or rename them, and update references. |
 

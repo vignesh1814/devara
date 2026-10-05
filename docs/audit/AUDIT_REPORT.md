@@ -100,7 +100,7 @@ Benchmarks, best of 3 runs in seconds, with identical outputs. The C equivalents
 * **Implementation limits** (N-001):
   * Nesting depth ≥ 5,000 works for parentheses, unary operators and `if`.
   * Beyond the limit (parentheses ~10,000, unary 20,000), the compiler gives the clean diagnostic `nesting too deep (implementation limit)` with exit 1 and no internal compiler error.
-* **CI workflow** (`.github/workflows/ci.yml`): every path and flag it references exists (`tests/integration/test_windows_target.py`, `scripts/setup.sh`, `run_corpus.py -O0`). The job itself has **never run** on GitHub (F16).
+* **CI workflow** (`.github/workflows/ci.yml`): every path and flag it references exists (`tests/integration/test_windows_target.py`, `scripts/setup.sh`, `run_corpus.py -O0`). The Windows job has been failing during test collection (F16).
 
 ## C. Stress and metrics
 
@@ -127,4 +127,8 @@ Benchmarks, best of 3 runs in seconds, with identical outputs. The C equivalents
   * The 208 token tests from run 2 also all passed when run one at a time.
   * The likely cause of run 2 is wine writing diagnostics to stderr under load, but this is not proven.
 * **F15: informational, not a defect.** The reference interpreter prints `nan` where x86 hardware gives `-nan`. Q-004 permits either.
-* **F16: never verified.** The GitHub Actions workflow (including the `windows-latest` job) has never run, and the compiler and test suite have never run on native Windows. Under wine, the Windows *target* is verified.
+* **F16: the Windows CI job never tested anything, which corrects HANDOFF's "CI never run".**
+  * GitHub Actions has run `.github/workflows/ci.yml` 34 times, and the recent runs are red. On `ea2f0bf` (run 37315965960), the Linux `fast` job passes, and the `windows` job fails during **test collection**: `tests/regression/test_bug_cli_io_and_limits.py:44` calls `os.geteuid()` at import time, and that function doesn't exist on Windows. So no Devara test has ever run natively on Windows in CI.
+  * The `tests/helpers/native.py` helper would also break on Windows, because `preexec_fn` is POSIX-only. It's used by 4 leak tests that set `max_vmem_mb`.
+  * **Both are fixed in this branch (test code only):** the permissions test now skips on non-POSIX systems, and the address-space cap is applied only on POSIX.
+  * The `windows-latest` result after the fix is recorded in the commit that follows this one.

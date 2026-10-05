@@ -75,7 +75,8 @@ def execute(exe: Path, stdin: bytes = b"", timeout: float = 10.0, env: dict | No
     full_env.update(env or {})
 
     preexec = None
-    if max_vmem_mb is not None and SANITIZED_RT is None:   # ASan reserves terabytes of address space
+    # ASan reserves terabytes of address space; Windows has no preexec_fn/RLIMIT_AS (no cap there)
+    if max_vmem_mb is not None and SANITIZED_RT is None and os.name == "posix":
         def preexec():  # runs in the child between fork and exec (POSIX test helper only)
             import resource
             lim = max_vmem_mb * 1024 * 1024

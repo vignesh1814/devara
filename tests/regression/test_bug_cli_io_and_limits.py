@@ -41,7 +41,8 @@ def test_bug_f001_build_output_is_a_directory(src, tmp_path):
     assert r.stderr.strip() == f"{src}: error: cannot write output '{d}': Is a directory"
 
 
-@pytest.mark.skipif(os.geteuid() == 0, reason="root ignores directory permissions")
+@pytest.mark.skipif(os.name != "posix" or os.geteuid() == 0,
+                    reason="needs POSIX directory permissions (root and Windows ignore them)")
 def test_bug_f001_build_output_in_unwritable_directory(src, tmp_path):
     d = tmp_path / "ro"
     d.mkdir()

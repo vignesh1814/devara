@@ -36,7 +36,7 @@ devara run examples/example.tel
    ```
 2. **Audit: done (findings only, nothing fixed).** See `docs/audit/AUDIT_REPORT.md` and the ranked `docs/audit/IMPROVEMENT_PLAN.md`. 44 programs were checked by hand (`docs/audit/A_programs/`, with `.in`/`.out`), 20 diagnostics cases (`docs/audit/A_invalid/`), plus a code review, benchmarks against gcc, compile-time scaling and 600 fuzzed programs. Top issues: an overflow in the array-size product (silent heap corruption) and an ICE on global arrays over 2 GiB. Next step: fix the issues in the plan's order, once the owner approves.
 3. **Improvement candidates**: superseded by `docs/audit/IMPROVEMENT_PLAN.md` (not yet ranked there: inlining small functions, and Python start-up cost per CLI call).
-4. **Not verified**: native Windows host run of the compiler and test suite; GitHub Actions CI (`.github/workflows/ci.yml`, incl. windows-latest job).
+4. **Windows CI**: the `windows` job in `.github/workflows/ci.yml` had been failing during test collection (`os.geteuid` at import), so native Windows was never actually tested. The collection error is fixed on `claude/sharp-faraday-yb2rr7`; see `docs/audit/AUDIT_REPORT.md` F16 for the first real run's result.
 
 ## Conventions
 - Spec is authority; implementation gaps → `docs/validation/OPEN_QUESTIONS.md`, rulings recorded in plan.
