@@ -143,6 +143,21 @@ def test_large_constant_size_arrays_and_frame_arrays(level):
 
 
 
+@pytest.mark.parametrize("level", LEVELS)
+def test_frame_array_limit_boundary_agrees_with_the_back_end(level):
+    # lowering frees exactly the arrays the back end allocates on the heap: constant-size arrays
+    # up to FRAME_ARRAY_LIMIT bytes are frame arrays (never freed), larger ones are heap arrays
+    from compiler.ir.lower import FRAME_ARRAY_LIMIT
+    n = FRAME_ARRAY_LIMIT // 8
+    src = prog(
+        f"int at charya () {{ int a[{n}]\n a[{n - 1}] lo 7 pettu\n a[{n - 1}] ivvu }}",
+        f"int over charya () {{ int a[{n + 1}]\n a[{n}] lo 8 pettu\n a[{n}] ivvu }}",
+        f"int mat charya () {{ int a[{n // 4}][4]\n a[{n // 4 - 1}][3] lo 9 pettu\n a[{n // 4 - 1}][3] ivvu }}",
+        "at() ni chupi", "over() ni chupi", "mat() ni chupi",
+    )
+    check(src, "7\n8\n9\n", level)
+
+
 # ── padham (reference counted) ──
 # Expected output comes from the independent reference interpreter; `expect` pins a few values
 # computed by hand so the oracle itself stays honest.
