@@ -146,3 +146,42 @@ python3 scripts/run_corpus.py           # corpus statistics
 ```
 
 Requirements: x86-64 Linux, Python ≥ 3.11 and gcc. No GPU is needed; a standard cloud container is enough.
+
+---
+
+## 11. Round 2 (2026-10-05): register allocation, memory management, Windows
+
+Verified by the design lead on HEAD after merging the three agents' work.
+
+| Check | Result |
+|---|---|
+| Full `pytest -n 4` (incl. slow, property, Windows-under-Wine) | 6,881 passed, 0 failed, 1 skipped (root-permission test) |
+| Corpus linux -O0 / -O1 | 128/128 / 128/128 |
+| Corpus windows -O0 / -O1 (MinGW-w64 + Wine) | 128/128 / 128/128 |
+| Leak check (`DEVARA_RT_STATS=1`, all normally-exiting programs × 2 levels) | 236/236 live=0 |
+| ASan/UBSan runtime build on memory-heavy programs | clean (85 cases) |
+| `scripts/check_machine.py` on Linux | PASS |
+
+Benchmarks (`scripts/bench.py`, wall time):
+
+| program | -O0 | -O1 | speedup |
+|---|---:|---:|---:|
+| sieve 1e7 | 0.482 s | 0.200 s | 2.4× |
+| matmul 200 | 0.037 s | 0.010 s | 3.7× |
+| fib(32) | 0.011 s | 0.011 s | 1.0× |
+| sort 1e6 | 0.212 s | 0.108 s | 2.0× |
+| float loop 2e7 | 0.354 s | 0.030 s | 11.6× |
+
+Bugs found this round, all fixed with regression tests:
+- an ICE on statements after `ivvu`/`aapu`/`saagu`;
+- F-006 (`-0.0` merged with `0.0` by constant propagation);
+- dead-code elimination dropping the "invalid array size" error at -O1;
+- a racy temp-dir test.
+
+Not verified:
+- the `windows-latest` CI job;
+- running the compiler itself on a native Windows host (only cross-compiled and run under Wine). `scripts/check_machine.py` is the one-command check for that.
+
+Remaining debt:
+- interned string literals and `padham` globals stay alive until exit, by design;
+- call-heavy code gains little from -O1 (no inlining).
