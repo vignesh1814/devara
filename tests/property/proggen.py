@@ -65,9 +65,11 @@ int ap1 charya (int arr[], int i) {
 
 
 class Gen:
-    def __init__(self, rnd: random.Random, size: int = 20):
+    def __init__(self, rnd: random.Random, size: int = 20, pressure: bool = False):
         self.r = rnd
         self.size = size
+        self.pressure = pressure          # high-register-pressure mode: wide functions, many live locals, deeper trees
+        self.D = 5 if pressure else 3      # expression depth used by statements
         self.nvar = 0
         self.funcs: list[tuple[str, str, list[str]]] = []  # name, ret, param types
         self.lines: list[str] = []
@@ -238,6 +240,9 @@ class Gen:
     def ex_padham(self, d):
         r = self.r
         k = r.randrange(5)
+        if (k == 0 or k == 1) and self.pressure:
+            # pressure mode runs loops inside functions: never concatenate two non-literal strings (no exponential growth)
+            return f"({self.ex('padham', d)} + {r.choice(STR_LITS)})"
         if k == 0 or k == 1:
             return f"({self.ex('padham', d)} + {self.ex('padham', d)})"
         if k == 2:
@@ -251,6 +256,8 @@ class Gen:
         if not c:
             return self.leaf(ret)
         name, _, ps = self.r.choice(c)
+        if self.pressure:
+            d = min(d, 2)
         return f"{name}({', '.join(self.ex(p, d) for p in ps)})"
 
     # ------------------------------------------------------------------ statements
@@ -260,37 +267,37 @@ class Gen:
         types = ["int", "float", "bool", "char", "padham"]
         if k <= 2:
             t = r.choice(types)
-            self.declare(t, self.ex(t, 3))
+            self.declare(t, self.ex(t, self.D))
         elif k <= 5:
             t = r.choice(types)
             pool = [x for x in self.names(t) if x not in self.readonly]
             if pool:
-                self.emit(f"{r.choice(pool)} lo {self.ex(t, 3)} pettu")
+                self.emit(f"{r.choice(pool)} lo {self.ex(t, self.D)} pettu")
             else:
-                self.declare(t, self.ex(t, 3))
+                self.declare(t, self.ex(t, self.D))
         elif k <= 8:
             t = r.choice(types)
-            self.emit(f"{self.ex(t, 3)} ni chupi")
+            self.emit(f"{self.ex(t, self.D)} ni chupi")
         elif k == 9:
-            self.emit(f"garr[sidx({self.ex('int', 2)}, 8)] lo {self.ex('int', 3)} pettu")
+            self.emit(f"garr[sidx({self.ex('int', 2)}, 8)] lo {self.ex('int', self.D)} pettu")
         elif k == 10:
-            self.emit(f"gfa[sidx({self.ex('int', 2)}, 4)] lo {self.ex('float', 3)} pettu")
+            self.emit(f"gfa[sidx({self.ex('int', 2)}, 4)] lo {self.ex('float', self.D)} pettu")
         elif k == 11:
-            self.emit(f"{r.choice(['g0', 'g1'])} lo {self.ex('int', 3)} pettu")
+            self.emit(f"{r.choice(['g0', 'g1'])} lo {self.ex('int', self.D)} pettu")
         elif k == 12 and depth > 0:
             self.if_stmt(depth)
-        elif k == 13 and depth > 0 and not self.in_func and self.loop_depth < 2:
+        elif k == 13 and depth > 0 and (self.pressure or not self.in_func) and self.loop_depth < 2:
             self.loop_stmt(depth)
         elif k == 14 and self.loop_depth > 0:
             self.emit(f"{self.ex('bool', 2)} ayite {{ {r.choice(['aapu', 'saagu'])} }}")
         elif k == 15 and r.random() < 0.5:
             c = r.randrange(3)
             if c == 0:
-                self.emit(f"vd0({self.ex('int', 3)})")
+                self.emit(f"vd0({self.ex('int', self.D)})")
             elif c == 1:
-                self.emit(f"ap0(gm[sidx({self.ex('int', 2)}, 3)], {self.ex('int', 3)})")
+                self.emit(f"ap0(gm[sidx({self.ex('int', 2)}, 3)], {self.ex('int', self.D)})")
             else:
-                self.emit(f"gm[sidx({self.ex('int', 2)}, 3)][sidx({self.ex('int', 2)}, 4)] lo {self.ex('int', 3)} pettu")
+                self.emit(f"gm[sidx({self.ex('int', 2)}, 3)][sidx({self.ex('int', 2)}, 4)] lo {self.ex('int', self.D)} pettu")
         else:
             self.emit(f"gsa[sidx({self.ex('int', 2)}, 3)] lo {self.ex('padham', 2)} pettu")
 
@@ -367,9 +374,20 @@ class Gen:
             self.scopes[0][t].append(f"p{i}")
         self.emit(f"{ret} {name} charya ({', '.join(params)}) {{")
         self.in_func = True
-        for _ in range(r.randrange(1, 5)):
+        if self.pressure:
+            # many locals declared up front and used again at the end => many simultaneously live values
+            for _ in range(r.randrange(10, 22)):
+                t = r.choice(["int", "int", "float", "float", "char", "bool", "padham"])
+                self.declare(t, self.ex(t, 2))
+        for _ in range(r.randrange(6, 12) if self.pressure else r.randrange(1, 5)):
             self.stmt(2)
-        self.emit(f"{self.ex(ret, 3)} ivvu")
+        if self.pressure:
+            # read every live local once more after all the calls/loops above
+            live = [n for t in ("int", "float", "char", "bool", "padham") for n in self.names(t)]
+            r.shuffle(live)
+            for n in live[:12]:
+                self.emit(f"{n} ni chupi")
+        self.emit(f"{self.ex(ret, self.D)} ivvu")
         self.emit("}")
         self.in_func = False
         body = self.lines
@@ -387,12 +405,22 @@ class Gen:
                         ("padham", ["padham", "int"])][: r.randrange(2, 6)]:
             self.make_function(idx, ret, ps)
             idx += 1
+        if self.pressure:
+            types5 = ["int", "float", "bool", "char", "padham"]
+            for k in range(r.randrange(2, 5)):
+                ps = [r.choice(types5) for _ in range(r.randrange(10, 27))]
+                self.make_function(idx, r.choice(types5), ps)
+                idx += 1
         self.emit("gs lo \"hello\" pettu")
         self.emit("gsa[0] lo \"p\" pettu")
         self.emit("gsa[1] lo \"qq\" pettu")
         self.emit("gsa[2] lo \"r\" pettu")
         self.emit("g0 ni chaduvu")
         self.emit("g1 ni chaduvu")
+        if self.pressure:
+            for name, ret, ps in self.funcs:
+                if len(ps) >= 10:
+                    self.emit(f"{name}({', '.join(self.ex(p, 2) for p in ps)}) ni chupi")
         for _ in range(self.size):
             self.stmt(3)
         for n in ["g0", "g1", "gf", "gb", "gs"]:
@@ -404,9 +432,11 @@ class Gen:
         return PRELUDE + "\n".join(self.lines) + "\n"
 
 
-def generate(seed: int, size: int = 20) -> tuple[str, bytes]:
+def generate(seed: int, size: int = 20, pressure: bool = False) -> tuple[str, bytes]:
+    """pressure=True: high-register-pressure mode (10-26 parameter functions, 10-22 live locals, deeper trees,
+    loops inside functions, every local read again after the calls)."""
     rnd = random.Random(seed)
-    g = Gen(rnd, size)
+    g = Gen(rnd, size, pressure)
     src = g.program()
     stdin = f"{rnd.randrange(-1000, 1000)} {rnd.choice([7, -3, 1000000007, 2 ** 62, -2 ** 62])}\n".encode()
     return src, stdin
