@@ -1,0 +1,9 @@
+int a
+int b
+a lo 1 pettu
+b lo 2 pettu
+a + b
+prati i 0 nundi 3 {
+ i ni chupi
+}
+"end" ni chupi

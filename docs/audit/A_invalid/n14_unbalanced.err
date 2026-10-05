@@ -1,0 +1,2 @@
+n14_unbalanced.tel:2:11: syntax error [INVALID_EXPRESSION]: Expected expression.
+n14_unbalanced.tel:5:1: syntax error [UNEXPECTED_EOF]: Expected '}' after block.

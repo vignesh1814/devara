@@ -1,0 +1,5 @@
+int x
+x lo 'ab' pettu
+x lo '\q' pettu
+x lo 09 pettu
+x @ 3

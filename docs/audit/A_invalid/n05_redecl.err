@@ -1,0 +1,2 @@
+n05_redecl.tel:2:7: semantic error [REDECLARATION]: 'x' is already declared in this scope
+n05_redecl.tel:4:5: semantic error [REDECLARATION]: 'f' is already declared in this scope

@@ -1,0 +1,3 @@
+n15_void_misuse.tel:3:6: semantic error [VOID_MISUSE]: void value used in an expression
+n15_void_misuse.tel:4:1: semantic error [VOID_MISUSE]: void value used in an expression
+n15_void_misuse.tel:5:1: semantic error [VOID_MISUSE]: variable cannot have type 'void'

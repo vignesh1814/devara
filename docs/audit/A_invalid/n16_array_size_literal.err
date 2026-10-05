@@ -1,0 +1,5 @@
+n16_array_size_literal.tel:1:7: semantic error [INVALID_ARRAY_SIZE]: array dimension must be at least 1, got 0
+n16_array_size_literal.tel:2:7: semantic error [INVALID_ARRAY_SIZE]: array dimension must be at least 1, got -2
+n16_array_size_literal.tel:3:10: semantic error [INVALID_ARRAY_SIZE]: array dimension must be at least 1, got 0
+n16_array_size_literal.tel:4:1: semantic error [UNDECLARED]: undeclared identifier 'x'
+n16_array_size_literal.tel:4:6: semantic error [LITERAL_OUT_OF_RANGE]: integer literal 99999999999999999999 does not fit in a 64-bit int

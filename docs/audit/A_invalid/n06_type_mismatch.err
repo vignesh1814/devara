@@ -1,0 +1,2 @@
+n06_type_mismatch.tel:2:6: semantic error [TYPE_MISMATCH]: cannot convert int to padham in assignment
+n06_type_mismatch.tel:4:6: semantic error [TYPE_MISMATCH]: cannot convert padham to int in assignment

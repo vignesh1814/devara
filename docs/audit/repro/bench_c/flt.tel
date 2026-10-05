@@ -1,0 +1,13 @@
+float integrate charya (int n) {
+    float s
+    float x
+    float h
+    h lo 1.0 / n pettu
+    s lo 0.0 pettu
+    prati i 0 nundi n varaku {
+        x lo (i + 0.5) * h pettu
+        s lo s + 4.0 / (1.0 + x * x) pettu
+    }
+    s * h ivvu
+}
+integrate(100000000) ni chupi

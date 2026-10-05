@@ -1,0 +1,2 @@
+n11_bad_operand.tel:2:6: semantic error [INVALID_OPERAND]: '%' requires integral operands
+n11_bad_operand.tel:3:1: semantic error [INVALID_OPERAND]: operator SUB cannot be applied to padham and padham

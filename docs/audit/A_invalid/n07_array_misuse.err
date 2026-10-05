@@ -1,0 +1,3 @@
+n07_array_misuse.tel:2:1: semantic error [NOT_ASSIGNABLE]: cannot use whole array 'a' as assignment target
+n07_array_misuse.tel:3:1: semantic error [INVALID_OPERAND]: array used where a scalar value is required
+n07_array_misuse.tel:4:1: semantic error [INVALID_OPERAND]: array used where a scalar value is required

@@ -1,0 +1,3 @@
+n08_break_outside.tel:1:1: semantic error [BREAK_OUTSIDE_LOOP]: 'aapu' outside of a loop
+n08_break_outside.tel:2:1: semantic error [CONTINUE_OUTSIDE_LOOP]: 'saagu' outside of a loop
+n08_break_outside.tel:3:19: semantic error [BREAK_OUTSIDE_LOOP]: 'aapu' outside of a loop

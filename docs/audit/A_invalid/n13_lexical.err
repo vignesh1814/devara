@@ -1,0 +1,4 @@
+n13_lexical.tel:2:6: lexical error [INVALID_CHAR_LITERAL]: Multi-character character literal
+n13_lexical.tel:3:7: lexical error [INVALID_ESCAPE]: Unknown escape sequence '\q'
+n13_lexical.tel:4:6: lexical error [INVALID_NUMBER]: Invalid octal literal '09'
+n13_lexical.tel:5:3: lexical error [INVALID_CHARACTER]: Unexpected character '@'

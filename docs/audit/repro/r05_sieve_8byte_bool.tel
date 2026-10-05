@@ -1,0 +1,18 @@
+int n
+n lo 30000000 pettu
+bool prime[n + 1]
+int i
+pratisari (i 2 tho modhalu; i <= n; i++) { prime[i] lo nijam pettu }
+int p
+p lo 2 pettu
+int j
+p * p <= n unnanta varaku {
+    prime[p] ayite {
+        pratisari (j p * p tho modhalu; j <= n; j lo j + p pettu) { prime[j] lo abaddham pettu }
+    }
+    p lo p + 1 pettu
+}
+int count
+count lo 0 pettu
+pratisari (i 2 tho modhalu; i <= n; i++) { prime[i] ayite { count lo count + 1 pettu } }
+count ni chupi

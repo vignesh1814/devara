@@ -1,0 +1,26 @@
+int n
+n lo 400 pettu
+int a[n][n]
+int b[n][n]
+int c[n][n]
+int i
+int j
+int k
+prati i 0 nundi n varaku {
+    prati j 0 nundi n varaku {
+        a[i][j] lo (i * 7 + j * 3) % 10 pettu
+        b[i][j] lo (i * 5 + j * 11) % 10 pettu
+    }
+}
+int s
+prati i 0 nundi n varaku {
+    prati j 0 nundi n varaku {
+        s lo 0 pettu
+        prati k 0 nundi n varaku { s lo s + a[i][k] * b[k][j] pettu }
+        c[i][j] lo s pettu
+    }
+}
+int check
+check lo 0 pettu
+prati i 0 nundi n varaku { prati j 0 nundi n varaku { check lo (check * 31 + c[i][j]) % 1000000007 pettu } }
+check ni chupi

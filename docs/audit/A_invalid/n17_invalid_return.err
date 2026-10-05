@@ -1,0 +1,2 @@
+n17_invalid_return.tel:3:1: semantic error [INVALID_RETURN]: 'ivvu' outside of a function
+n17_invalid_return.tel:5:20: semantic error [INVALID_RETURN]: void function cannot return a value

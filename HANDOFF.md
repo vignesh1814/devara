@@ -34,8 +34,8 @@ devara run examples/example.tel
    git push --force-with-lease origin main claude/devara-compiler-cloud-migration-l3txzx
    git push origin --delete claude/devara-validation-l3txzx   # fully merged, optional
    ```
-2. **Audit (stopped before findings)**: planned three passes — (A) stage-by-stage review of ~60 programs (49 drafted, unverified, in `docs/audit/A_programs/`), (B) full code review vs Dragon Book / Cooper-Torczon / SysV & MS x64 ABI / IEEE-754, (C) stress & metrics vs gcc. Do audit before more fixes.
-3. **Known improvement candidates** (from manual inspection, unaudited): leaf functions without frame setup; register hints to avoid `imul rdi,rdi; mov rax,rdi`; inlining small functions; keep globals in registers in loops; 1-byte `char`/`bool` array elements; cascading syntax errors (e.g. `x ni chupi2` gives two errors); Python start-up cost per CLI call; remove legacy `main.py`/`examples/` duplication and rename `docs/DEVARA_STAGE_2_DESIGN_v1.1_FINAL (3).md`.
+2. **Audit: done (findings only, nothing fixed).** See `docs/audit/AUDIT_REPORT.md` and the ranked `docs/audit/IMPROVEMENT_PLAN.md`. 44 programs were checked by hand (`docs/audit/A_programs/`, with `.in`/`.out`), 20 diagnostics cases (`docs/audit/A_invalid/`), plus a code review, benchmarks against gcc, compile-time scaling and 600 fuzzed programs. Top issues: an overflow in the array-size product (silent heap corruption) and an ICE on global arrays over 2 GiB. Next step: fix the issues in the plan's order, once the owner approves.
+3. **Improvement candidates**: superseded by `docs/audit/IMPROVEMENT_PLAN.md` (not yet ranked there: inlining small functions, and Python start-up cost per CLI call).
 4. **Not verified**: native Windows host run of the compiler and test suite; GitHub Actions CI (`.github/workflows/ci.yml`, incl. windows-latest job).
 
 ## Conventions

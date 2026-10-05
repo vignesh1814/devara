@@ -1,0 +1,5 @@
+int fib charya (int n) {
+    n < 2 ayite { n ivvu }
+    fib(n - 1) + fib(n - 2) ivvu
+}
+fib(35) ni chupi

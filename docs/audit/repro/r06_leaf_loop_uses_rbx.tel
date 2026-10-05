@@ -1,0 +1,9 @@
+int sum charya (int v[], int n) {
+    int s
+    s lo 0 pettu
+    prati i 0 nundi n varaku { s lo s + v[i] pettu }
+    s ivvu
+}
+int a[100]
+prati i 0 nundi 100 varaku { a[i] lo i pettu }
+sum(a, 100) ni chupi

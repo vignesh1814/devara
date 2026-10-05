@@ -1,0 +1,6 @@
+int n
+n lo 4611686018427387905 pettu
+int a[n][4]
+"allocated" ni chupi
+a[1][0] lo 7 pettu
+a[1][0] ni chupi

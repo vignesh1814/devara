@@ -1,0 +1,1 @@
+n10_uninit.tel:5:2: semantic error [UNINITIALIZED]: variable 'z' may be used before it is initialized

@@ -1,0 +1,2 @@
+n04_undeclared.tel:1:1: semantic error [UNDECLARED]: undeclared identifier 'y'
+n04_undeclared.tel:2:1: semantic error [UNDECLARED]: undeclared identifier 'z'
