@@ -5,7 +5,7 @@ from __future__ import annotations
 from compiler.diagnostics import InternalCompilerError
 from compiler.ir import ir as I
 from compiler.ir.runtime import RUNTIME
-from compiler.ir.util import term_uses as _term_uses, uses as _uses
+from compiler.ir.util import operand_fields, term_uses as _term_uses, uses as _uses
 
 T = I.IRType
 _ARITH = (T.I64, T.F64)
@@ -94,6 +94,12 @@ def _check_function(f: I.IRFunction, sigs, gnames, errs: list[str]) -> None:
     used: list[str] = []
     for b in f.blocks:
         for i in b.instrs:
+            # a str constant has no refcount header: it may only be handed to dv_rt_strlit,
+            # which returns the immortal runtime string (padham values are always loaded)
+            ops = [getattr(i, n) for n in operand_fields(i)] + list(getattr(i, "args", []))
+            if not (isinstance(i, I.RtCall) and i.name == "dv_rt_strlit"):
+                if any(isinstance(o, I.Const) and o.type == T.STR for o in ops):
+                    bad("str constant used outside dv_rt_strlit")
             if isinstance(i, I.Copy):
                 st = ty(i.src)
                 if st != i.dst.type or st == T.VOID:

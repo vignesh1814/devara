@@ -54,7 +54,7 @@ Non-SSA three-address code. `globals: list[IRGlobal]` (`scalar | array_static | 
 in exactly one of `Jump | Branch | Return`. Operands: `Const`, `Reg` (variables and temporaries,
 each name has one type), `GlobalRef` (address of global storage). Instructions: `Copy`, `UnOp`,
 `BinOp`, `Cmp`, `Convert`, `Load`, `Store`, `PtrAdd` (`base + index*8`), `NewArray`, `Call`,
-`RtCall` (runtime helpers, signatures in `compiler/ir/runtime.py`). `devara ir` prints a stable text
+`RtCall` (runtime helpers, signatures in `compiler/ir/runtime.py`). padham values are reference counted: `dv_rt_retain`/`dv_rt_release` (and the array helpers `dv_rt_newarray`, `dv_rt_freearray`, `dv_rt_freearray_str`, `dv_rt_release_elems`) are side-effecting and never removed by the optimizer; a `str` `Const` is only legal as the argument of `dv_rt_strlit` (literals are loaded from globals `lit.N` that `$entry` initialises first; `null.str` is the empty string); `$entry` ends with `dv_rt_shutdown`. `devara ir` prints a stable text
 form. The verifier (`compiler/ir/verify.py`) runs after lowering and after every optimizer pass;
 a failure is an internal compiler error (exit 3).
 

@@ -1,14 +1,21 @@
-/* Devara runtime library (plan §C, P1–P11).
+/* Devara runtime library (plan §C, P1–P11, P22).
  *
  * Calling convention: every value is passed/returned as a 64-bit integer
  * (bool/char widened: bool 0/1, char sign-extended) or a double (f64).
- * A padham value is a pointer to  { int64_t len; char bytes[len + 1]; }  or NULL (= "").
- * Heap arrays (dv_rt_newarray) are freed explicitly by compiler-generated code at scope exit
- * (dv_rt_freearray); constant-size arrays live in the caller's frame. Strings are never freed yet.
  *
- * Leak accounting: the runtime counts live heap arrays; with the environment variable
- * DEVARA_RT_STATS=1, dv_rt_shutdown (called at the end of the program entry, i.e. at normal exit
- * only) prints "devara-rt: live=<n>" to stderr.
+ * A padham value is a pointer to  { int64_t refcnt; int64_t len; char bytes[len + 1]; }
+ * or NULL (= the empty string).  Strings are reference counted:
+ *   - every runtime function that produces a padham returns an owned (+1) reference;
+ *   - arguments of runtime functions are borrowed (never consumed);
+ *   - refcnt < 0 marks an immortal string (literals, see dv_rt_strlit): retain/release
+ *     ignore it and it is not counted as live;
+ *   - dv_rt_retain / dv_rt_release are the only functions that change a count.
+ * Heap arrays (dv_rt_newarray) are freed explicitly by compiler-generated code at scope exit
+ * (dv_rt_freearray / dv_rt_freearray_str); constant-size arrays live in the caller's frame.
+ *
+ * Leak accounting: the runtime counts live heap arrays and strings; with the environment
+ * variable DEVARA_RT_STATS=1, dv_rt_shutdown (called at the end of the program entry,
+ * i.e. at normal exit only) prints "devara-rt: live=<n>" to stderr.
  */
 #include <errno.h>
 #include <math.h>
@@ -17,9 +24,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct dv_str { int64_t len; char bytes[]; } dv_str;
+typedef struct dv_str { int64_t refcnt; int64_t len; char bytes[]; } dv_str;
+
+#define DV_IMMORTAL (-1)
 
 static int64_t live_arrays = 0;
+static int64_t live_strings = 0;
 
 /* ── errors (P11) ── */
 
@@ -46,11 +56,40 @@ void *dv_rt_newarray(int64_t n) {
     return p;
 }
 
-/* Free a heap array obtained from dv_rt_newarray (compiler-generated, at scope exit). */
+/* ── reference counting (P22) ── */
+
+void dv_rt_retain(dv_str *s) {
+    if (s && s->refcnt > 0) s->refcnt++;
+}
+
+void dv_rt_release(dv_str *s) {
+    if (!s || s->refcnt < 0) return;
+    if (--s->refcnt == 0) {
+        live_strings--;
+        free(s);
+    }
+}
+
+/* Release every padham element of an n-element array and reset it to "" (NULL). */
+void dv_rt_release_elems(dv_str **p, int64_t n) {
+    if (!p) return;
+    for (int64_t i = 0; i < n; i++) {
+        dv_rt_release(p[i]);
+        p[i] = NULL;
+    }
+}
+
+/* Free a heap array obtained from dv_rt_newarray. */
 void dv_rt_freearray(void *p) {
     if (!p) return;
     live_arrays--;
     free(p);
+}
+
+/* Same for an array of padham: release the n elements first. */
+void dv_rt_freearray_str(dv_str **p, int64_t n) {
+    dv_rt_release_elems(p, n);
+    dv_rt_freearray(p);
 }
 
 /* Called once at the end of the program entry (normal exit only). */
@@ -58,7 +97,7 @@ void dv_rt_shutdown(void) {
     const char *e = getenv("DEVARA_RT_STATS");
     if (e && e[0] == '1' && e[1] == 0) {
         fflush(stdout);
-        fprintf(stderr, "devara-rt: live=%lld\n", (long long)live_arrays);
+        fprintf(stderr, "devara-rt: live=%lld\n", (long long)(live_arrays + live_strings));
         fflush(stderr);
     }
 }
@@ -156,8 +195,12 @@ int64_t dv_rt_input_char(void) {
     return (int64_t)(signed char)c;
 }
 
+/* A fresh owned (+1) string of n bytes copied from p. */
 static dv_str *make_str(const char *p, int64_t n) {
     dv_str *s = malloc(sizeof(dv_str) + (size_t)n + 1);
+    if (!s) fail("out of memory");
+    live_strings++;
+    s->refcnt = 1;
     s->len = n;
     if (n) memcpy(s->bytes, p, (size_t)n);
     s->bytes[n] = 0;
@@ -203,12 +246,32 @@ dv_str *dv_rt_input_str(void) {
 
 static int64_t slen(const dv_str *s) { return s ? s->len : 0; }
 
-dv_str *dv_rt_strcat(const dv_str *a, const dv_str *b) {
+/* A string literal arrives as the compiler's read-only constant { int64_t len; char bytes[len+1]; }
+ * (no header). Returns the immortal runtime object for it; called once per literal at startup. */
+typedef struct dv_lit { int64_t len; char bytes[]; } dv_lit;
+
+dv_str *dv_rt_strlit(const dv_lit *lit) {
+    int64_t n = lit->len;
+    dv_str *s = malloc(sizeof(dv_str) + (size_t)n + 1);
+    if (!s) fail("out of memory");
+    s->refcnt = DV_IMMORTAL;
+    s->len = n;
+    if (n) memcpy(s->bytes, lit->bytes, (size_t)n);
+    s->bytes[n] = 0;
+    return s;
+}
+
+dv_str *dv_rt_strcat(dv_str *a, dv_str *b) {
     int64_t la = slen(a), lb = slen(b);
+    if (lb == 0) { dv_rt_retain(a); return a; }     /* x + "": share; still an owned reference */
+    if (la == 0) { dv_rt_retain(b); return b; }
     dv_str *s = malloc(sizeof(dv_str) + (size_t)(la + lb) + 1);
+    if (!s) fail("out of memory");
+    live_strings++;
+    s->refcnt = 1;
     s->len = la + lb;
-    if (la) memcpy(s->bytes, a->bytes, (size_t)la);
-    if (lb) memcpy(s->bytes + la, b->bytes, (size_t)lb);
+    memcpy(s->bytes, a->bytes, (size_t)la);
+    memcpy(s->bytes + la, b->bytes, (size_t)lb);
     s->bytes[la + lb] = 0;
     return s;
 }

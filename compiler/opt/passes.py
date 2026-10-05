@@ -462,3 +462,51 @@ PIPELINE = [
     ("merge_blocks", merge_blocks),
     ("dce", dce),
 ]
+
+
+# ── module pass: drop string literals nobody loads any more ──
+
+def prune_literals(module: I.IRModule) -> bool:
+    """Remove the startup initialization (dv_rt_strlit + store) and the global of every
+    string literal whose uses were all optimized away (e.g. in a dead branch)."""
+    lits = {g.name for g in module.globals if g.name.startswith("lit.") and g.kind == "scalar"}
+    if not lits:
+        return False
+
+    def is_init(i: I.Instr) -> bool:
+        return (isinstance(i, I.Store) and isinstance(i.addr, I.GlobalRef)
+                and i.addr.name in lits and isinstance(i.value, I.Reg)
+                and i.value.name.startswith("lit.t"))
+
+    used: set[str] = set()
+    for f in module.functions:
+        for b in f.blocks:
+            for i in b.instrs:
+                if is_init(i):
+                    continue                      # the initialization itself is not a use
+                for name in ("addr", "base", "src", "value"):
+                    o = getattr(i, name, None)
+                    if isinstance(o, I.GlobalRef) and o.name in lits:
+                        used.add(o.name)
+                for a in getattr(i, "args", []):
+                    if isinstance(a, I.GlobalRef) and a.name in lits:
+                        used.add(a.name)
+    dead = lits - used
+    if not dead:
+        return False
+    dead_regs: set[str] = set()
+    for f in module.functions:
+        for b in f.blocks:
+            for i in b.instrs:
+                if is_init(i) and i.addr.name in dead:          # type: ignore[union-attr]
+                    dead_regs.add(i.value.name)                 # type: ignore[union-attr]
+    for f in module.functions:
+        for b in f.blocks:
+            b.instrs = [
+                i for i in b.instrs
+                if not (is_init(i) and i.addr.name in dead)     # type: ignore[union-attr]
+                and not (isinstance(i, I.RtCall) and i.name == "dv_rt_strlit"
+                         and i.dst is not None and i.dst.name in dead_regs)
+            ]
+    module.globals = [g for g in module.globals if g.name not in dead]
+    return True

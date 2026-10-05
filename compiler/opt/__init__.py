@@ -6,7 +6,7 @@ import copy
 
 from compiler.ir.ir import IRModule
 from compiler.ir.verify import verify_module
-from compiler.opt.passes import PIPELINE
+from compiler.opt.passes import PIPELINE, prune_literals
 
 MAX_ROUNDS = 12
 
@@ -27,4 +27,6 @@ def optimize(module: IRModule, level: int = 1, *, passes=None) -> IRModule:
             verify_module(out)       # re-run after every pass (plan §F)
         if not changed:
             break
+    if prune_literals(out):
+        verify_module(out)
     return out

@@ -266,7 +266,10 @@ class Interp:
             if a[0] < 1:
                 raise RuntimeFailure("invalid array size")
             return Addr([0] * a[0], 0)
-        elif name in ("dv_rt_freearray", "dv_rt_shutdown"):
+        elif name == "dv_rt_strlit":
+            return bytes(a[0])
+        elif name in ("dv_rt_freearray", "dv_rt_freearray_str", "dv_rt_release_elems",
+                      "dv_rt_retain", "dv_rt_release", "dv_rt_shutdown"):
             pass
         else:
             raise AssertionError(name)
