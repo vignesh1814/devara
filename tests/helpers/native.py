@@ -12,7 +12,7 @@ from tests.helpers.pipeline import to_ir
 
 
 def asm_of(src: str, level: int = 1) -> str:
-    return generate(to_ir(src, level))
+    return generate(to_ir(src, level), regalloc=level > 0)
 
 
 def build_and_run(src: str, stdin: bytes = b"", level: int = 1, timeout: float = 10.0):

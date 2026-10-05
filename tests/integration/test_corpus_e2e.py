@@ -25,7 +25,7 @@ def test_corpus_program(tel: Path, level: int):
     exit_f = tel.with_suffix(".exit")
     expected_exit = int(exit_f.read_text().strip()) if exit_f.exists() else 0
     stdin = tel.with_suffix(".in").read_bytes() if tel.with_suffix(".in").exists() else b""
-    asm = generate(to_ir(src, level))
+    asm = generate(to_ir(src, level), regalloc=level > 0)
     with tempfile.TemporaryDirectory() as tmp:
         exe = Path(tmp) / "p"
         driver.link_executable(asm, exe)

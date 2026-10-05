@@ -431,14 +431,28 @@ class FunctionGen:
             raise TypeError(type(t))
 
 
-def generate(module: I.IRModule, target: "Target | str | None" = None) -> str:
-    """Emit GNU assembler text for a verified module (``target`` defaults to the host)."""
+def generate(module: I.IRModule, target: "Target | str | None" = None, regalloc: bool = False) -> str:
+    """Emit GNU assembler text for a verified module (``target`` defaults to the host).
+
+    ``regalloc=False`` is the reference stack-slot generator (-O0); ``True`` runs the
+    register-allocating generator plus the peephole pass (-O1).
+    """
     tg = get_target(target)
     strings = _Strings(tg)
     out = tg.preamble()
-    for k, fn in enumerate(module.functions):
-        out += FunctionGen(fn, k, strings, tg).generate()
-        out.append("")
+    if regalloc:
+        from compiler.codegen.peephole import peephole
+        from compiler.codegen.prep import prepare_function, promote_globals
+        from compiler.codegen.x86_64_ra import RAFunctionGen
+
+        module = promote_globals(module)
+        for k, fn in enumerate(module.functions):
+            out += peephole(RAFunctionGen(prepare_function(fn), k, strings, tg).generate())
+            out.append("")
+    else:
+        for k, fn in enumerate(module.functions):
+            out += FunctionGen(fn, k, strings, tg).generate()
+            out.append("")
     out += tg.function_header("main")
     out += ["    push rbp", "    mov rbp, rsp"]
     if tg.shadow_space:

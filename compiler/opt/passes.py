@@ -399,7 +399,10 @@ def merge_blocks(fn: I.IRFunction) -> bool:
 # ── pass: dead-code elimination ──
 
 def _removable(i: I.Instr) -> bool:
-    if isinstance(i, (I.Copy, I.UnOp, I.Cmp, I.Convert, I.Load, I.PtrAdd, I.NewArray)):
+    if isinstance(i, I.NewArray):
+        # allocation can fail at run time ("invalid array size"): only small constant sizes are safe to drop
+        return isinstance(i.count, I.Const) and 1 <= i.count.value <= 8192
+    if isinstance(i, (I.Copy, I.UnOp, I.Cmp, I.Convert, I.Load, I.PtrAdd)):
         return True
     if isinstance(i, I.BinOp):
         if i.dst.type == IT.F64 or i.op in ("ADD", "SUB", "MUL"):

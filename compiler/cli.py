@@ -234,7 +234,7 @@ def _dispatch(args) -> int:
                 from compiler.ir.verify import verify_module
 
                 verify_module(ir)
-            asm_text = driver.run_codegen(ir, target)
+            asm_text = driver.run_codegen(ir, target, level)
         if cmd == "asm":
             sys.stdout.write(asm_text)
             return EXIT_OK

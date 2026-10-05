@@ -53,13 +53,14 @@ def _programs() -> list[Path]:
     return chosen
 
 
-def _run_windows(tel: Path, level: int, monkeypatch) -> subprocess.CompletedProcess:
+def _run_windows(tel: Path, level: int, monkeypatch, src: str | None = None) -> subprocess.CompletedProcess:
     if not HOST_IS_WINDOWS:
         monkeypatch.setenv("DEVARA_RUNNER", os.environ.get("DEVARA_RUNNER") or "wine")
         monkeypatch.setenv("WINEDEBUG", "-all")
-    src = tel.read_bytes().decode("latin-1")
+    if src is None:
+        src = tel.read_bytes().decode("latin-1")
     stdin = tel.with_suffix(".in").read_bytes() if tel.with_suffix(".in").exists() else b""
-    asm = generate(to_ir(src, level), WINDOWS)
+    asm = generate(to_ir(src, level), WINDOWS, regalloc=level > 0)
     with tempfile.TemporaryDirectory(prefix="devara_win_") as tmp:
         exe = Path(tmp) / "prog.exe"
         driver.link_executable(asm, exe, WINDOWS)
@@ -108,3 +109,28 @@ def test_windows_abi_stress(monkeypatch):
             tel.write_text(src)
             p = _run_windows(tel, level, monkeypatch)
         assert p.stdout == b"1214\n214\n630\n", (level, p.stderr)
+
+
+def test_windows_callee_saved_xmm_are_saved_and_restored():
+    """Floats live across calls use xmm6-xmm15 on Win64 and the function preserves them for its caller."""
+    from tests.unit.test_regalloc import PROGRAMS
+
+    asm = generate(to_ir(PROGRAMS["floats_across_calls"][0], 1), WINDOWS, regalloc=True)
+    assert "movups XMMWORD PTR [rbp - " in asm
+    assert "sub rsp, 32" in asm
+
+
+@pytest.mark.parametrize("name", ["argument_cycles", "many_mixed_params", "floats_across_calls",
+                                  "pow2_division", "branchy_compares", "register_pressure_over_call"])
+def test_windows_register_allocated_programs_match_linux(name, monkeypatch):
+    """The -O1 register allocator under the Win64 ABI computes what the reference -O0 code computes."""
+    from tests.helpers.native import build_and_run
+    from tests.unit.test_regalloc import PROGRAMS
+
+    src = PROGRAMS[name][0]
+    expected = build_and_run(src, level=0)
+    assert expected[1] == 0
+    for level in (0, 1):
+        with tempfile.TemporaryDirectory(prefix="devara_win_") as tmp:
+            p = _run_windows(Path(tmp) / "x.tel", level, monkeypatch, src=src)
+        assert (p.stdout, p.returncode) == (expected[0], 0), (level, p.stderr)

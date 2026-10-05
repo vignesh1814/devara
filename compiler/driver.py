@@ -102,10 +102,11 @@ def run_opt(module, level: int):
     return optimize(module, level)
 
 
-def run_codegen(module, target=None) -> str:
+def run_codegen(module, target=None, level: int = 0) -> str:
+    """Assembly for ``module``; ``level`` 0 = stack-slot reference generator, >= 1 = register allocation."""
     from compiler.codegen.x86_64 import generate
 
-    return generate(module, target)
+    return generate(module, target, regalloc=level > 0)
 
 
 # ── Envelopes ──
