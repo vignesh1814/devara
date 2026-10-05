@@ -11,6 +11,7 @@ Safety rules enforced here:
 from __future__ import annotations
 
 import math
+import struct
 from collections import deque
 
 from compiler import arith
@@ -122,13 +123,27 @@ def fold_instr(i: I.Instr, const_of) -> I.Const | None:
 
 # ── pass: constant propagation + folding + branch simplification ──
 
+def _const_key(v):
+    """Identity of a constant value: floats compare by bit pattern, so +0.0 and
+    -0.0 stay distinct and NaN equals itself (no endless re-propagation)."""
+    if isinstance(v, I.Const):
+        return (v.type, _const_key(v.value))
+    if isinstance(v, float):
+        return ("f", struct.pack("<d", v))
+    return (type(v), v)
+
+
+def _env_key(env: dict) -> dict:
+    return {k: _const_key(v) for k, v in env.items()}
+
+
 def _meet_consts(envs: list[dict]) -> dict:
     if not envs:
         return {}
     out = dict(envs[0])
     for e in envs[1:]:
         for k in list(out):
-            if k not in e or e[k] != out[k]:
+            if k not in e or _const_key(e[k]) != _const_key(out[k]):
                 del out[k]
     return out
 
@@ -162,7 +177,7 @@ def const_prop(fn: I.IRFunction) -> bool:
         env = in_env(lab)
         for ins in by[lab].instrs:
             step(env, ins)
-        if out_env.get(lab) != env:
+        if lab not in out_env or _env_key(out_env[lab]) != _env_key(env):
             out_env[lab] = env
             for s in successors(by[lab].term):
                 work.append(s)
