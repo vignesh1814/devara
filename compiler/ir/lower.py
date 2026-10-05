@@ -135,6 +135,8 @@ class Lowerer:
         self.cur = blk
 
     def terminate(self, term: I.Terminator) -> None:
+        if self.cur is None:                  # unreachable code after ivvu/aapu/saagu
+            self.start(self.label("dead"))
         assert self.cur is not None
         self.cur.term = term
         self.cur = None
