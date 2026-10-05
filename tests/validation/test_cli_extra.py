@@ -68,12 +68,14 @@ def test_run_passes_program_exit_status_and_streams(tmp_path):
     assert r.rc == 1 and r.text == "before\n" and "division by zero" in r.err
 
 
-def test_run_does_not_leave_temp_files_behind():
-    before = {n for n in os.listdir("/tmp") if n.startswith("devara_")}
+def test_run_does_not_leave_temp_files_behind(tmp_path):
+    # a private TMPDIR: other processes (parallel test workers) also create devara_* dirs in /tmp
+    env = dict(os.environ, TMPDIR=str(tmp_path))
     for _ in range(3):
-        run_cli(["run", str(ROOT / "tests/corpus/arrays/003_reverse.tel")], b"1\n5\n")
-    after = {n for n in os.listdir("/tmp") if n.startswith("devara_")}
-    assert after <= before, f"leaked temp dirs: {after - before}"
+        p = subprocess.run([str(DEVARA), "run", str(ROOT / "tests/corpus/arrays/003_reverse.tel")],
+                           input=b"1\n5\n", capture_output=True, env=env)
+        assert p.returncode == 0, p.stderr
+    assert sorted(os.listdir(tmp_path)) == [], "leaked temp files"
 
 
 def test_parallel_runs_do_not_interfere():

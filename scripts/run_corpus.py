@@ -6,7 +6,10 @@ Layout: ``tests/corpus/<category>/NNN_name.tel`` with optional ``.in`` (stdin),
 default 0). Every program is compiled with ``./devara build`` and executed with
 a 10 s timeout. Writes ``build/corpus_report.json``.
 
-Usage: scripts/run_corpus.py [--corpus DIR] [-O0|-O1] [--target linux|windows] [--jobs N] [--timeout S]
+Programs are built and run in parallel (``concurrent.futures`` pool, default one worker per CPU).
+
+Usage: scripts/run_corpus.py [--corpus DIR] [-O0|-O1] [--target linux|windows] [-j N | --jobs N]
+                             [--timeout S] [--report FILE]
 
 Environment: ``DEVARA_CC`` (C compiler, e.g. x86_64-w64-mingw32-gcc) and ``DEVARA_RUNNER``
 (program prefix, e.g. ``wine``) are honoured, so a Windows-target corpus run on Linux is
@@ -99,9 +102,14 @@ def main() -> int:
     ap.add_argument("-O1", dest="opt", action="store_const", const="-O1")
     ap.add_argument("--target", choices=("linux", "windows"), default=None,
                     help="code-generation target (default: host OS)")
-    ap.add_argument("--jobs", type=int, default=4)
+    ap.add_argument("-j", "--jobs", type=int, default=os.cpu_count() or 1,
+                    help="parallel workers (default: CPU count = %(default)s)")
     ap.add_argument("--timeout", type=float, default=10.0)
+    ap.add_argument("--report", default=str(ROOT / "build" / "corpus_report.json"),
+                    help="where to write the JSON report")
     args = ap.parse_args()
+    if args.jobs < 1:
+        ap.error("--jobs must be at least 1")
 
     host_is_windows = os.name == "nt"
     if args.target and (args.target == "windows") != host_is_windows and not runner():
@@ -134,9 +142,9 @@ def main() -> int:
         "incorrect_output": counts["incorrect"], "timeout": counts["timeout"],
         "correct": counts["correct"], "opt_level": args.opt, "target": args.target or "host",
     }
-    (ROOT / "build").mkdir(exist_ok=True)
-    (ROOT / "build" / "corpus_report.json").write_text(
-        json.dumps({"stats": stats, "programs": records}, indent=2))
+    report = Path(args.report)
+    report.parent.mkdir(parents=True, exist_ok=True)
+    report.write_text(json.dumps({"stats": stats, "programs": records}, indent=2))
 
     print("Corpus statistics")
     print("-----------------")
