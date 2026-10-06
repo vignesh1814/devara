@@ -1,3 +1,6 @@
+* text=auto eol=lf
 *.cmd text eol=crlf
 devara text eol=lf
 *.sh text eol=lf
+# fixture that deliberately contains CRLF line endings
+docs/audit/A_programs/p03_crlf_ws_comments.* -text

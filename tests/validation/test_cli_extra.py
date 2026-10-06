@@ -3,6 +3,7 @@ import os
 import subprocess
 import threading
 import pytest
+from compiler import driver
 from tests.helpers.cli import DEVARA_CMD
 from tests.validation.helpers import run_cli, cli, prog, WORK, ROOT
 
@@ -18,7 +19,7 @@ def test_F001_build_to_unwritable_output_is_io_error_not_ice(tmp_path):
 def test_F001_build_output_is_a_directory_is_io_error(tmp_path):
     src = tmp_path / "a.tel"
     src.write_text("1 ni chupi\n")
-    d = tmp_path / "outdir"
+    d = driver.executable_path(tmp_path / "outdir")   # keep the name unchanged by the Windows '.exe' rule
     d.mkdir()
     p = run_cli(["build", str(src), "-o", str(d)])
     assert p.rc == 2, f"got {p.rc}: {p.err}"
@@ -38,7 +39,7 @@ def test_build_default_output_name_is_file_stem(tmp_path):
     src.write_text("42 ni chupi\n")
     p = subprocess.run([*DEVARA_CMD, "build", str(src)], cwd=tmp_path, capture_output=True)
     assert p.returncode == 0, p.stderr
-    exe = tmp_path / "hello_prog"
+    exe = driver.executable_path(tmp_path / "hello_prog")   # hello_prog.exe on the Windows target
     assert exe.exists() and os.access(exe, os.X_OK)
     assert subprocess.run([str(exe)], capture_output=True).stdout == b"42\n"
 

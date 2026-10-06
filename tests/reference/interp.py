@@ -737,7 +737,12 @@ def run_ast(ast_data, stdin: bytes = b"", max_steps: int | None = 5_000_000, str
     old_rec = sys.getrecursionlimit()
     old_stack = threading.stack_size()
     sys.setrecursionlimit(1_000_000)
-    threading.stack_size(1 << 29)
+    for mib in (512, 256, 64, 16):   # Windows rejects the largest sizes (same fallback as compiler/cli.py)
+        try:
+            threading.stack_size(mib << 20)
+            break
+        except (ValueError, RuntimeError):
+            continue
     try:
         t = threading.Thread(target=target)
         t.start()

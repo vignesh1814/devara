@@ -18,15 +18,15 @@ STAT_KEYS = ["total", "compiled", "failed_compilation", "executed", "runtime_fai
 
 def make_corpus(d: Path) -> Path:
     d.mkdir(parents=True)
-    (d / "001_ok.tel").write_text("1 + 2 ni chupi\n")
-    (d / "001_ok.out").write_text("3\n")
-    (d / "002_stdin.tel").write_text("int x\nx ni chaduvu\nx * 2 ni chupi\n")
-    (d / "002_stdin.in").write_text("21\n")
-    (d / "002_stdin.out").write_text("42\n")
-    (d / "003_wrong.tel").write_text("5 ni chupi\n")
-    (d / "003_wrong.out").write_text("6\n")
-    (d / "004_rt_error.tel").write_text("int d\nd lo 0 pettu\n1 / d ni chupi\n")
-    (d / "004_rt_error.exit").write_text("1\n")
+    (d / "001_ok.tel").write_text("1 + 2 ni chupi\n", newline="\n")
+    (d / "001_ok.out").write_text("3\n", newline="\n")
+    (d / "002_stdin.tel").write_text("int x\nx ni chaduvu\nx * 2 ni chupi\n", newline="\n")
+    (d / "002_stdin.in").write_text("21\n", newline="\n")
+    (d / "002_stdin.out").write_text("42\n", newline="\n")
+    (d / "003_wrong.tel").write_text("5 ni chupi\n", newline="\n")
+    (d / "003_wrong.out").write_text("6\n", newline="\n")
+    (d / "004_rt_error.tel").write_text("int d\nd lo 0 pettu\n1 / d ni chupi\n", newline="\n")
+    (d / "004_rt_error.exit").write_text("1\n", newline="\n")
     return d
 
 
@@ -51,7 +51,7 @@ def test_report_format_is_unchanged_and_counts_are_right(tmp_path):
 @pytest.mark.parametrize("jobs", ["1", "2", "8"])
 def test_results_do_not_depend_on_the_number_of_workers(tmp_path, jobs):
     c = make_corpus(tmp_path / "c")
-    (c / "003_wrong.out").write_text("5\n")
+    (c / "003_wrong.out").write_text("5\n", newline="\n")
     p = run(c, "-j", jobs, "-O0")
     assert p.returncode == 0, p.stdout + p.stderr
     assert "correct              4" in p.stdout

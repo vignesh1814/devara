@@ -35,8 +35,8 @@ Every fix will come with a regression test in `tests/regression/`, and the full 
 | # | Finding | Effort | Proposed fix |
 |---|---|---|---|
 | 12 | **F13** -O1 compiles about 10× slower than -O0 (52 s for 50,000 lines), with 45 verifications per function. | S | Iterate each function to its own fixed point and verify only the functions a pass changed, or verify once per round. Run the full verifier after every pass only under a debug flag. |
-| 13 | **F16** The Windows CI job failed during test collection (`os.geteuid`), so native Windows was never tested. | XS (done) | Collection fixed in this branch. Next, fix whatever the first real `windows-latest` run reports, and run `python scripts/check_machine.py` on the owner's Windows machine. |
-| 14 | **F14** Intermittent Windows-target test failure under parallel wine (UNCONFIRMED). | XS | Make the Windows test helper ignore known wine stderr noise (lines starting with `wine:` / `fixme:`), or set `WINEDEBUG=-all`, and capture the full failure if it recurs. |
+| 13 | **F16** The Windows CI job tested nothing (3 layers of test-side problems, all fixed in this branch). | XS (done) | See AUDIT_REPORT F16. Remaining: confirm the next `windows-latest` run is green including the corpus steps, and run `python scripts/check_machine.py` on the owner's Windows machine after the re-checkout described in HANDOFF item 4. |
+| 14 | **F14** Wine drops its server connection under parallel load (3 of 4 full-suite runs here had one failing Windows-target test). | XS | Retry a run once when the failure carries wine's connection-reset signature (empty stdout, stderr ending `reset by peer`); never retry on a mismatch of program output. |
 | 15 | Repository leftovers: `main.py`, the duplicated `examples/`, and `docs/DEVARA_STAGE_2_DESIGN_v1.1_FINAL (3).md`. | XS | Remove or rename them, and update references. |
 
 **Recommended order:** 1 → 2 → 3, then 11 (trivial), then 4 → 5 → 6, then 9 and 10, then 12. Items 7, 8 and 15 can be done whenever convenient.

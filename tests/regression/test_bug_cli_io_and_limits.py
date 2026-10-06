@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from compiler import driver
 from compiler.diagnostics import SemCategory as S
 from tests.unit.test_semantic import accept, reject
 from tests.helpers.cli import DEVARA_CMD
@@ -27,16 +28,21 @@ def test_bug_f001_build_to_missing_directory_is_io_error(src, tmp_path):
     out = tmp_path / "nope" / "out"
     r = dv("build", str(src), "-o", str(out))
     assert r.returncode == 2
-    assert r.stderr.strip() == f"{src}: error: cannot write output '{out}': No such file or directory"
+    written = driver.executable_path(out)   # 'out.exe' on the Windows target
+    assert r.stderr.strip() == f"{src}: error: cannot write output '{written}': No such file or directory"
     assert "internal compiler error" not in r.stderr
 
 
 def test_bug_f001_build_output_is_a_directory(src, tmp_path):
-    d = tmp_path / "d"
+    d = driver.executable_path(tmp_path / "d")   # keep the name unchanged by the Windows '.exe' rule
     d.mkdir()
     r = dv("build", str(src), "-o", str(d))
     assert r.returncode == 2
-    assert r.stderr.strip() == f"{src}: error: cannot write output '{d}': Is a directory"
+    msg = r.stderr.strip()
+    assert msg.startswith(f"{src}: error: cannot write output '{d}': ")
+    if os.name == "posix":
+        assert msg.endswith("Is a directory")   # Windows reports this as 'Permission denied'
+    assert "internal compiler error" not in msg
 
 
 @pytest.mark.skipif(os.name != "posix" or os.geteuid() == 0,

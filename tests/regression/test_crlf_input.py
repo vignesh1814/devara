@@ -10,7 +10,7 @@ CORPUS = Path(__file__).parent.parent / "corpus" / "misc"
 def test_crlf_input_matches_lf_input():
     tel = CORPUS / "108_input_kinds.tel"
     src = tel.read_bytes().decode("latin-1")
-    lf = tel.with_suffix(".in").read_bytes()
+    lf = tel.with_suffix(".in").read_bytes().replace(b"\r\n", b"\n")   # a CRLF checkout must not matter
     crlf = lf.replace(b"\n", b"\r\n")
     out_lf, rc_lf, _ = build_and_run(src, lf)
     out_crlf, rc_crlf, _ = build_and_run(src, crlf)

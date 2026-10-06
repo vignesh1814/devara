@@ -119,16 +119,18 @@ Benchmarks, best of 3 runs in seconds, with identical outputs. The C equivalents
 
 ## D. Test infrastructure
 
-* **F14: UNCONFIRMED, intermittent Windows-target failure under parallel wine.**
-  * `pytest -n 4 tests/validation/test_windows_target.py` was run 4 times:
-    * Run 1 had 1 failure. Wine printed its first-run configuration message on stderr, and the tests require empty stderr, so this is environment noise.
-    * Run 2 had 1 failure, `test_token_parsing_matches_reference[1e3-float--O0]`. Its message was not captured.
-    * Runs 3 and 4 passed 591/591.
-  * The 208 token tests from run 2 also all passed when run one at a time.
-  * The likely cause of run 2 is wine writing diagnostics to stderr under load, but this is not proven.
+* **F14: intermittent failures of the Windows-target tests under parallel wine (cause identified for one of them, environment only).**
+  * `pytest -n 4 tests/validation/test_windows_target.py` was run 7 times on its own. 5 runs passed 591/591. Run 1 failed because wine printed its first-run configuration message on stderr (the tests require empty stderr). Run 2 had one failing test, `test_token_parsing_matches_reference[1e3-float--O0]`, whose message was not captured.
+  * Of the 4 full-suite runs with the Windows toolchain installed, 3 had exactly one failing Windows-target test, a different one each time: one not identified, `test_deep_expression_trees[1--O1]` (message not captured), and `test_crlf_input_behaves_like_lf[types10-…--O0]`. The last one was captured: the failing run returned exit code 1 with empty stdout and a stderr that pytest truncates to `win…et by peer`, while the reference run of the same program printed the correct output. That is wine's connection to its server being reset under CPU load, not a Devara result. Every one of these tests passes when run alone.
+  * The other failures were not captured, so they are *consistent with* the same cause but not proven to be it.
+  * Not changed. A retry on that specific wine error signature in `tests/validation/stress_util.py` would remove the noise without hiding compiler failures (IMPROVEMENT_PLAN item 14).
 * **F15: informational, not a defect.** The reference interpreter prints `nan` where x86 hardware gives `-nan`. Q-004 permits either.
-* **F16: the Windows CI job never tested anything, which corrects HANDOFF's "CI never run".**
-  * GitHub Actions has run `.github/workflows/ci.yml` 34 times, and the recent runs are red. On `ea2f0bf` (run 37315965960), the Linux `fast` job passes, and the `windows` job fails during **test collection**: `tests/regression/test_bug_cli_io_and_limits.py:44` calls `os.geteuid()` at import time, and that function doesn't exist on Windows. So no Devara test has ever run natively on Windows in CI.
-  * The `tests/helpers/native.py` helper would also break on Windows, because `preexec_fn` is POSIX-only. It's used by 4 leak tests that set `max_vmem_mb`.
-  * **Both are fixed in this branch (test code only):** the permissions test now skips on non-POSIX systems, and the address-space cap is applied only on POSIX.
-  * The `windows-latest` result after the fix is recorded in the commit that follows this one.
+* **F16: the Windows CI job never tested anything until this audit. Fixed in this branch, three layers deep.**
+  * GitHub Actions has run `.github/workflows/ci.yml` 34 times before this branch, with the `windows` job red every time. This corrects HANDOFF's "CI never run".
+  * **Layer 1, collection** (run on `ea2f0bf`): `tests/regression/test_bug_cli_io_and_limits.py` calls `os.geteuid()` at import, which doesn't exist on Windows, so pytest aborted after 7 seconds. Also `tests/helpers/native.py` used the POSIX-only `preexec_fn`. Fixed in `3c4cdff`.
+  * **Layer 2, launching the compiler** (run on `3c4cdff`): 10 places in the tests executed the extensionless bash wrapper `devara` as a subprocess, which Windows can't do (`WinError 193`). 1,403 tests failed. `tests/helpers/cli.py` now provides `DEVARA_CMD` (`python -m compiler.cli` off POSIX), and all call sites use it. Fixed in `8c1a9ff`.
+  * **Layer 3, 29 remaining failures** (run 37525595755 on `8c1a9ff`: 2,468 passed natively, 29 failed). All were test or repo-configuration problems, with no compiler defect found:
+    * 20 tests: `threading.stack_size(1 << 29)` in `tests/reference/interp.py` is rejected by Windows. `compiler/cli.py` already has a fallback loop; the interpreter now uses the same one.
+    * 5 tests (3 corpus-runner, 1 CRLF-input, and the fixtures behind them): `Path.write_text` turns `\n` into `\r\n` on Windows, and a GitHub Windows checkout converts the repo's text files to CRLF. The corpus `.in`/`.out` files had no line-ending rule, so **any Windows clone with git's default `autocrlf=true` gets CRLF corpus files and wrong results from the corpus runner and `scripts/check_machine.py`**. `.gitattributes` now has `* text=auto eol=lf` (with `*.cmd` kept CRLF and the deliberate CRLF fixture `p03_crlf_ws_comments` excluded).
+    * 3 tests: the Windows target appends `.exe` to a suffix-less `-o` or default output name (`compiler/driver.py:189`), and the tests expected the bare name. They now use `driver.executable_path`.
+  * **Not yet verified:** the later `windows` job steps (`tests/integration/test_windows_target.py`, `scripts/run_corpus.py -O0` and `-O1`) were skipped because the pytest step failed first. The result of the run after the fix for layer 3 is recorded in the next commit.
