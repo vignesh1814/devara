@@ -2,12 +2,13 @@ import subprocess
 import sys
 from pathlib import Path
 
+from tests.helpers.cli import DEVARA_CMD
+
 ROOT = Path(__file__).resolve().parent.parent.parent
-DEVARA = str(ROOT / "devara")
 
 
 def run(*args, stdin=b""):
-    return subprocess.run([DEVARA, *args], capture_output=True, input=stdin)
+    return subprocess.run([*DEVARA_CMD, *args], capture_output=True, input=stdin)
 
 
 def test_lex_text_format():

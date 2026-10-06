@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -27,6 +28,8 @@ INT_MIN = -(1 << 63)
 INT_MAX = (1 << 63) - 1
 
 ROOT = Path(__file__).resolve().parents[2]
+# same as tests/helpers/cli.py (this file also runs standalone, outside the tests package)
+DEVARA_CMD = [str(ROOT / "devara")] if os.name == "posix" else [sys.executable, "-m", "compiler.cli"]
 
 
 # --------------------------------------------------------------------------- results / errors
@@ -748,7 +751,7 @@ def run_ast(ast_data, stdin: bytes = b"", max_steps: int | None = 5_000_000, str
 
 
 def parse_to_ast(path: str | Path):
-    p = subprocess.run([str(ROOT / "devara"), "parse", "--json", str(path)], capture_output=True)
+    p = subprocess.run([*DEVARA_CMD, "parse", "--json", str(path)], capture_output=True)
     if p.returncode != 0:
         raise ValueError("parse failed: " + p.stderr.decode(errors="replace"))
     return json.loads(p.stdout)["data"]

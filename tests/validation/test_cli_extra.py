@@ -3,7 +3,8 @@ import os
 import subprocess
 import threading
 import pytest
-from tests.validation.helpers import run_cli, cli, prog, WORK, DEVARA, ROOT
+from tests.helpers.cli import DEVARA_CMD
+from tests.validation.helpers import run_cli, cli, prog, WORK, ROOT
 
 
 def test_F001_build_to_unwritable_output_is_io_error_not_ice(tmp_path):
@@ -35,7 +36,7 @@ def test_directory_as_input_exit_2():
 def test_build_default_output_name_is_file_stem(tmp_path):
     src = tmp_path / "hello_prog.tel"
     src.write_text("42 ni chupi\n")
-    p = subprocess.run([str(DEVARA), "build", str(src)], cwd=tmp_path, capture_output=True)
+    p = subprocess.run([*DEVARA_CMD, "build", str(src)], cwd=tmp_path, capture_output=True)
     assert p.returncode == 0, p.stderr
     exe = tmp_path / "hello_prog"
     assert exe.exists() and os.access(exe, os.X_OK)
@@ -72,7 +73,7 @@ def test_run_does_not_leave_temp_files_behind(tmp_path):
     # a private TMPDIR: other processes (parallel test workers) also create devara_* dirs in /tmp
     env = dict(os.environ, TMPDIR=str(tmp_path))
     for _ in range(3):
-        p = subprocess.run([str(DEVARA), "run", str(ROOT / "tests/corpus/arrays/003_reverse.tel")],
+        p = subprocess.run([*DEVARA_CMD, "run", str(ROOT / "tests/corpus/arrays/003_reverse.tel")],
                            input=b"1\n5\n", capture_output=True, env=env)
         assert p.returncode == 0, p.stderr
     assert sorted(os.listdir(tmp_path)) == [], "leaked temp files"

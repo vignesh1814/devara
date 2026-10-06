@@ -9,13 +9,11 @@ import pytest
 
 from compiler.diagnostics import SemCategory as S
 from tests.unit.test_semantic import accept, reject
-
-ROOT = Path(__file__).parent.parent.parent
-DEVARA = str(ROOT / "devara")
+from tests.helpers.cli import DEVARA_CMD
 
 
 def dv(*args, cwd=None):
-    return subprocess.run([DEVARA, *args], capture_output=True, text=True, cwd=cwd)
+    return subprocess.run([*DEVARA_CMD, *args], capture_output=True, text=True, cwd=cwd)
 
 
 @pytest.fixture

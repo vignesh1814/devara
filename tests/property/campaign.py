@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from tests.property.proggen import generate  # noqa: E402
 from tests.reference.interp import run_ast, StepLimit  # noqa: E402
+from tests.helpers.cli import DEVARA_CMD  # noqa: E402
 import json  # noqa: E402
 
 work = ROOT / "build" / "campaign"
@@ -25,7 +26,7 @@ def one(seed, size):
     src, stdin = generate(seed, size)
     f = work / f"c{seed}.tel"
     f.write_text(src)
-    pr = subprocess.run([str(ROOT / "devara"), "parse", "--json", str(f)], capture_output=True)
+    pr = subprocess.run([*DEVARA_CMD, "parse", "--json", str(f)], capture_output=True)
     if pr.returncode != 0:
         return seed, "PARSE-FAIL " + pr.stderr.decode()[:200]
     try:
@@ -35,7 +36,7 @@ def one(seed, size):
     if ref.status != 0:
         return seed, f"REF-RUNTIME-ERROR {ref.error}"
     for opt in ("-O0", "-O1"):
-        r = subprocess.run([str(ROOT / "devara"), opt, "run", str(f)], input=stdin, capture_output=True, timeout=60)
+        r = subprocess.run([*DEVARA_CMD, opt, "run", str(f)], input=stdin, capture_output=True, timeout=60)
         if r.returncode != 0:
             return seed, f"{opt}: rc={r.returncode} {r.stderr.decode()[:300]}"
         if norm(r.stdout) != norm(ref.stdout):

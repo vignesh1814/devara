@@ -14,8 +14,9 @@ from pathlib import Path
 
 import pytest
 
+from tests.helpers.cli import DEVARA_CMD
+
 ROOT = Path(__file__).resolve().parents[2]
-DEVARA = ROOT / "devara"
 WORK = ROOT / "build" / "validation_work"
 WORK.mkdir(parents=True, exist_ok=True)
 
@@ -56,7 +57,7 @@ class Proc:
 
 
 def run_cli(args: list[str], stdin: bytes = b"", timeout: float = 120) -> Proc:
-    p = subprocess.run([str(DEVARA), *args], input=stdin, capture_output=True, timeout=timeout)
+    p = subprocess.run([*DEVARA_CMD, *args], input=stdin, capture_output=True, timeout=timeout)
     return Proc(p.returncode, p.stdout, p.stderr.decode("utf-8", "replace"))
 
 

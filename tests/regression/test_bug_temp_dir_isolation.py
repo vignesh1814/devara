@@ -4,10 +4,8 @@ The compiler honours TMPDIR, so the check uses a private one."""
 
 import os
 import subprocess
-from pathlib import Path
 
-ROOT = Path(__file__).parent.parent.parent
-DEVARA = str(ROOT / "devara")
+from tests.helpers.cli import DEVARA_CMD
 
 
 def test_bug_run_and_build_use_tmpdir_and_clean_up_after_themselves(tmp_path):
@@ -17,8 +15,8 @@ def test_bug_run_and_build_use_tmpdir_and_clean_up_after_themselves(tmp_path):
     src = tmp_path / "p.tel"
     src.write_text("1 + 2 ni chupi\n")
 
-    run = subprocess.run([DEVARA, "run", str(src)], capture_output=True, env=env)
-    build = subprocess.run([DEVARA, "build", str(src), "-o", str(tmp_path / "p.exe")],
+    run = subprocess.run([*DEVARA_CMD, "run", str(src)], capture_output=True, env=env)
+    build = subprocess.run([*DEVARA_CMD, "build", str(src), "-o", str(tmp_path / "p.exe")],
                            capture_output=True, env=env)
 
     assert (run.returncode, build.returncode) == (0, 0), (run.stderr, build.stderr)

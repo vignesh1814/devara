@@ -16,7 +16,8 @@ from pathlib import Path
 
 from tests.reference.interp import run_ast
 from tests.validation.astutil import ast as parse_ast
-from tests.validation.helpers import DEVARA, ROOT, WORK
+from tests.helpers.cli import DEVARA_CMD
+from tests.validation.helpers import ROOT, WORK
 
 MINGW = "x86_64-w64-mingw32-gcc"
 HAVE_WINDOWS_TOOLS = shutil.which(MINGW) is not None and shutil.which("wine") is not None
@@ -46,7 +47,7 @@ def devara(args, stdin: bytes = b"", env: dict | None = None, timeout: float = 3
     e = dict(os.environ)
     if env:
         e.update(env)
-    p = subprocess.run([str(DEVARA), *args], input=stdin, capture_output=True, timeout=timeout, env=e)
+    p = subprocess.run([*DEVARA_CMD, *args], input=stdin, capture_output=True, timeout=timeout, env=e)
     return Out(p.returncode, p.stdout, p.stderr.decode("utf-8", "replace"))
 
 

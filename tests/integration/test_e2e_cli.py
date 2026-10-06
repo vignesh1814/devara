@@ -2,18 +2,17 @@
 
 import os
 import subprocess
-from pathlib import Path
 
 import pytest
 
-ROOT = Path(__file__).parent.parent.parent
-DEVARA = str(ROOT / "devara")
+from tests.helpers.cli import DEVARA_CMD
+
 
 pytestmark = pytest.mark.slow
 
 
 def dv(*args, stdin=b"", cwd=None):
-    return subprocess.run([DEVARA, *args], input=stdin, capture_output=True, cwd=cwd)
+    return subprocess.run([*DEVARA_CMD, *args], input=stdin, capture_output=True, cwd=cwd)
 
 
 HELLO = 'int n\nn ni chaduvu\nprati i 0 nundi n varaku { i * i ni chupi }\n"done" ni chupi\n'

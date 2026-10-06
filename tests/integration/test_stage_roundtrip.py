@@ -9,9 +9,9 @@ import pytest
 
 from compiler import driver, serialize
 from compiler.diagnostics import SemCategory as S
+from tests.helpers.cli import DEVARA_CMD
 
 ROOT = Path(__file__).parent.parent.parent
-DEVARA = str(ROOT / "devara")
 FILES = sorted(
     glob.glob(str(ROOT / "tests" / "**" / "*.tel"), recursive=True)
     + glob.glob(str(ROOT / "examples" / "*.tel"))
@@ -50,7 +50,7 @@ def test_sema_accepts_or_rejects_with_expected_categories(filepath):
 def test_cli_json_stage_chain(filepath, tmp_path):
     """lex --json -> parse --json -> sema, via files; equals the direct run."""
     def run(*a):
-        return subprocess.run([DEVARA, *a], capture_output=True, text=True)
+        return subprocess.run([*DEVARA_CMD, *a], capture_output=True, text=True)
 
     tok = tmp_path / "t.json"
     ast = tmp_path / "a.json"
@@ -71,7 +71,7 @@ def test_cli_json_stage_chain(filepath, tmp_path):
 def test_cli_semantic_error_format_and_status(tmp_path):
     f = tmp_path / "e.tel"
     f.write_text('int x\nx lo "s" pettu\n')
-    r = subprocess.run([DEVARA, "sema", str(f)], capture_output=True, text=True)
+    r = subprocess.run([*DEVARA_CMD, "sema", str(f)], capture_output=True, text=True)
     assert r.returncode == 1
     assert r.stderr.strip() == (
         f"{f}:2:6: semantic error [TYPE_MISMATCH]: cannot convert padham to int in assignment"
@@ -81,7 +81,7 @@ def test_cli_semantic_error_format_and_status(tmp_path):
 def test_deeply_nested_input_via_cli(tmp_path):
     f = tmp_path / "deep.tel"
     f.write_text("(" * 3000 + "1" + ")" * 3000 + " ni chupi\n")
-    r = subprocess.run([DEVARA, "parse", str(f)], capture_output=True, text=True)
+    r = subprocess.run([*DEVARA_CMD, "parse", str(f)], capture_output=True, text=True)
     assert r.returncode == 0, r.stderr[-300:]
 
 
@@ -89,7 +89,7 @@ def test_ir_json_feeds_opt_and_matches_direct_run(tmp_path):
     src = tmp_path / "p.tel"
     src.write_text("int a\na lo 2 * 3 pettu\na ni chupi\nnijam ayite { 1 ni chupi }\n")
     def run(*a):
-        return subprocess.run([DEVARA, *a], capture_output=True, text=True)
+        return subprocess.run([*DEVARA_CMD, *a], capture_output=True, text=True)
     r = run("ir", "--json", str(src))
     assert r.returncode == 0, r.stderr
     j = tmp_path / "p.json"
