@@ -35,7 +35,7 @@ Every fix will come with a regression test in `tests/regression/`, and the full 
 | # | Finding | Effort | Proposed fix |
 |---|---|---|---|
 | 12 | **F13** -O1 compiles about 10× slower than -O0 (52 s for 50,000 lines), with 45 verifications per function. | S | Iterate each function to its own fixed point and verify only the functions a pass changed, or verify once per round. Run the full verifier after every pass only under a debug flag. |
-| 13 | **F16** The Windows CI job tested nothing (3 layers of test-side problems, all fixed in this branch). | XS (done) | See AUDIT_REPORT F16. Remaining: confirm the next `windows-latest` run is green including the corpus steps, and run `python scripts/check_machine.py` on the owner's Windows machine after the re-checkout described in HANDOFF item 4. |
+| 13 | **F16** The Windows CI job tested nothing (3 layers of test-side problems, all fixed in this branch). | XS (done) | See AUDIT_REPORT F16. The `windows-latest` run is green, including the corpus steps. Remaining: run `python scripts/check_machine.py` on the owner's Windows machine after the re-checkout described in HANDOFF item 4. |
 | 14 | **F14** Wine drops its server connection under parallel load (3 of 4 full-suite runs here had one failing Windows-target test). | XS | Retry a run once when the failure carries wine's connection-reset signature (empty stdout, stderr ending `reset by peer`); never retry on a mismatch of program output. |
 | 15 | Repository leftovers: `main.py`, the duplicated `examples/`, and `docs/DEVARA_STAGE_2_DESIGN_v1.1_FINAL (3).md`. | XS | Remove or rename them, and update references. |
 
