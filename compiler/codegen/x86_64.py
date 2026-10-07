@@ -455,10 +455,10 @@ def generate(module: I.IRModule, target: "Target | str | None" = None, regalloc:
     out = tg.preamble()
     if regalloc:
         from compiler.codegen.peephole import peephole
-        from compiler.codegen.prep import prepare_function, promote_globals
+        from compiler.codegen.prep import hoist_array_bases, prepare_function, promote_globals
         from compiler.codegen.x86_64_ra import RAFunctionGen
 
-        module = promote_globals(module)
+        module = hoist_array_bases(promote_globals(module))
         for k, fn in enumerate(module.functions):
             out += peephole(RAFunctionGen(prepare_function(fn), k, strings, tg).generate())
             out.append("")

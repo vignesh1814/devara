@@ -4,6 +4,7 @@
   ``$entry`` function touches, and only through direct ``load``/``store``, become virtual
   registers of ``$entry``. Top-level programs keep all their variables in globals; without this
   every access would be a memory operation.
+* :func:`hoist_array_bases` -- keep the address of a static global array in a register (audit F10).
 * :func:`prepare_function` -- on a private copy: merge ``t = op ...; x = copy t`` into
   ``x = op ...``, fold ``ptradd`` into the addressing mode of its single load/store, and fuse a
   trailing ``cmp`` into its ``branch``.
@@ -241,6 +242,49 @@ def _fuse_cmp_branch(fn: I.IRFunction) -> None:
                 and lir.operand_type(last.a) != IT.STR:
             b.instrs.pop()
             b.term = lir.CmpBranch(last.cond, last.a, last.b, t.then_target, t.else_target)
+
+
+# ── hoisting of static-array base addresses (audit F10) ──
+#
+# The address of a static global array is a link-time constant that x86-64 can only materialise with
+# ``lea reg, [rip + sym]`` (RIP-relative addressing takes no index register), so every element access
+# in a loop re-did it. A function that uses such a base more than once, or inside a loop, now copies it
+# into a register once at entry; the allocator keeps it there when the loop weights justify it, and
+# spills it (a reload instead of the ``lea``) when registers run out.
+
+def _hoist_bases(fn: I.IRFunction, static: frozenset[str]) -> I.IRFunction:
+    succ, _ = _cfg(fn)
+    in_cycle = {b.label for b in fn.blocks if b.label in _reachable_from_succs(b.label, succ)}
+    uses: dict[str, int] = {}
+    looped: set[str] = set()
+    for b in fn.blocks:
+        for i in b.instrs:
+            if isinstance(i, I.PtrAdd) and isinstance(i.base, I.GlobalRef) and i.base.name in static:
+                uses[i.base.name] = uses.get(i.base.name, 0) + 1
+                if b.label in in_cycle:
+                    looped.add(i.base.name)
+    chosen = [n for n, k in uses.items() if k >= 2 or n in looped]
+    if not chosen:
+        return fn
+    fn = copy.deepcopy(fn)
+    regs = {n: I.Reg(f"{n}.base", IT.ADDR) for n in chosen}
+    for b in fn.blocks:
+        for i in b.instrs:
+            if isinstance(i, I.PtrAdd) and isinstance(i.base, I.GlobalRef) and i.base.name in regs:
+                i.base = regs[i.base.name]
+    fn.blocks[0].instrs[:0] = [I.Copy(regs[n], I.GlobalRef(n)) for n in chosen]
+    return fn
+
+
+def hoist_array_bases(module: I.IRModule) -> I.IRModule:
+    """Return ``module`` with static-array base addresses held in registers (or ``module`` itself)."""
+    static = frozenset(g.name for g in module.globals if g.kind == "array_static")
+    if not static:
+        return module
+    funcs = [_hoist_bases(f, static) for f in module.functions]
+    if all(a is b for a, b in zip(funcs, module.functions)):
+        return module
+    return I.IRModule(module.globals, funcs)
 
 
 # ── shrink-wrapping of call-crossing parameters (audit F7) ──

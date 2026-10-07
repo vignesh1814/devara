@@ -51,13 +51,27 @@ def devara(args, stdin: bytes = b"", env: dict | None = None, timeout: float = 3
     return Out(p.returncode, p.stdout, p.stderr.decode("utf-8", "replace"))
 
 
+WINE_RETRIES = 3
+
+
+def is_wine_transport_error(p: "Out") -> bool:
+    """wine losing its connection to its server under load ("...Connection reset by peer"): the program
+    never ran, so it says nothing about the compiler. No Devara program or diagnostic prints this."""
+    return p.rc != 0 and "reset by peer" in p.err.lower()
+
+
 @lru_cache(maxsize=2048)
 def _run_cached(src: str, opt: str, stdin: bytes, target: str | None, envkey: tuple) -> Out:
     args = ["run"]
     if target:
         args += ["--target", target]
     args += [opt, src_path(src)]
-    return devara(args, stdin, dict(envkey))
+    p = devara(args, stdin, dict(envkey))
+    for _ in range(WINE_RETRIES if target == "windows" else 0):
+        if not is_wine_transport_error(p):
+            break
+        p = devara(args, stdin, dict(envkey))      # a failed attempt is never cached: only the final result is
+    return p
 
 
 def run(src: str, opt: str = "-O1", stdin: bytes = b"", target: str | None = None, env: dict | None = None) -> Out:

@@ -64,7 +64,13 @@ def _run_windows(tel: Path, level: int, monkeypatch, src: str | None = None) -> 
     with tempfile.TemporaryDirectory(prefix="devara_win_") as tmp:
         exe = Path(tmp) / "prog.exe"
         driver.link_executable(asm, exe, WINDOWS)
-        return driver.run_executable(exe, WINDOWS, input=stdin, capture_output=True, timeout=60)
+        for _ in range(4):
+            p = driver.run_executable(exe, WINDOWS, input=stdin, capture_output=True, timeout=60)
+            # wine losing its server connection under load ("...Connection reset by peer") means the program
+            # never ran; retry that, and only that (audit F14)
+            if not (p.returncode != 0 and b"reset by peer" in p.stderr.lower()):
+                break
+        return p
 
 
 @pytest.mark.parametrize("level", [0, 1])

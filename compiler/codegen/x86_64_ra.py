@@ -513,6 +513,11 @@ class RAFunctionGen:
                     self.e(f"lea {D}, [{la[1]} {'-' if imm < 0 else '+'} {abs(imm)}]")
                     self.emit_move(ld, dreg)
                     return
+        if op == "MUL" and lb[0] == "i" and _fits32(lb[1]) and la[0] in ("r", "m"):
+            # three-operand imul reads the source in place: no copy into the destination first
+            self.e(f"imul {D}, {la[1] if la[0] == 'r' else mem(la[1])}, {lb[1]}")
+            self.emit_move(ld, dreg)
+            return
         self.emit_move(dreg, la)
         if lb[0] == "r":
             B = lb[1]
