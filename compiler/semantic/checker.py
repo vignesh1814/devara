@@ -27,6 +27,15 @@ _PRIM_OF = {
 PODAVU = "podavu"
 
 
+
+# source spelling of each operator, for diagnostics
+_BINARY_SPELLING = {
+    A.BinaryOp.ADD: "+", A.BinaryOp.SUB: "-", A.BinaryOp.MUL: "*", A.BinaryOp.DIV: "/", A.BinaryOp.MOD: "%",
+    A.BinaryOp.LT: "<", A.BinaryOp.GT: ">", A.BinaryOp.LE: "<=", A.BinaryOp.GE: ">=",
+    A.BinaryOp.EQ: "==", A.BinaryOp.NE: "!=", A.BinaryOp.AND: "&&", A.BinaryOp.OR: "||",
+}
+_UNARY_SPELLING = {A.UnaryOp.NOT: "!", A.UnaryOp.NEGATE: "-", A.UnaryOp.POSITIVE: "+"}
+
 class Scope:
     def __init__(self, parent: "Scope | None", depth: int) -> None:
         self.parent = parent
@@ -249,6 +258,15 @@ class Checker:
             for c, de in zip(consts, d.type.array_dimensions):
                 if c is not None and c < 1:
                     self.err(S.INVALID_ARRAY_SIZE, f"array dimension must be at least 1, got {c}", de.span)
+                    bad = True
+            if not bad:
+                count = 1
+                for c in consts:
+                    count *= c
+                if count > arith.INT64_MAX // 8:   # 8 bytes per element must be representable
+                    self.err(S.INVALID_ARRAY_SIZE,
+                             f"array has {count} elements, more than the supported maximum {arith.INT64_MAX // 8}",
+                             d.type.array_dimensions[0].span)
                     bad = True
         typ = ArrayType(base, len(d.type.array_dimensions)) if d.type.array_dimensions else base
         if bad and base == VOID:
@@ -616,7 +634,7 @@ class Checker:
         if o.type == ERROR:
             return o
         if o.type == PADHAM:
-            self.err(S.INVALID_OPERAND, "operator cannot be applied to padham", e.span)
+            self.err(S.INVALID_OPERAND, f"operator '{_UNARY_SPELLING[e.operator]}' cannot be applied to padham", e.span)
             return self.err_expr(e.span)
         if e.operator == A.UnaryOp.NOT:
             ob = self.to_type(o, BOOL, explicit=False)
@@ -666,7 +684,7 @@ class Checker:
             if lt == PADHAM and rt == PADHAM and op in (A.BinaryOp.ADD, A.BinaryOp.EQ, A.BinaryOp.NE):
                 return T.TBinary(span=e.span, type=PADHAM if op == A.BinaryOp.ADD else BOOL,
                                  op=op, left=l, right=r)
-            self.err(S.INVALID_OPERAND, f"operator {op.value} cannot be applied to {lt} and {rt}", e.span)
+            self.err(S.INVALID_OPERAND, f"operator '{_BINARY_SPELLING[op]}' cannot be applied to {lt} and {rt}", e.span)
             return self.err_expr(e.span)
         pt = promote(lt, rt)
         if op == A.BinaryOp.MOD and (not is_integral(lt) or not is_integral(rt)):

@@ -16,6 +16,10 @@ try:                                  # constant-size arrays up to this size liv
 except ImportError:                   # pragma: no cover - back end without a frame policy
     FRAME_ARRAY_LIMIT = 64 * 1024
 
+# A constant-size global array bigger than this is allocated on the heap when its declaration runs,
+# like a run-time-sized one: static storage would overflow the 2 GiB relocation range of .bss.
+STATIC_GLOBAL_LIMIT = 256 * 1024 * 1024
+
 IT = I.IRType
 
 NULL_STR = "null.str"      # global that is never written: loads yield NULL, the empty padham
@@ -123,11 +127,12 @@ class Lowerer:
                 d = decls[sid]
                 consts = [const_eval(x) for x in d.dims]
                 elem = irtype(sym.type.element)
+                count = 1
                 if all(c is not None for c in consts):
+                    for c in consts:
+                        count *= int(c)
+                if all(c is not None for c in consts) and count * 8 <= STATIC_GLOBAL_LIMIT:
                     dims = [int(c) for c in consts]
-                    count = 1
-                    for x in dims:
-                        count *= x
                     self.globals.append(I.IRGlobal(sym.name, elem, "array_static", count))
                     self.garrays[sid] = ArrInfo("static", sym.name, None,
                                                 [I.Const(IT.I64, x) for x in dims])
@@ -406,8 +411,11 @@ class Lowerer:
                 self.emit(I.RtCall(None, "dv_rt_checkdim", [d]))
         total: I.Operand = dims[0]
         for d in dims[1:]:
+            if isinstance(total, I.Const) and isinstance(d, I.Const):
+                total = I.Const(IT.I64, total.value * d.value)    # sema bounds constant products (no wrap)
+                continue
             t = self.temp(IT.I64)
-            self.emit(I.BinOp("MUL", t, total, d))
+            self.emit(I.RtCall(t, "dv_rt_mulcheck", [total, d]))   # overflow -> "invalid array size"
             total = t
         base = self.temp(IT.ADDR)
         # Small constant-size local arrays live in the stack frame (NewArray with a constant

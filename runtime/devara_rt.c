@@ -56,12 +56,32 @@ static void fail(const char *msg) {
     exit(1);
 }
 
+static void *xmalloc(size_t n) {
+    void *p = malloc(n ? n : 1);
+    if (!p) fail("out of memory");
+    return p;
+}
+
+static void *xrealloc(void *old, size_t n) {
+    void *p = realloc(old, n ? n : 1);
+    if (!p) fail("out of memory");
+    return p;
+}
+
 void dv_rt_trap_div0(void)   { fail("division by zero"); }
 void dv_rt_trap_rem0(void)   { fail("remainder by zero"); }
 void dv_rt_trap_divovf(void) { fail("integer overflow in division"); }
 
 void dv_rt_checkdim(int64_t n) {
     if (n < 1) fail("invalid array size");
+}
+
+/* Element count of a multi-dimensional array: a * b, both >= 1 (dv_rt_checkdim). Fails when the
+ * product or its size in bytes (8 per element) cannot be represented. */
+int64_t dv_rt_mulcheck(int64_t a, int64_t b) {
+    int64_t r;
+    if (__builtin_mul_overflow(a, b, &r) || r > INT64_MAX / 8) fail("invalid array size");
+    return r;
 }
 
 void *dv_rt_newarray(int64_t n) {
@@ -140,7 +160,7 @@ static void in_unget(int c) {
     if (c == EOF) return;
     if (npush == cap_push) {
         cap_push = cap_push ? cap_push * 2 : 64;
-        pushback = realloc(pushback, cap_push * sizeof(int));
+        pushback = xrealloc(pushback, cap_push * sizeof(int));
     }
     pushback[npush++] = c;
 }
@@ -152,9 +172,9 @@ static char *read_token(size_t *len_out) {
     do { c = in_get(); } while (c != EOF && is_space(c));
     if (c == EOF) fail("invalid input");
     size_t cap = 64, n = 0;
-    char *buf = malloc(cap);
+    char *buf = xmalloc(cap);
     while (c != EOF && !is_space(c)) {
-        if (n + 2 > cap) { cap *= 2; buf = realloc(buf, cap); }
+        if (n + 2 > cap) { cap *= 2; buf = xrealloc(buf, cap); }
         buf[n++] = (char)c;
         c = in_get();
     }
@@ -213,8 +233,7 @@ int64_t dv_rt_input_char(void) {
 
 /* A fresh owned (+1) string of n bytes copied from p. */
 static dv_str *make_str(const char *p, int64_t n) {
-    dv_str *s = malloc(sizeof(dv_str) + (size_t)n + 1);
-    if (!s) fail("out of memory");
+    dv_str *s = xmalloc(sizeof(dv_str) + (size_t)n + 1);
     live_strings++;
     s->refcnt = 1;
     s->len = n;
@@ -227,12 +246,12 @@ dv_str *dv_rt_input_str(void) {
     if (after_token) {
         /* skip the rest of the current line if it only holds whitespace (P9) */
         size_t cap = 16, ns = 0;
-        int *saved = malloc(cap * sizeof(int));
+        int *saved = xmalloc(cap * sizeof(int));
         int c;
         for (;;) {
             c = in_get();
             if (c == ' ' || c == '\t' || c == '\r' || c == '\v' || c == '\f') {
-                if (ns == cap) { cap *= 2; saved = realloc(saved, cap * sizeof(int)); }
+                if (ns == cap) { cap *= 2; saved = xrealloc(saved, cap * sizeof(int)); }
                 saved[ns++] = c;
                 continue;
             }
@@ -247,9 +266,9 @@ dv_str *dv_rt_input_str(void) {
     int c = in_get();
     if (c == EOF) fail("invalid input");
     size_t cap = 64, n = 0;
-    char *buf = malloc(cap);
+    char *buf = xmalloc(cap);
     while (c != EOF && c != '\n') {
-        if (n + 2 > cap) { cap *= 2; buf = realloc(buf, cap); }
+        if (n + 2 > cap) { cap *= 2; buf = xrealloc(buf, cap); }
         buf[n++] = (char)c;
         c = in_get();
     }
@@ -269,8 +288,7 @@ typedef struct dv_lit { int64_t len; char bytes[]; } dv_lit;
 
 dv_str *dv_rt_strlit(const dv_lit *lit) {
     int64_t n = lit->len;
-    dv_str *s = malloc(sizeof(dv_str) + (size_t)n + 1);
-    if (!s) fail("out of memory");
+    dv_str *s = xmalloc(sizeof(dv_str) + (size_t)n + 1);
     s->refcnt = DV_IMMORTAL;
     s->len = n;
     if (n) memcpy(s->bytes, lit->bytes, (size_t)n);
@@ -282,8 +300,7 @@ dv_str *dv_rt_strcat(dv_str *a, dv_str *b) {
     int64_t la = slen(a), lb = slen(b);
     if (lb == 0) { dv_rt_retain(a); return a; }     /* x + "": share; still an owned reference */
     if (la == 0) { dv_rt_retain(b); return b; }
-    dv_str *s = malloc(sizeof(dv_str) + (size_t)(la + lb) + 1);
-    if (!s) fail("out of memory");
+    dv_str *s = xmalloc(sizeof(dv_str) + (size_t)(la + lb) + 1);
     live_strings++;
     s->refcnt = 1;
     s->len = la + lb;

@@ -400,6 +400,8 @@ class Interp:
         total = 1
         for x in dims:
             total *= x
+        if total > INT_MAX // 8:        # element count or its byte size is not representable
+            raise RuntimeErr("invalid array size")
         return Arr(elem, dims, [ZERO[elem]] * total)
 
     def exec_decl(self, d, top=False):

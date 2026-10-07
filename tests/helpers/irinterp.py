@@ -264,6 +264,11 @@ class Interp:
         elif name == "dv_rt_checkdim":
             if a[0] < 1:
                 raise RuntimeFailure("invalid array size")
+        elif name == "dv_rt_mulcheck":
+            r = a[0] * a[1]
+            if r > arith.INT64_MAX // 8:
+                raise RuntimeFailure("invalid array size")
+            return r
         elif name == "dv_rt_newarray":
             if a[0] < 1:
                 raise RuntimeFailure("invalid array size")
