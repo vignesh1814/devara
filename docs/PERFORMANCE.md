@@ -55,3 +55,18 @@ fib(32) by call/return overhead, where the stack-slot code already benefits from
 they gain less than 3x. Absolute times are for the sizes fixed by the task and are short, so expect
 noise of a few milliseconds. Timings under wine are dominated by wine's ~2.4 s process start-up and are
 not meaningful.
+
+## Compile time
+
+`devara -O1 asm` on generated programs made of many small functions (`docs/audit/repro/compile_scaling.py`);
+`-O0` is about 0.09 ms per line throughout. Times in seconds on one machine, before and after audit item F13
+(each function now runs to its own fixed point and is verified only after a pass that changed it; the IR is
+cloned instead of deep-copied; passes detect changes with structural keys instead of `repr`):
+
+| lines | before | after |
+|---:|---:|---:|
+| 5,000 | 3.8 | 1.5 |
+| 20,000 | 17.6 | 6.6 |
+
+The generated assembly is byte-identical before and after.
+

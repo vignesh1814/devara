@@ -28,6 +28,19 @@ def check_module(m: I.IRModule) -> list[str]:
     return errs
 
 
+def module_context(m: I.IRModule) -> tuple[dict, set]:
+    """(function signatures, global names) for checking single functions of ``m``; optimization
+    passes never change signatures or globals, so it stays valid while they run."""
+    return {f.name: ([p.type for p in f.params], f.ret) for f in m.functions}, {g.name for g in m.globals}
+
+
+def verify_function(f: I.IRFunction, ctx: tuple[dict, set]) -> None:
+    errs: list[str] = []
+    _check_function(f, ctx[0], ctx[1], errs)
+    if errs:
+        raise InternalCompilerError("IR verification failed:\n  " + "\n  ".join(errs))
+
+
 def verify_module(m: I.IRModule) -> None:
     errs = check_module(m)
     if errs:

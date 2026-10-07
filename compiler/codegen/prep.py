@@ -12,8 +12,6 @@
 
 from __future__ import annotations
 
-import copy
-
 from compiler.codegen import lir
 from compiler.ir import ir as I
 from compiler.ir import util
@@ -113,7 +111,7 @@ def promote_globals(module: I.IRModule) -> I.IRModule:
 
 
 def _rewrite(module: I.IRModule, chosen, types):
-    out = copy.deepcopy(module)
+    out = I.clone_module(module)
     fn = next(f for f in out.functions if f.name == I.ENTRY_FUNCTION)
     regs = {n: I.Reg(f"@g.{n}", next(iter(types[n]))) for n in chosen}
     for b in fn.blocks:
@@ -266,7 +264,7 @@ def _hoist_bases(fn: I.IRFunction, static: frozenset[str]) -> I.IRFunction:
     chosen = [n for n, k in uses.items() if k >= 2 or n in looped]
     if not chosen:
         return fn
-    fn = copy.deepcopy(fn)
+    fn = I.clone_function(fn)
     regs = {n: I.Reg(f"{n}.base", IT.ADDR) for n in chosen}
     for b in fn.blocks:
         for i in b.instrs:
@@ -418,7 +416,7 @@ def _wrap_calls(fn: I.IRFunction) -> None:
 
 
 def prepare_function(fn: I.IRFunction) -> I.IRFunction:
-    fn = copy.deepcopy(fn)
+    fn = I.clone_function(fn)
     _wrap_calls(fn)
     _coalesce_copies(fn)
     _fold_addressing(fn)

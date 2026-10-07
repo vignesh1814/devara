@@ -18,7 +18,7 @@ from compiler import arith
 from compiler.ir import ir as I
 from compiler.ir.runtime import PURE
 from compiler.ir.util import (
-    defs, map_operands, map_term_operands, successors, term_uses, uses,
+    defs, map_operands, map_term_operands, operand_fields, successors, term_uses, uses,
 )
 
 IT = I.IRType
@@ -133,6 +133,27 @@ def _const_key(v):
     return (type(v), v)
 
 
+def _okey(o):
+    """Structural identity of an operand (floats by bit pattern, so +0.0 and -0.0 differ)."""
+    if isinstance(o, I.Reg):
+        return ("r", o.name)
+    if isinstance(o, I.Const):
+        return ("c", _const_key(o))
+    return ("g", o.name)
+
+
+def _operand_keys(i: I.Instr) -> tuple:
+    return tuple(_okey(getattr(i, n)) for n in operand_fields(i)) + tuple(_okey(a) for a in getattr(i, "args", ()))
+
+
+def _term_keys(t: I.Terminator) -> tuple:
+    if isinstance(t, I.Branch):
+        return (_okey(t.cond),)
+    if isinstance(t, I.Return) and t.value is not None:
+        return (_okey(t.value),)
+    return ()
+
+
 def _env_key(env: dict) -> dict:
     return {k: _const_key(v) for k, v in env.items()}
 
@@ -189,28 +210,31 @@ def const_prop(fn: I.IRFunction) -> bool:
         env = in_env(b.label)
         new_instrs: list[I.Instr] = []
         for ins in b.instrs:
-            before = repr(ins)
+            before = _operand_keys(ins)
             map_operands(ins, lambda o: _subst(o, env))
             d = defs(ins)
+            if _operand_keys(ins) != before:
+                changed = True
             if d is not None and not isinstance(ins, I.Copy):
                 c = fold_instr(ins, lambda o: _const(o, env))
                 if c is not None:
                     ins = I.Copy(d, c)
-            if repr(ins) != before:
-                changed = True
+                    changed = True
             step(env, ins)
             new_instrs.append(ins)
         b.instrs = new_instrs
-        before = repr(b.term)
+        before_t = _term_keys(b.term)
         map_term_operands(b.term, lambda o: _subst(o, env))
+        if _term_keys(b.term) != before_t:
+            changed = True
         if isinstance(b.term, I.Branch):
             if isinstance(b.term.cond, I.Const):
                 tgt = b.term.then_target if b.term.cond.value else b.term.else_target
                 b.term = I.Jump(tgt)
+                changed = True
             elif b.term.then_target == b.term.else_target:
                 b.term = I.Jump(b.term.then_target)
-        if repr(b.term) != before:
-            changed = True
+                changed = True
     return changed
 
 
@@ -288,14 +312,14 @@ def copy_prop(fn: I.IRFunction) -> bool:
             continue
         env = meet(b.label)
         for ins in b.instrs:
-            before = repr(ins)
+            before = _operand_keys(ins)
             map_operands(ins, lambda o: subst(o, env))
-            if repr(ins) != before:
+            if _operand_keys(ins) != before:
                 changed = True
             step(env, ins)
-        before = repr(b.term)
+        before_t = _term_keys(b.term)
         map_term_operands(b.term, lambda o: subst(o, env))
-        if repr(b.term) != before:
+        if _term_keys(b.term) != before_t:
             changed = True
     return changed
 

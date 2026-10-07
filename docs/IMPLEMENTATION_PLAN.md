@@ -4,7 +4,7 @@
 **Authoritative sources (in order):**
 1. `docs/DEVARA_LANGUAGE_SPEC_v0.7.md` (canonical language)
 2. `docs/DEVARA_REMAINING_STAGES_THEORETICAL_DESIGN_v7.md` (Stages 3–6, frozen decisions L1–L49, AST contract §3.5, diagnostics §3.6, recovery §3.7)
-3. `docs/DEVARA_STAGE_2_DESIGN_v1.1_FINAL (3).md` (parser design)
+3. `docs/DEVARA_STAGE_2_DESIGN_v1.1_FINAL.md` (parser design)
 4. **This document** — resolves the remaining gaps (decisions `P1…`). Where this
    document and 1–3 disagree, 1–3 win, and the disagreement must be reported.
 
@@ -377,3 +377,16 @@ Binding from now on. These rulings refine §C; they do not change any frozen L-d
 | P41 | **Targets.** `--target linux` (System V, ELF) and `--target windows` (Microsoft x64 ABI, PE/COFF, MinGW-w64). Program output is byte-identical on both (binary stdout, no CRLF translation). |
 | P42 | **Memory.** Heap arrays are freed at scope exit on every path. `padham` is reference-counted (literals immortal). With `DEVARA_RT_STATS=1` a normally-exiting program prints `devara-rt: live=<n>` to stderr, and n must be 0. This supersedes the "never freed" note in P22. |
 | P43 | **Optimization levels.** `-O0` is the reference stack-slot code generator. `-O1` (the default) adds IR optimization, linear-scan register allocation, a peephole pass and loop rotation. Output at `-O0` and `-O1` must be identical. |
+
+## O. Audit rulings (round 4; implementation of `docs/audit/IMPROVEMENT_PLAN.md`)
+
+Consequences of the audit that are visible to users of the language or of the CLI. They refine P11, P21, P22 and §D.
+
+| Ref | Ruling |
+|---|---|
+| A-001 | **Array size limit.** The element count of an array (the product of its dimensions) must be at most `INT64_MAX / 8`, so that the size in bytes is representable. A *constant* violation is semantic error `INVALID_ARRAY_SIZE`; a run-time violation is runtime error `invalid array size` (never a wrapped, too-small allocation). Dimensions are still checked individually (`>= 1`) first. |
+| A-002 | **Large constant global arrays.** A constant-size global array of more than 256 MiB is allocated on the heap when its declaration executes, like a run-time-sized one (static storage cannot exceed the 2 GiB relocation range). An allocation that the system refuses is runtime error `invalid array size`. |
+| A-003 | **Out of memory.** Every allocation in the runtime is checked. Running out of memory while reading input or building a padham is runtime error `out of memory` (exit 1, after flushing stdout), never a crash. This message joins the list in P11. |
+| A-004 | **Diagnostics wording and position.** Operators are named as written in the source (`'+'`, `'<='`, `'&&'`). An error of the form "expected X after ..." whose offending token is on a later line is reported just after the last token of the construct. A misspelled `chupi`/`chaduvu` after `ni` is one error: the misspelled token is consumed with it, so recovery does not report a second error at it. |
+| A-005 | **Memory layout.** `bool` and `char` array elements are one byte (see §D); this is not observable by programs. |
+

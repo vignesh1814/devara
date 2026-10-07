@@ -8,6 +8,8 @@ terminator. All element/value slots are 8 bytes (plan §D).
 
 from __future__ import annotations
 
+import copy
+
 from dataclasses import dataclass
 from enum import StrEnum
 
@@ -15,7 +17,7 @@ __all__ = [
     "IRType", "Const", "Reg", "GlobalRef", "Operand", "Instr", "Copy", "UnOp", "BinOp",
     "Cmp", "Convert", "Load", "Store", "PtrAdd", "NewArray", "Call", "RtCall",
     "Terminator", "Jump", "Branch", "Return", "BasicBlock", "IRFunction", "IRGlobal",
-    "IRModule", "ENTRY_FUNCTION",
+    "IRModule", "ENTRY_FUNCTION", "clone_function", "clone_module",
 ]
 
 ENTRY_FUNCTION = "$entry"
@@ -184,6 +186,31 @@ class IRFunction:
     params: list[Reg]
     ret: IRType
     blocks: list[BasicBlock]
+
+
+def clone_function(f: IRFunction) -> IRFunction:
+    """Independent copy of ``f`` for passes that rewrite it in place.
+
+    Instructions, terminators, blocks and the lists they hold are new objects; operands (``Reg``,
+    ``Const``, ``GlobalRef``) are frozen dataclasses, so they are shared. Much faster than
+    ``copy.deepcopy`` on large programs, which dominated -O1 compile time."""
+    blocks = []
+    for b in f.blocks:
+        instrs = []
+        for i in b.instrs:
+            j = copy.copy(i)
+            if hasattr(j, "args"):
+                j.args = list(j.args)           # type: ignore[attr-defined]
+            instrs.append(j)
+        blocks.append(BasicBlock(b.label, instrs, copy.copy(b.term)))
+    g = copy.copy(f)                            # keeps attributes attached by the code generator
+    g.params = list(f.params)
+    g.blocks = blocks
+    return g
+
+
+def clone_module(m: "IRModule") -> "IRModule":
+    return IRModule([copy.copy(g) for g in m.globals], [clone_function(f) for f in m.functions])
 
 
 @dataclass
