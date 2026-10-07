@@ -4,6 +4,33 @@ The findings and their reproducers are in [`AUDIT_REPORT.md`](AUDIT_REPORT.md). 
 Effort: XS < 1 h · S ≈ half a day · M ≈ 1–2 days.
 Every fix will come with a regression test in `tests/regression/`, and the full suite, the corpus at -O0 and -O1, the leak check and the Windows-target tests must stay green.
 
+
+## Status: all 15 items addressed
+
+| # | Finding | Result | Commit |
+|---|---|---|---|
+| 1 | F1 array-size product overflow | **Fixed.** `dv_rt_mulcheck`; runtime error `invalid array size`. | `3fc4063` |
+| 2 | F2 huge global arrays → internal error | **Fixed.** Constant total > INT64_MAX/8 is `INVALID_ARRAY_SIZE`; constant globals > 256 MiB use the heap path. | `3fc4063` |
+| 3 | F3 unchecked runtime allocations | **Fixed**, and now **reproduced**: the old runtime segfaults (exit −11) on out-of-memory while reading input. | `3fc4063` |
+| 4 | F8 byte-sized `bool`/`char` elements | **Done.** 8× less memory; sieve 3·10⁷ at -O1 0.85 s → 0.21 s. | `86976c1` |
+| 5 | F7/F12 shrink-wrapping, leaf frames | **Done.** Frameless leaves; callee-saved saves moved into the call region. Measured gain on `fib(35)` is small (about 4%). | `b1f6ad5`, `fa993ef` |
+| 6 | F9 allocatable registers | **Partly done.** `r11` is allocatable on both ABIs. `rcx`, `rdx`, `r10` stay scratch: freeing them means reworking every instruction expansion. | `b1f6ad5` |
+| 7 | F11 redundant moves | **Partly done.** Three-operand `imul` reads its source in place. Not done: coalescing a call result into its consumer (needs liveness-aware coalescing; a register move costs almost nothing on current CPUs). | `564a37e` |
+| 8 | F10 loop-invariant array base | **Done** for static global arrays (the case measured). General loop-invariant code motion is not implemented. | `564a37e` |
+| 9 | F4 cascading syntax error | **Fixed.** | `3cb7a48` |
+| 10 | F5 error position | **Fixed.** | `3cb7a48` |
+| 11 | F6 operator names | **Fixed.** | `3fc4063` |
+| 12 | F13 -O1 compile time | **2.7× faster** (20,000 lines: 17.6 s → 6.6 s); assembly byte-identical. | `25219c3` |
+| 13 | F16 Windows CI | **Done**, CI green on `windows-latest`. | `3c4cdff`, `8c1a9ff`, `65106ad` |
+| 14 | F14 wine flake | **Mitigated:** retry only on wine's connection-reset error. | `564a37e` |
+| 15 | Repository leftovers | `main.py` removed, the doc renamed. **`examples/` is not a duplicate** (one file, used by tests, README and setup), so it stays; the plan entry was wrong. | `25219c3` |
+
+### Corrections to the original findings
+
+* **F7:** the claim "-O1 is slower than -O0 on `fib`" does not hold. Re-measured on one machine, -O1 was already faster than -O0 (37 ms vs 55 ms) *before* the change; the earlier numbers came from a different host.
+* **Benchmarks across sessions are not comparable** (the container host changed between sessions). Every before/after number in this repository's docs from this round was measured on one machine, back to back.
+* Not in this plan and still open: inlining small functions, division by constants without `idiv` (the matmul loop's `% 10`), and Python start-up cost per CLI call.
+
 ## Tier 1: correctness (do first)
 
 | # | Finding | Severity | Effort | Proposed fix |

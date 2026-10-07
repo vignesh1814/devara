@@ -13,6 +13,21 @@
 | `scripts/check_machine.py` | PASS: corpus 128/128 at -O0 and 128/128 at -O1, and all 236 leak-check runs report `live=0`. |
 | Differential fuzzing (`tests/property/campaign.py`, fresh seeds) | 400 programs of size 40 (seeds 900000–900399) and 200 of size 120 (seeds 950000–950199): **0 problems**. |
 
+## Resolution (added after the fixes)
+
+Every item of `IMPROVEMENT_PLAN.md` was addressed; see its status table for the commits. Final state: 6,988 tests passed (1 skipped, 0 failed), `scripts/check_machine.py` PASS (corpus 128/128 at -O0 and -O1, leak check 236/236), 700 further fuzzed programs with 0 problems, and `windows-latest` CI green.
+
+Benchmarks on one machine, best of 5, seconds (`docs/audit/repro/bench_c`); "before" is the compiler at `375a7fd`:
+
+| program | -O1 before | -O1 now | -O0 now | gcc -O0 | gcc -O2 |
+|---|---:|---:|---:|---:|---:|
+| fib(35) | 0.039 | 0.037 | 0.045 | 0.065 | 0.016 |
+| sieve 3e7 | 0.848 | **0.206** | 0.475 | 0.336 | 0.183 |
+| matmul 400 | 0.113 | 0.092 | 0.323 | 0.120 | 0.046 |
+| float integrate 1e8 | 0.161 | 0.128 | 2.075 | 0.253 | 0.104 |
+
+Two findings above were corrected: the "-O1 slower than -O0 on fib" reading in A.3 (F7) was noise from a different host, and F3 was only read from the code at the time; it is now reproduced (the old runtime segfaults on out-of-memory while reading input). The compile-time table in section C shows the numbers before F13; they are now 1.5 s (5,000 lines) and 6.6 s (20,000 lines).
+
 ## A. Stage-by-stage observation
 
 ### A.1 Valid programs: `A_programs/` (44 programs, 31 features and 13 runtime-error cases)
