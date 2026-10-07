@@ -13,8 +13,10 @@ slot). `-O1` runs the IR optimizer and then the register-allocating back end.
   out, the interval with the lowest loop-depth weighted access count per unit of length is spilled to a
   stack slot (slots are reused after an interval ends). Only the callee-saved registers actually used
   are saved and restored; frames stay 16-byte aligned.
-* **Scratch registers** (never allocated): `rax rcx rdx r10 r11 xmm0 xmm1`. Call arguments and incoming
-  parameters are moved with a parallel-move resolver (cycles broken through `r11`).
+* **Scratch registers** (never allocated): `rax rcx rdx r10 xmm0 xmm1`; `r11` is allocatable (audit F9). Call
+  arguments and incoming parameters are moved with a parallel-move resolver (cycles broken through `rax`).
+* **Frameless leaves** (audit F12): a function with no calls, no integer division, no stack parameters and an
+  empty frame (nothing spilled, saved or in a frame array) is emitted without `push rbp` / `leave`.
 * **Pre-allocation rewrites** (`compiler/codegen/prep.py`): scalar globals and array base pointers that
   only `$entry` touches become registers of `$entry` (top-level programs keep all their variables in
   globals; `str` globals stay in memory so interned literals remain reachable); `t = op; x = copy t`

@@ -2,8 +2,9 @@
 
 Register conventions (both ABIs):
 
-* scratch, never allocated:  rax, rcx, rdx, r10, r11   and   xmm0, xmm1
-  (r10/r11 are reserved for the parallel-move helper; rax/rcx/rdx for instruction expansion)
+* scratch, never allocated:  rax, rcx, rdx, r10   and   xmm0, xmm1
+  (r10 is the temporary of the move helpers; rax/rcx/rdx are for instruction expansion and rax also
+  parks a source to break a cycle of parallel moves)
 * allocatable: the target's callee-saved registers plus its caller-saved registers outside the
   scratch set (:mod:`compiler.codegen.target`); see :mod:`compiler.codegen.regalloc` for the policy.
 
@@ -86,6 +87,15 @@ class RAFunctionGen:
                 if isinstance(i, I.NewArray) and lir.newarray_in_frame(i):
                     self.next_off += (i.count.value * i.elsize + 7) & ~7   # type: ignore[union-attr]
                     self.arrays[id(i)] = self.next_off
+        # A leaf with an empty frame needs neither rbp nor a stack frame: no calls (so no alignment
+        # requirement), no integer division (its trap stubs call into the runtime), no stack parameters
+        # (they are addressed from rbp), nothing spilled or saved.
+        self.frameless = (
+            self.next_off == 0
+            and all(kind == "reg" for kind, _ in assign_args(target, [p.type for p in fn.params]))
+            and not any(lir.is_call(i) or (isinstance(i, I.BinOp) and i.dst.type != IT.F64 and i.op in ("DIV", "MOD"))
+                        for b in fn.blocks for i in b.instrs)
+        )
 
     # ── emit helpers ──
 
@@ -185,9 +195,10 @@ class RAFunctionGen:
                 pending.remove(m)
                 progress = True
             if not progress:
-                # only register cycles remain: park one source in r11
+                # only register cycles remain: park one source in rax (scratch, never an operand of a
+                # parallel move: these run only for call arguments and incoming parameters)
                 d, s = pending[0]
-                tmp: Loc = ("r", "r11")
+                tmp: Loc = ("r", "rax")
                 self.emit_move(tmp, s)
                 pending = [(dd, tmp if ss == s else ss) for dd, ss in pending]
 
@@ -316,7 +327,8 @@ class RAFunctionGen:
 
         frame = (self.next_off + 15) & ~15
         out = tg.function_header(name)
-        out += ["    push rbp", "    mov rbp, rsp"]
+        if not self.frameless:
+            out += ["    push rbp", "    mov rbp, rsp"]
         if frame:
             out += tg.probe_stack(frame)
             out.append(f"    sub rsp, {frame}")
@@ -339,7 +351,8 @@ class RAFunctionGen:
     def epilogue(self) -> None:
         for r, off, is_x in self.saved:
             self.e(f"movups {r}, XMMWORD PTR [rbp - {off}]" if is_x else f"mov {r}, QWORD PTR [rbp - {off}]")
-        self.e("leave")
+        if not self.frameless:
+            self.e("leave")
         self.e("ret")
 
     # ── instructions ──
@@ -376,12 +389,12 @@ class RAFunctionGen:
             off = self.arrays.get(id(i))
             if off is not None:
                 n = (i.count.value * i.elsize + 7) // 8        # type: ignore[union-attr]  # qwords to clear
-                self.e("mov r11, rdi")          # rdi may hold a value (and is callee-saved on Win64)
+                self.e("mov rdx, rdi")          # rdi may hold a value (and is callee-saved on Win64)
                 self.e(f"lea rdi, [rbp - {off}]")
                 self.e(f"mov rcx, {n}")
                 self.e("xor eax, eax")
                 self.e("rep stosq")
-                self.e("mov rdi, r11")
+                self.e("mov rdi, rdx")
                 self.e(f"lea rax, [rbp - {off}]")
                 self.emit_move(self.loc[i.dst.name], ("r", "rax"))
             else:

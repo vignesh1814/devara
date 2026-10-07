@@ -32,7 +32,7 @@ class Target:
     # register classes (rbp is the frame pointer and handled separately)
     callee_saved_int: tuple[str, ...]
     callee_saved_xmm: tuple[str, ...]
-    # allocatable caller-saved registers (the rest -- rax, rcx, rdx, r10, r11, xmm0, xmm1 -- are scratch)
+    # allocatable caller-saved registers (the rest -- rax, rcx, rdx, r10, xmm0, xmm1 -- are scratch)
     alloc_caller_int: tuple[str, ...]
     alloc_caller_xmm: tuple[str, ...]
     page_probe: bool            # frames > 4 KiB must be probed (Windows guard page)
@@ -79,7 +79,7 @@ LINUX = Target(
     positional=False, shadow_space=0,
     callee_saved_int=("rbx", "r12", "r13", "r14", "r15"),
     callee_saved_xmm=(),
-    alloc_caller_int=("rsi", "rdi", "r8", "r9"),
+    alloc_caller_int=("rsi", "rdi", "r8", "r9", "r11"),
     alloc_caller_xmm=tuple(f"xmm{i}" for i in range(2, 16)),
     page_probe=False,
     rodata_directive=".section .rodata",
@@ -93,7 +93,7 @@ WINDOWS = Target(
     positional=True, shadow_space=32,
     callee_saved_int=("rbx", "rdi", "rsi", "r12", "r13", "r14", "r15"),
     callee_saved_xmm=tuple(f"xmm{i}" for i in range(6, 16)),
-    alloc_caller_int=("r8", "r9"),
+    alloc_caller_int=("r8", "r9", "r11"),
     alloc_caller_xmm=tuple(f"xmm{i}" for i in range(2, 6)),
     page_probe=True,
     rodata_directive='.section .rdata,"dr"',
