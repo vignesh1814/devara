@@ -72,7 +72,9 @@ q ni chupi
 """
     errs = errors_of(src)
     lines = [e.line for e in errs]
-    assert lines == [2, 5, 7]
+    # the third error (missing 'pettu' after `w lo 1`, line 6) is reported where the piece is missing,
+    # not at the first token of the next statement on line 7 (audit F5)
+    assert lines == [2, 5, 6]
 
 
 def test_recovery_resumes_at_next_statement_inside_blocks():

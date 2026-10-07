@@ -161,10 +161,18 @@ class Parser:
         tok: Token | None = None,
         expected: list[T] | None = None,
     ) -> ParseAbort:
+        at_cur = tok is None
         tok = tok if tok is not None else self.cur
         if tok.type == T.EOF:
             category = C.UNEXPECTED_EOF
         span = Span(tok.line, tok.column, tok.line, tok.column + max(len(tok.lexeme), 1))
+        if at_cur and category in (C.MISSING_TOKEN, C.INVALID_STATEMENT) and tok.type != T.EOF and self.pos > 0:
+            prev = self.tokens[self.pos - 1]
+            if prev.line < tok.line:
+                # "expected X after ...": the construct ended on an earlier line, so the missing
+                # piece belongs just after its last token (compiler convention), not at the next line
+                col = prev.column + len(prev.lexeme)
+                span = Span(prev.line, col, prev.line, col + 1)
         exp = tuple(str(e) for e in expected) if expected else None
         self.errors.append(
             Diagnostic("syntax", category, message, span, self.filename, expected=exp)
@@ -429,8 +437,13 @@ class Parser:
             if self.cur.type == T.CHUPI:
                 self._advance()
                 return Output(span=self._span_from(start), value=expr)
-            raise self._fail(C.MISSING_TOKEN, "Expected 'chaduvu' or 'chupi' after 'ni'.",
+            ni = self.tokens[self.pos - 1]
+            found = self.cur
+            err = self._fail(C.MISSING_TOKEN, "Expected 'chaduvu' or 'chupi' after 'ni'.",
                              expected=[T.CHADUVU, T.CHUPI])
+            if found.type == T.IDENTIFIER and found.line == ni.line:
+                self._advance()      # a misspelled keyword: recovery must not restart at it (no cascade)
+            raise err
 
         if t == T.AYITE:
             return self._finish_if(expr, start)
@@ -449,7 +462,8 @@ class Parser:
             return ExpressionStatement(span=self._span_from(start), expression=expr)
 
         raise self._fail(
-            C.INVALID_STATEMENT, "Expected statement keyword after expression.",
+            C.INVALID_STATEMENT,
+            "Expected 'lo ... pettu', 'ni chupi', 'ni chaduvu', 'ayite', 'unnanta varaku' or 'ivvu' after expression.",
             expected=[T.LO, T.NI, T.AYITE, T.UNNANTA, T.IVVU],
         )
 

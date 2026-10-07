@@ -281,7 +281,7 @@ class TestErrors:
     def test_standalone_increment_fails(self):
         parser = parse_with_errors("i++")
         assert len(parser.errors) > 0
-        assert "Expected statement keyword" in parser.errors[0].message
+        assert "after expression" in parser.errors[0].message
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

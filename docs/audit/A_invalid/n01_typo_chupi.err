@@ -1,2 +1,1 @@
 n01_typo_chupi.tel:3:6: syntax error [MISSING_TOKEN]: Expected 'chaduvu' or 'chupi' after 'ni'.
-n01_typo_chupi.tel:4:1: syntax error [INVALID_STATEMENT]: Expected statement keyword after expression.

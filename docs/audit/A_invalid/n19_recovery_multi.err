@@ -1,2 +1,2 @@
-n19_recovery_multi.tel:6:1: syntax error [INVALID_STATEMENT]: Expected statement keyword after expression.
+n19_recovery_multi.tel:5:6: syntax error [INVALID_STATEMENT]: Expected 'lo ... pettu', 'ni chupi', 'ni chaduvu', 'ayite', 'unnanta varaku' or 'ivvu' after expression.
 n19_recovery_multi.tel:6:19: syntax error [MISSING_TOKEN]: Expected 'varaku' after end expression.

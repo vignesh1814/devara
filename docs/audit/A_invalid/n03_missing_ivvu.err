@@ -1,1 +1,1 @@
-n03_missing_ivvu.tel:3:1: syntax error [INVALID_STATEMENT]: Expected statement keyword after expression.
+n03_missing_ivvu.tel:2:10: syntax error [INVALID_STATEMENT]: Expected 'lo ... pettu', 'ni chupi', 'ni chaduvu', 'ayite', 'unnanta varaku' or 'ivvu' after expression.
