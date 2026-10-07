@@ -22,6 +22,12 @@ STATIC_GLOBAL_LIMIT = 256 * 1024 * 1024
 
 IT = I.IRType
 
+
+def elem_size(elem) -> int:
+    """Bytes per array element: 1 for bool and char, 8 for everything else."""
+    return 1 if irtype(elem) in (IT.BOOL, IT.CHAR) else 8
+
+
 NULL_STR = "null.str"      # global that is never written: loads yield NULL, the empty padham
 
 _CMP = {
@@ -131,7 +137,7 @@ class Lowerer:
                 if all(c is not None for c in consts):
                     for c in consts:
                         count *= int(c)
-                if all(c is not None for c in consts) and count * 8 <= STATIC_GLOBAL_LIMIT:
+                if all(c is not None for c in consts) and count * elem_size(sym.type.element) <= STATIC_GLOBAL_LIMIT:
                     dims = [int(c) for c in consts]
                     self.globals.append(I.IRGlobal(sym.name, elem, "array_static", count))
                     self.garrays[sid] = ArrInfo("static", sym.name, None,
@@ -421,11 +427,12 @@ class Lowerer:
         # Small constant-size local arrays live in the stack frame (NewArray with a constant
         # count: the back end zero-fills them and they need no freeing). Everything else is
         # allocated explicitly on the heap and freed when its scope is left.
-        frame = info is None and self.frame_size(dims) is not None
+        esz = elem_size(sym.type.element)
+        frame = info is None and self.frame_size(dims, esz) is not None
         if frame:
-            self.emit(I.NewArray(base, I.Const(IT.I64, self.frame_size(dims))))
+            self.emit(I.NewArray(base, I.Const(IT.I64, self.frame_size(dims, esz)), esz))
         else:
-            self.emit(I.RtCall(base, "dv_rt_newarray", [total]))
+            self.emit(I.RtCall(base, "dv_rt_newarray", [total, I.Const(IT.I64, esz)]))
         if info is not None:       # global array with run-time dimensions
             self.emit(I.Store(I.GlobalRef(sym.name), base))
             for j, d in enumerate(dims):
@@ -445,7 +452,7 @@ class Lowerer:
         is_str = irtype(sym.type.element) == IT.STR
         if frame:
             if is_str:
-                self.scopes[-1].append(("frame_str", breg, self.frame_size(dims)))
+                self.scopes[-1].append(("frame_str", breg, self.frame_size(dims, esz)))
         elif is_str:
             count: I.Operand = total
             if not isinstance(total, I.Const):         # snapshot: the dimension variables may change
@@ -456,15 +463,15 @@ class Lowerer:
             self.scopes[-1].append(("heap", breg))
 
     @staticmethod
-    def frame_size(dims: list[I.Operand]) -> int | None:
-        """Element count if every dimension is a positive constant and the array is small
-        enough for the frame, else None."""
+    def frame_size(dims: list[I.Operand], elsize: int) -> int | None:
+        """Element count if every dimension is a positive constant and the array (``elsize`` bytes
+        per element) is small enough for the frame, else None."""
         n = 1
         for d in dims:
             if not (isinstance(d, I.Const) and d.value >= 1):
                 return None
             n *= d.value
-            if n * 8 > FRAME_ARRAY_LIMIT:
+            if n * elsize > FRAME_ARRAY_LIMIT:
                 return None
         return n
 
@@ -725,7 +732,7 @@ class Lowerer:
                 self.emit(I.BinOp("ADD", a, off, idx[j]))
                 off = a
         addr = self.temp(IT.ADDR)
-        self.emit(I.PtrAdd(addr, base, off))
+        self.emit(I.PtrAdd(addr, base, off, elem_size(self.syms[e.symbol].type.element)))   # type: ignore[union-attr]
         return addr
 
     def e_TIndex(self, e: T.TIndex) -> I.Operand:

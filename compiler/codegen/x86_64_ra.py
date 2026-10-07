@@ -23,6 +23,11 @@ from compiler.ir import ir as I
 
 IT = I.IRType
 
+# bool and char occupy one byte in memory (loaded zero-/sign-extended, stored from the low byte)
+_BYTE_TYPES = frozenset({IT.BOOL, IT.CHAR})
+_REG8 = {"rax": "al", "rbx": "bl", "rcx": "cl", "rdx": "dl", "rsi": "sil", "rdi": "dil",
+         **{f"r{n}": f"r{n}b" for n in range(8, 16)}}
+
 Loc = tuple   # ("r", reg) | ("x", xmm) | ("m", rbp displacement) | ("i", int) | ("a", "rip + sym")
 
 _BYTE = {"rax": "al", "rbx": "bl", "rcx": "cl", "rdx": "dl", "rsi": "sil", "rdi": "dil",
@@ -81,7 +86,7 @@ class RAFunctionGen:
         for b in fn.blocks:
             for i in b.instrs:
                 if isinstance(i, I.NewArray) and lir.newarray_in_frame(i):
-                    self.next_off += 8 * i.count.value        # type: ignore[union-attr]
+                    self.next_off += (i.count.value * i.elsize + 7) & ~7   # type: ignore[union-attr]
                     self.arrays[id(i)] = self.next_off
 
     # ── emit helpers ──
@@ -222,12 +227,14 @@ class RAFunctionGen:
         self.emit_move(("x", scratch), l)
         return scratch
 
-    def address(self, base: I.Operand, index: I.Operand | None) -> str:
-        """Memory operand for ``[base (+ index*8)]`` (scratch: rax, rcx)."""
+    def address(self, base: I.Operand, index: I.Operand | None, scale: int = 8, ty: IT = IT.I64) -> str:
+        """Memory operand for ``[base (+ index*scale)]`` of a value of type ``ty`` (scratch: rax, rcx).
+        A bool or char is one byte in memory, everything else eight."""
+        ptr = "BYTE PTR" if ty in _BYTE_TYPES else "QWORD PTR"
         bl = self.loc_of(base)
         if bl[0] == "a":
             if index is None:
-                return f"QWORD PTR [{bl[1]}]"
+                return f"{ptr} [{bl[1]}]"
             self.e(f"lea rax, [{bl[1]}]")
             B = "rax"
         elif bl[0] == "r":
@@ -236,20 +243,27 @@ class RAFunctionGen:
             self.emit_move(("r", "rax"), bl)
             B = "rax"
         if index is None:
-            return f"QWORD PTR [{B}]"
+            return f"{ptr} [{B}]"
         il = self.loc_of(index)
-        if il[0] == "i" and _fits32(il[1] * 8):
-            d = il[1] * 8
-            return f"QWORD PTR [{B}]" if d == 0 else f"QWORD PTR [{B} {'-' if d < 0 else '+'} {abs(d)}]"
+        if il[0] == "i" and _fits32(il[1] * scale):
+            d = il[1] * scale
+            return f"{ptr} [{B}]" if d == 0 else f"{ptr} [{B} {'-' if d < 0 else '+'} {abs(d)}]"
         if il[0] == "r":
             I_ = il[1]
         else:
             self.emit_move(("r", "rcx"), il)
             I_ = "rcx"
-        return f"QWORD PTR [{B} + {I_}*8]"
+        return f"{ptr} [{B} + {I_}*{scale}]"
 
-    def load_from(self, ld: Loc, addr: str) -> None:
-        if ld[0] == "r":
+    def load_from(self, ld: Loc, addr: str, ty: IT = IT.I64) -> None:
+        if ty in _BYTE_TYPES:                      # zero-extend a bool, sign-extend a char
+            ext = "movzx" if ty == IT.BOOL else "movsx"
+            if ld[0] == "r":
+                self.e(f"{ext} {ld[1]}, {addr}")
+            else:
+                self.e(f"{ext} rdx, {addr}")
+                self.e(f"mov {mem(ld[1])}, rdx")
+        elif ld[0] == "r":
             self.e(f"mov {ld[1]}, {addr}")
         elif ld[0] == "x":
             self.e(f"movsd {ld[1]}, {addr}")
@@ -257,9 +271,17 @@ class RAFunctionGen:
             self.e(f"mov rdx, {addr}")
             self.e(f"mov {mem(ld[1])}, rdx")
 
-    def store_to(self, addr: str, vl: Loc) -> None:
+    def store_to(self, addr: str, vl: Loc, ty: IT = IT.I64) -> None:
         k = vl[0]
-        if k == "r":
+        if ty in _BYTE_TYPES:
+            if k == "r":
+                self.e(f"mov {addr}, {_REG8[vl[1]]}")
+            elif k == "i":
+                self.e(f"mov {addr}, {vl[1] & 0xFF}")
+            else:
+                self.emit_move(("r", "rdx"), vl)
+                self.e(f"mov {addr}, dl")
+        elif k == "r":
             self.e(f"mov {addr}, {vl[1]}")
         elif k == "x":
             self.e(f"movsd {addr}, {vl[1]}")
@@ -341,19 +363,21 @@ class RAFunctionGen:
         elif isinstance(i, I.Convert):
             self.convert(i)
         elif isinstance(i, I.Load):
-            self.load_from(self.loc[i.dst.name], self.address(i.addr, None))
+            self.load_from(self.loc[i.dst.name], self.address(i.addr, None, 8, i.dst.type), i.dst.type)
         elif isinstance(i, lir.LoadIdx):
-            self.load_from(self.loc[i.dst.name], self.address(i.base, i.index))
+            self.load_from(self.loc[i.dst.name], self.address(i.base, i.index, i.scale, i.dst.type), i.dst.type)
         elif isinstance(i, I.Store):
-            self.store_to(self.address(i.addr, None), self.loc_of(i.value))
+            vt = lir.operand_type(i.value)
+            self.store_to(self.address(i.addr, None, 8, vt), self.loc_of(i.value), vt)
         elif isinstance(i, lir.StoreIdx):
-            self.store_to(self.address(i.base, i.index), self.loc_of(i.value))
+            vt = lir.operand_type(i.value)
+            self.store_to(self.address(i.base, i.index, i.scale, vt), self.loc_of(i.value), vt)
         elif isinstance(i, I.PtrAdd):
             self.ptradd(i)
         elif isinstance(i, I.NewArray):
             off = self.arrays.get(id(i))
             if off is not None:
-                n = i.count.value        # type: ignore[union-attr]
+                n = (i.count.value * i.elsize + 7) // 8        # type: ignore[union-attr]  # qwords to clear
                 self.e("mov r11, rdi")          # rdi may hold a value (and is callee-saved on Win64)
                 self.e(f"lea rdi, [rbp - {off}]")
                 self.e(f"mov rcx, {n}")
@@ -363,7 +387,7 @@ class RAFunctionGen:
                 self.e(f"lea rax, [rbp - {off}]")
                 self.emit_move(self.loc[i.dst.name], ("r", "rax"))
             else:
-                self.call("dv_rt_newarray", [i.count], i.dst)
+                self.call("dv_rt_newarray", [i.count, I.Const(IT.I64, i.elsize)], i.dst)
         elif isinstance(i, I.Call):
             self.call(mangle_function(i.callee), i.args, i.dst)
         elif isinstance(i, I.RtCall):
@@ -393,11 +417,11 @@ class RAFunctionGen:
             B = "rax"
         else:
             B = self.to_ireg(i.base, "rax")
-        if il[0] == "i" and _fits32(il[1] * 8):
-            self.e(f"lea {D}, [{B} + {il[1] * 8}]")
+        if il[0] == "i" and _fits32(il[1] * i.scale):
+            self.e(f"lea {D}, [{B} + {il[1] * i.scale}]")
         else:
             I_ = self.to_ireg(i.index, "rcx")
-            self.e(f"lea {D}, [{B} + {I_}*8]")
+            self.e(f"lea {D}, [{B} + {I_}*{i.scale}]")
         self.emit_move(ld, ("r", D))
 
     def binop_i(self, i: I.BinOp) -> None:

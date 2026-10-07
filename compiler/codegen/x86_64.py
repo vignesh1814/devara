@@ -18,6 +18,11 @@ IT = I.IRType
 
 FRAME_ARRAY_LIMIT = 64 * 1024     # bytes; larger constant-size arrays use the heap
 
+
+def operand_type(o: I.Operand) -> IT:
+    """IR type of an operand (a global's address is an ``addr``)."""
+    return IT.ADDR if isinstance(o, I.GlobalRef) else o.type
+
 _SETCC = {"LT": "l", "LE": "le", "GT": "g", "GE": "ge", "EQ": "e", "NE": "ne"}
 
 
@@ -121,8 +126,8 @@ class FunctionGen:
                 for a in getattr(i, "args", []):
                     see(a)
                 if isinstance(i, I.NewArray) and isinstance(i.count, I.Const) \
-                        and 1 <= i.count.value and i.count.value * 8 <= FRAME_ARRAY_LIMIT:
-                    self.arrays[id(i)] = self.alloc(i.count.value * 8)
+                        and 1 <= i.count.value and i.count.value * i.elsize <= FRAME_ARRAY_LIMIT:
+                    self.arrays[id(i)] = self.alloc(i.count.value * i.elsize)
             t = b.term
             if isinstance(t, I.Branch):
                 see(t.cond)
@@ -232,21 +237,29 @@ class FunctionGen:
             self.convert(i)
         elif isinstance(i, I.Load):
             self.load("rax", i.addr)
-            self.e("mov rax, QWORD PTR [rax]")
+            if i.dst.type == IT.BOOL:                  # bool and char occupy one byte in memory
+                self.e("movzx eax, BYTE PTR [rax]")
+            elif i.dst.type == IT.CHAR:
+                self.e("movsx rax, BYTE PTR [rax]")
+            else:
+                self.e("mov rax, QWORD PTR [rax]")
             self.store(i.dst)
         elif isinstance(i, I.Store):
             self.load("rax", i.addr)
             self.load("rcx", i.value)
-            self.e("mov QWORD PTR [rax], rcx")
+            if operand_type(i.value) in (IT.BOOL, IT.CHAR):
+                self.e("mov BYTE PTR [rax], cl")
+            else:
+                self.e("mov QWORD PTR [rax], rcx")
         elif isinstance(i, I.PtrAdd):
             self.load("rax", i.base)
             self.load("rcx", i.index)
-            self.e("lea rax, [rax + rcx*8]")
+            self.e(f"lea rax, [rax + rcx*{i.scale}]")
             self.store(i.dst)
         elif isinstance(i, I.NewArray):
             off = self.arrays.get(id(i))
             if off is not None:
-                n = i.count.value  # type: ignore[union-attr]
+                n = (i.count.value * i.elsize + 7) // 8  # type: ignore[union-attr]  # qwords to clear
                 self.e("mov r11, rdi")          # rdi is callee-saved on Win64
                 self.e(f"lea rdi, [rbp - {off}]")
                 self.e(f"mov rcx, {n}")
@@ -256,7 +269,7 @@ class FunctionGen:
                 self.e(f"lea rax, [rbp - {off}]")
                 self.store(i.dst)
             else:
-                self.call("dv_rt_newarray", [i.count], i.dst)
+                self.call("dv_rt_newarray", [i.count, I.Const(IT.I64, i.elsize)], i.dst)
         elif isinstance(i, I.Call):
             self.call(mangle_function(i.callee), i.args, i.dst)
         elif isinstance(i, I.RtCall):
@@ -461,7 +474,8 @@ def generate(module: I.IRModule, target: "Target | str | None" = None, regalloc:
     if module.globals:
         out += ["    .bss", "    .balign 16"]
         for g in module.globals:
-            size = 8 * (g.count if g.kind == "array_static" else 1)
+            elsize = 1 if g.type in (IT.BOOL, IT.CHAR) else 8
+            size = (elsize * (g.count if g.kind == "array_static" else 1) + 7) & ~7   # keep globals 8-aligned
             out += [f"{mangle_global(g.name)}:", f"    .zero {size}"]
         out.append("")
     out += strings.emit()

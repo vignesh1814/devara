@@ -181,10 +181,11 @@ padham values are pointers to an immutable, reference-counted runtime object
 `{int64 refcnt; int64 len; char bytes[len+1]}`; `NULL` means empty string. Literals are immortal
 (`refcnt = -1`): the back end's `.rodata` constants have no header, so lowering turns each literal into
 a global initialised once at the start of `$entry` by `dv_rt_strlit` and every use is a load of that
-global (the empty string is a load of the never-written global `null.str`). Bools are bytes 0/1 widened to 64-bit slots; chars are signed
-8-bit stored sign-extended in 64-bit slots. Arrays: element size 8 bytes for all element types
-(simplicity; documented), row-major; array parameters pass the base address; partial indexing yields
-an address.
+global (the empty string is a load of the never-written global `null.str`). In registers and spill slots bools are 0/1 and chars
+signed 8-bit values widened to 64 bits. In memory (array elements and global scalars) a **bool or char is one byte** (loaded
+zero- resp. sign-extended, stored from the low byte); int, float, padham and addr take eight (audit F8, supersedes the earlier
+"8 bytes for every element type"). Arrays are row-major; `PtrAdd` carries the element size (`scale` 1 or 8) and `NewArray` /
+`dv_rt_newarray` take it too; array parameters pass the base address; partial indexing yields an address.
 
 ## E. CLI contract (black-box interface used by the tester)
 

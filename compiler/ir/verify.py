@@ -153,10 +153,14 @@ def _check_function(f: I.IRFunction, sigs, gnames, errs: list[str]) -> None:
             elif isinstance(i, I.PtrAdd):
                 if ty(i.base) != T.ADDR or ty(i.index) != T.I64 or i.dst.type != T.ADDR:
                     bad("ptradd needs addr, i64 -> addr")
+                if i.scale not in (1, 8):
+                    bad("ptradd scale must be 1 or 8")
                 defreg(i.dst)
             elif isinstance(i, I.NewArray):
                 if ty(i.count) != T.I64 or i.dst.type != T.ADDR:
                     bad("newarray needs i64 -> addr")
+                if i.elsize not in (1, 8):
+                    bad("newarray element size must be 1 or 8")
                 defreg(i.dst)
             elif isinstance(i, I.Call):
                 sig = sigs.get(i.callee)

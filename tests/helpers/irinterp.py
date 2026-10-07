@@ -269,7 +269,7 @@ class Interp:
             if r > arith.INT64_MAX // 8:
                 raise RuntimeFailure("invalid array size")
             return r
-        elif name == "dv_rt_newarray":
+        elif name == "dv_rt_newarray":      # a[1] (element size) does not matter: cells are not bytes
             if a[0] < 1:
                 raise RuntimeFailure("invalid array size")
             return Addr([0] * a[0], 0)

@@ -99,6 +99,9 @@ class Convert(Instr):
 
 @dataclass
 class Load(Instr):
+    """Memory read. A ``bool`` or ``char`` occupies one byte in memory (zero- or sign-extended on
+    load, like the array elements of those types); every other type occupies eight."""
+
     dst: Reg
     addr: Operand
 
@@ -111,19 +114,21 @@ class Store(Instr):
 
 @dataclass
 class PtrAdd(Instr):
-    """``dst = base + index * 8`` (index is an element count)."""
+    """``dst = base + index * scale`` (index is an element count, scale the element size: 1 or 8)."""
 
     dst: Reg
     base: Operand
     index: Operand
+    scale: int = 8
 
 
 @dataclass
 class NewArray(Instr):
-    """Zero-filled array of ``count`` 8-byte elements."""
+    """Zero-filled array of ``count`` elements of ``elsize`` bytes (1 for bool/char, else 8)."""
 
     dst: Reg
     count: Operand
+    elsize: int = 8
 
 
 @dataclass

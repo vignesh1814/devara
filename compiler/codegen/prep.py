@@ -201,12 +201,12 @@ def _fold_addressing(fn: I.IRFunction) -> None:
             replaced = None
             if isinstance(i, I.Load) and isinstance(i.addr, I.Reg) and i.addr.name in pending:
                 p = b.instrs[pending[i.addr.name]]
-                replaced = lir.LoadIdx(i.dst, p.base, p.index)          # type: ignore[union-attr]
+                replaced = lir.LoadIdx(i.dst, p.base, p.index, p.scale)  # type: ignore[union-attr]
                 dead.add(pending[i.addr.name])
             elif isinstance(i, I.Store) and isinstance(i.addr, I.Reg) and i.addr.name in pending \
                     and not (isinstance(i.value, I.Reg) and i.value.name == i.addr.name):
                 p = b.instrs[pending[i.addr.name]]
-                replaced = lir.StoreIdx(p.base, p.index, i.value)       # type: ignore[union-attr]
+                replaced = lir.StoreIdx(p.base, p.index, i.value, p.scale)   # type: ignore[union-attr]
                 dead.add(pending[i.addr.name])
             if replaced is not None:
                 del pending[i.addr.name]        # type: ignore[union-attr]

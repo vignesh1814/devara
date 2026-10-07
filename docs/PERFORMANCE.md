@@ -43,7 +43,8 @@ minimum wall time over N runs (compile time excluded). Linux x86-64, gcc runtime
 | float loop 2e7 | float arithmetic | 0.348 | 0.027 | 13.1x |
 
 Notes: the compute-bound loops (matmul, float loop) exceed 3x. The sieve and the merge sort are bound by
-memory (an 80 MB / 8 MB array of 8-byte cells, page faults, cache misses and unpredictable branches), and
+memory (an 8 MB array of 8-byte cells, page faults, cache misses and unpredictable branches; bool and char
+arrays use one byte per element since audit F8, which made the sieve 3.7x faster), and
 fib(32) by call/return overhead, where the stack-slot code already benefits from store forwarding, so
 they gain less than 3x. Absolute times are for the sizes fixed by the task and are short, so expect
 noise of a few milliseconds. Timings under wine are dominated by wine's ~2.4 s process start-up and are

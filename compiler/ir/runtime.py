@@ -25,7 +25,7 @@ RUNTIME: dict[str, tuple[tuple[T, ...], T]] = {
     "dv_rt_checkdim": ((T.I64,), T.VOID),
     "dv_rt_mulcheck": ((T.I64, T.I64), T.I64),            # a * b or "invalid array size" (never PURE: it can fail)
     # heap arrays (P22): allocation is explicit in the IR, freed at scope exit
-    "dv_rt_newarray": ((T.I64,), T.ADDR),
+    "dv_rt_newarray": ((T.I64, T.I64), T.ADDR),             # element count, element size (1 or 8)
     "dv_rt_freearray": ((T.ADDR,), T.VOID),
     "dv_rt_freearray_str": ((T.ADDR, T.I64), T.VOID),      # releases the elements, then frees
     "dv_rt_release_elems": ((T.ADDR, T.I64), T.VOID),      # releases elements of a frame/static array

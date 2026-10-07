@@ -44,9 +44,9 @@ def fmt_instr(i: I.Instr) -> str:
     if isinstance(i, I.Store):
         return f"store [{f(i.addr)}], {f(i.value)}"
     if isinstance(i, I.PtrAdd):
-        return f"{_dst(i.dst)}ptradd {f(i.base)}, {f(i.index)}"
+        return f"{_dst(i.dst)}ptradd{'' if i.scale == 8 else f'.{i.scale}'} {f(i.base)}, {f(i.index)}"
     if isinstance(i, I.NewArray):
-        return f"{_dst(i.dst)}newarray {f(i.count)}"
+        return f"{_dst(i.dst)}newarray{'' if i.elsize == 8 else f'.{i.elsize}'} {f(i.count)}"
     if isinstance(i, I.Call):
         return f"{_dst(i.dst)}call {i.callee}({', '.join(f(a) for a in i.args)})"
     if isinstance(i, I.RtCall):

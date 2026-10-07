@@ -3,7 +3,7 @@
 The register-allocating back end rewrites a *copy* of each function before allocation:
 
 * ``LoadIdx`` / ``StoreIdx``  -- a ``ptradd`` folded into the addressing mode of the
-  single ``load``/``store`` that consumes it (``[base + index*8]``);
+  single ``load``/``store`` that consumes it (``[base + index*scale]``);
 * ``CmpBranch``               -- a ``cmp`` fused into the ``branch`` that consumes it.
 
 ``uses`` / ``defs`` / ``term_uses`` / ``successors`` extend :mod:`compiler.ir.util` to them.
@@ -26,6 +26,7 @@ class LoadIdx(I.Instr):
     dst: I.Reg
     base: I.Operand
     index: I.Operand
+    scale: int = 8
 
 
 @dataclass
@@ -33,6 +34,7 @@ class StoreIdx(I.Instr):
     base: I.Operand
     index: I.Operand
     value: I.Operand
+    scale: int = 8
 
 
 @dataclass
@@ -76,7 +78,7 @@ def operand_type(o: I.Operand) -> IT:
 
 def newarray_in_frame(i: I.NewArray) -> bool:
     """Constant-size, small arrays live in the stack frame; everything else is heap allocated."""
-    return isinstance(i.count, I.Const) and 1 <= i.count.value and i.count.value * 8 <= FRAME_ARRAY_LIMIT
+    return isinstance(i.count, I.Const) and 1 <= i.count.value and i.count.value * i.elsize <= FRAME_ARRAY_LIMIT
 
 
 def is_call(i: I.Instr) -> bool:

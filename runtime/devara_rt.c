@@ -84,9 +84,11 @@ int64_t dv_rt_mulcheck(int64_t a, int64_t b) {
     return r;
 }
 
-void *dv_rt_newarray(int64_t n) {
-    if (n < 1 || (uint64_t)n > SIZE_MAX / 8) fail("invalid array size");
-    void *p = calloc((size_t)n, 8);
+/* n elements of elsize bytes (1 for bool/char arrays, 8 otherwise), zero-filled. */
+void *dv_rt_newarray(int64_t n, int64_t elsize) {
+    if (n < 1 || (elsize != 1 && elsize != 8) || (uint64_t)n > SIZE_MAX / (uint64_t)elsize)
+        fail("invalid array size");
+    void *p = calloc((size_t)n, (size_t)elsize);
     if (!p) fail("invalid array size");
     live_arrays++;
     return p;
