@@ -81,6 +81,18 @@ class RAFunctionGen:
         for r in self.alloc.used_callee_flt:
             self.next_off += 16
             self.saved.append((r, self.next_off, True))
+        # Shrink-wrapping (prep._wrap_calls): a callee-saved register that no instruction outside the
+        # single-entry region S touches is saved when S is entered and restored by the returns in S
+        # only, so a base case that returns before S pays nothing for it.
+        self.wrap: tuple[str, frozenset[str]] | None = getattr(fn, "wrap", None)
+        self.region_saved: list[tuple[str, int, bool]] = []
+        if self.wrap is not None:
+            used_in = self._register_blocks()
+            entry = fn.blocks[0].label
+            kept: list[tuple[str, int, bool]] = []
+            for r, off, is_x in self.saved:
+                (self.region_saved if used_in.get(r, {entry}) <= self.wrap[1] else kept).append((r, off, is_x))
+            self.saved = kept
         self.arrays: dict[int, int] = {}
         for b in fn.blocks:
             for i in b.instrs:
@@ -96,6 +108,38 @@ class RAFunctionGen:
             and not any(lir.is_call(i) or (isinstance(i, I.BinOp) and i.dst.type != IT.F64 and i.op in ("DIV", "MOD"))
                         for b in fn.blocks for i in b.instrs)
         )
+
+    def _register_blocks(self) -> dict[str, set[str]]:
+        """For each physical register, the labels of the blocks that read or write a value in it
+        (the incoming parameters count as occurring in the entry block)."""
+        where: dict[str, set[str]] = {}
+
+        def note(r: I.Reg, label: str) -> None:
+            l = self.loc.get(r.name)
+            if l is not None and l[0] in ("r", "x"):
+                where.setdefault(l[1], set()).add(label)
+
+        entry = self.fn.blocks[0].label
+        for prm in self.fn.params:
+            note(prm, entry)
+        for b in self.fn.blocks:
+            for i in b.instrs:
+                for r in lir.uses(i):
+                    note(r, b.label)
+                d = lir.defs(i)
+                if d is not None:
+                    note(d, b.label)
+            for r in lir.term_uses(b.term):
+                note(r, b.label)
+        return where
+
+    @staticmethod
+    def _save_line(r: str, off: int, is_x: bool) -> str:
+        return f"movups XMMWORD PTR [rbp - {off}], {r}" if is_x else f"mov QWORD PTR [rbp - {off}], {r}"
+
+    @staticmethod
+    def _restore_line(r: str, off: int, is_x: bool) -> str:
+        return f"movups {r}, XMMWORD PTR [rbp - {off}]" if is_x else f"mov {r}, QWORD PTR [rbp - {off}]"
 
     # ── emit helpers ──
 
@@ -310,6 +354,9 @@ class RAFunctionGen:
         for k, b in enumerate(fn.blocks):
             self.cur = k
             self.lines.append(f"{self.lab(b.label)}:")
+            if self.wrap is not None and b.label == self.wrap[0]:
+                for r, off, is_x in self.region_saved:
+                    self.e(self._save_line(r, off, is_x))
             for ins in b.instrs:
                 self.instr(ins)
             nxt = fn.blocks[k + 1].label if k + 1 < len(fn.blocks) else None
@@ -334,7 +381,7 @@ class RAFunctionGen:
             out.append(f"    sub rsp, {frame}")
         self.lines = []
         for r, off, is_x in self.saved:
-            self.e(f"movups XMMWORD PTR [rbp - {off}], {r}" if is_x else f"mov QWORD PTR [rbp - {off}], {r}")
+            self.e(self._save_line(r, off, is_x))
         moves: list[tuple[Loc, Loc]] = []
         for p, (kind, where) in zip(fn.params, assign_args(tg, [p.type for p in fn.params])):
             if p.name not in self.loc:
@@ -349,8 +396,11 @@ class RAFunctionGen:
         return out + body + stubs
 
     def epilogue(self) -> None:
-        for r, off, is_x in self.saved:
-            self.e(f"movups {r}, XMMWORD PTR [rbp - {off}]" if is_x else f"mov {r}, QWORD PTR [rbp - {off}]")
+        restore = list(self.saved)
+        if self.wrap is not None and self.fn.blocks[self.cur].label in self.wrap[1]:
+            restore += self.region_saved
+        for r, off, is_x in restore:
+            self.e(self._restore_line(r, off, is_x))
         if not self.frameless:
             self.e("leave")
         self.e("ret")
@@ -768,6 +818,8 @@ class RAFunctionGen:
         k = self.index[target]
         if k >= self.cur:
             return False
+        if self.wrap is not None and target == self.wrap[0]:
+            return False                     # entering the region must go through its label (the saves)
         b = self.fn.blocks[k]
         if len(b.instrs) > 2 or not isinstance(b.term, (I.Branch, lir.CmpBranch)):
             return False

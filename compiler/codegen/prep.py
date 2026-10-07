@@ -15,6 +15,7 @@ import copy
 
 from compiler.codegen import lir
 from compiler.ir import ir as I
+from compiler.ir import util
 
 IT = I.IRType
 
@@ -242,8 +243,139 @@ def _fuse_cmp_branch(fn: I.IRFunction) -> None:
             b.term = lir.CmpBranch(last.cond, last.a, last.b, t.then_target, t.else_target)
 
 
+# ── shrink-wrapping of call-crossing parameters (audit F7) ──
+#
+# A parameter that is live across a call must sit in a callee-saved register for its whole interval,
+# which makes the prologue save that register on *every* path -- including the early return of a
+# recursive function's base case. When all calls of a function lie in a single-entry region S that
+# starts at block N (the nearest common dominator of the blocks containing calls), the parameters
+# used after a call inside S are copied into fresh registers at the start of N and renamed inside S,
+# and ``fn.wrap = (N, S)`` tells the code generator that callee-saved registers used only inside S
+# may be saved at N and restored on the returns inside S instead of in the prologue and everywhere.
+
+def _cfg(fn: I.IRFunction):
+    succ = {b.label: lir.successors(b.term) for b in fn.blocks}
+    pred: dict[str, list[str]] = {b.label: [] for b in fn.blocks}
+    for label, ss in succ.items():
+        for t in ss:
+            pred[t].append(label)
+    return succ, pred
+
+
+def _reachable(start: str, succ: dict[str, list[str]]) -> set[str]:
+    seen = {start}
+    stack = [start]
+    while stack:
+        for t in succ[stack.pop()]:
+            if t not in seen:
+                seen.add(t)
+                stack.append(t)
+    return seen
+
+
+def _dominators(entry: str, succ: dict[str, list[str]], pred: dict[str, list[str]]) -> dict[str, set[str]]:
+    live = _reachable(entry, succ)
+    dom = {l: set(live) for l in live}
+    dom[entry] = {entry}
+    changed = True
+    while changed:
+        changed = False
+        for l in live:
+            if l == entry:
+                continue
+            ps = [dom[q] for q in pred[l] if q in live]
+            new = {l} | (set.intersection(*ps) if ps else set())
+            if new != dom[l]:
+                dom[l] = new
+                changed = True
+    return dom
+
+
+def _call_region(fn: I.IRFunction):
+    """(N, S) as described above, or None when the function has no such region."""
+    entry = fn.blocks[0].label
+    succ, pred = _cfg(fn)
+    call_blocks = [b.label for b in fn.blocks if any(lir.is_call(i) for i in b.instrs)]
+    if not call_blocks:
+        return None
+    dom = _dominators(entry, succ, pred)
+    if any(c not in dom for c in call_blocks):
+        return None
+    common = set.intersection(*(dom[c] for c in call_blocks))
+    n = max(common, key=lambda l: len(dom[l]))             # the deepest common dominator
+    if n == entry:
+        return None
+    region = _reachable(n, succ)
+    if entry in region or any(q in region for q in pred[n]):
+        return None                                        # N must be entered from outside S only
+    for l in region:
+        if l != n and any(q not in region for q in pred[l]):
+            return None                                    # S must be single-entry
+    return n, region
+
+
+def _rename_in_blocks(blocks: list[I.BasicBlock], old: str, new: I.Reg) -> None:
+    def sub(o):
+        return new if isinstance(o, I.Reg) and o.name == old else o
+
+    for b in blocks:
+        for i in b.instrs:
+            util.map_operands(i, sub)
+            d = util.defs(i)
+            if d is not None and d.name == old:
+                i.dst = new                                # type: ignore[union-attr]
+        util.map_term_operands(b.term, sub)
+
+
+def _used_after_call(blocks: list[I.BasicBlock], region: set[str], succ: dict[str, list[str]], name: str) -> bool:
+    """Is parameter ``name`` read in S after a call (in its block, or in a block a call can reach)?"""
+    by_label = {b.label: b for b in blocks}
+    after: set[str] = set()                                # blocks entered after some call in S
+    for l in region:
+        if any(lir.is_call(i) for i in by_label[l].instrs):
+            after |= _reachable_from_succs(l, succ)
+    for l in region:
+        b = by_label[l]
+        seen_call = l in after
+        for i in b.instrs:
+            if seen_call and any(r.name == name for r in util.uses(i)):
+                return True
+            if lir.is_call(i):
+                seen_call = True
+        if seen_call and any(r.name == name for r in util.term_uses(b.term)):
+            return True
+    return False
+
+
+def _reachable_from_succs(label: str, succ: dict[str, list[str]]) -> set[str]:
+    out: set[str] = set()
+    for t in succ[label]:
+        out |= _reachable(t, succ)
+    return out
+
+
+def _wrap_calls(fn: I.IRFunction) -> None:
+    found = _call_region(fn)
+    if found is None:
+        return
+    n, region = found
+    succ, _ = _cfg(fn)
+    blocks = [b for b in fn.blocks if b.label in region]
+    head = next(b for b in blocks if b.label == n)
+    copies: list[I.Instr] = []
+    for prm in fn.params:
+        if prm.type == IT.VOID or not _used_after_call(fn.blocks, region, succ, prm.name):
+            continue
+        fresh = I.Reg(f"{prm.name}.w", prm.type)
+        _rename_in_blocks(blocks, prm.name, fresh)
+        copies.append(I.Copy(fresh, prm))
+    head.instrs[:0] = copies
+    fn.wrap = (n, frozenset(region))                       # type: ignore[attr-defined]
+
+
 def prepare_function(fn: I.IRFunction) -> I.IRFunction:
     fn = copy.deepcopy(fn)
+    _wrap_calls(fn)
     _coalesce_copies(fn)
     _fold_addressing(fn)
     _fuse_cmp_branch(fn)

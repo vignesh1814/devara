@@ -15,6 +15,10 @@ slot). `-O1` runs the IR optimizer and then the register-allocating back end.
   are saved and restored; frames stay 16-byte aligned.
 * **Scratch registers** (never allocated): `rax rcx rdx r10 xmm0 xmm1`; `r11` is allocatable (audit F9). Call
   arguments and incoming parameters are moved with a parallel-move resolver (cycles broken through `rax`).
+* **Shrink-wrapped callee-saved registers** (audit F7, `prep._wrap_calls` + `x86_64_ra`): when every call lies in a
+  single-entry region (rooted at the deepest block dominating all calls), parameters used after a call there are
+  copied into fresh registers at its entry, and callee-saved registers used only inside the region are saved on
+  entry to it and restored by the returns inside it, so a recursive function's base case touches none of them.
 * **Frameless leaves** (audit F12): a function with no calls, no integer division, no stack parameters and an
   empty frame (nothing spilled, saved or in a frame array) is emitted without `push rbp` / `leave`.
 * **Pre-allocation rewrites** (`compiler/codegen/prep.py`): scalar globals and array base pointers that
