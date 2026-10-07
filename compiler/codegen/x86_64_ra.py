@@ -25,8 +25,6 @@ IT = I.IRType
 
 # bool and char occupy one byte in memory (loaded zero-/sign-extended, stored from the low byte)
 _BYTE_TYPES = frozenset({IT.BOOL, IT.CHAR})
-_REG8 = {"rax": "al", "rbx": "bl", "rcx": "cl", "rdx": "dl", "rsi": "sil", "rdi": "dil",
-         **{f"r{n}": f"r{n}b" for n in range(8, 16)}}
 
 Loc = tuple   # ("r", reg) | ("x", xmm) | ("m", rbp displacement) | ("i", int) | ("a", "rip + sym")
 
@@ -275,7 +273,7 @@ class RAFunctionGen:
         k = vl[0]
         if ty in _BYTE_TYPES:
             if k == "r":
-                self.e(f"mov {addr}, {_REG8[vl[1]]}")
+                self.e(f"mov {addr}, {_BYTE[vl[1]]}")
             elif k == "i":
                 self.e(f"mov {addr}, {vl[1] & 0xFF}")
             else:
