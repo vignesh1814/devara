@@ -1,0 +1,15 @@
+# how many steps does n take to reach 1 (3n+1 if odd, n/2 if even)?
+int n
+n ni chaduvu
+
+int steps
+steps lo 0 pettu
+n != 1 unnanta varaku {
+  n % 2 == 0 ayite {
+    n lo n / 2 pettu
+  } lekunte {
+    n lo 3 * n + 1 pettu
+  }
+  steps lo steps + 1 pettu
+}
+steps ni chupi

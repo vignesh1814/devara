@@ -1,7 +1,7 @@
 # Compiler Reconstruction & Implementation — Master Execution Prompt
 
 > Governing instructions supplied by the project owner (2026-10-05). This
-> supersedes `DEVARA_IMPLEMENTATION_MASTER_PROMPT.md` where they differ; that
+> supersedes `IMPLEMENTATION_MASTER_PROMPT.md` where they differ; that
 > older file's implementation-agent ground rules (stop-and-report on
 > contradictions, spec as test oracle, gated phases) remain compatible.
 

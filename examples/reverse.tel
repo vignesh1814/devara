@@ -1,0 +1,9 @@
+# podavu(s) is the length of a padham; s[i] is its i-th character
+padham s
+s ni chaduvu
+int i
+i lo podavu(s) - 1 pettu
+i >= 0 unnanta varaku {
+  s[i] ni chupi
+  i lo i - 1 pettu
+}

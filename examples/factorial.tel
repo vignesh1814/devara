@@ -1,0 +1,9 @@
+# recursion: n! for n read from input
+int fact charya (int n) {
+  n <= 1 ayite { 1 ivvu }
+  n * fact(n - 1) ivvu
+}
+
+int n
+n ni chaduvu
+fact(n) ni chupi

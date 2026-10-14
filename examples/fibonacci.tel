@@ -1,0 +1,15 @@
+# the first n Fibonacci numbers
+int n
+n ni chaduvu
+
+int a
+int b
+int t
+a lo 0 pettu
+b lo 1 pettu
+prati i 0 nundi n varaku {
+  a ni chupi
+  t lo a + b pettu
+  a lo b pettu
+  b lo t pettu
+}

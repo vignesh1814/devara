@@ -1,0 +1,8 @@
+# the esolang classic: input 0 prints 0 and halts; input 1 prints 1 forever
+int x
+x ni chaduvu
+x == 0 ayite {
+  0 ni chupi
+} lekunte {
+  nijam unnanta varaku { 1 ni chupi }
+}
