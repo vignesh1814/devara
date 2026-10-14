@@ -17,6 +17,7 @@ import shlex
 import shutil
 import subprocess
 import tempfile
+import time
 from pathlib import Path
 from typing import Any
 
@@ -52,7 +53,10 @@ def decode_source(data: bytes) -> str:
 
     This matches the language's 8-bit ``char`` model (L40): non-ASCII bytes can
     only appear in comments and string/char literals, and are preserved 1:1.
+    A leading UTF-8 byte order mark marks the encoding, not source text, and is dropped (plan A-006).
     """
+    if data.startswith(b"\xef\xbb\xbf"):
+        data = data[3:]
     return data.decode("latin-1")
 
 
@@ -228,9 +232,29 @@ def runtime_object(cache_dir: Path | None = None, target=None) -> Path:
         except OSError as e:
             raise InternalCompilerError(f"cannot run C compiler {cc[0]!r}: {e}") from None
         if proc.returncode != 0:
+            tmp.unlink(missing_ok=True)
             raise InternalCompilerError(f"runtime failed to compile:\n{proc.stderr}")
-        os.replace(tmp, obj)
+        _publish_cached_object(tmp, obj)
     return obj
+
+
+def _publish_cached_object(tmp: Path, obj: Path) -> None:
+    """Move the freshly built ``tmp`` to ``obj``. The name encodes the content, so a copy that is already there is
+    identical; Windows refuses to replace a file another build has open or is replacing at that moment
+    (``PermissionError``), which is then no failure."""
+    try:
+        for attempt in range(5):
+            try:
+                os.replace(tmp, obj)
+                return
+            except OSError:
+                if obj.exists():
+                    return
+                if attempt == 4:
+                    raise
+                time.sleep(0.05 * (attempt + 1))
+    finally:
+        tmp.unlink(missing_ok=True)
 
 
 class AssemblerError(InternalCompilerError):
