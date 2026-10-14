@@ -1,0 +1,17 @@
+# sum of squares 1..n
+int square charya (int x) {
+  x * x ivvu
+}
+
+int n
+n ni chaduvu
+
+int total
+total lo 0 pettu
+
+prati i 1 nundi n + 1 varaku {
+  total lo total + square(i) pettu
+}
+
+"sum of squares:" ni chupi
+total ni chupi

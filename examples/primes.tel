@@ -1,0 +1,17 @@
+# primes up to n, by trial division
+bool isprime charya (int k) {
+  k < 2 ayite { abaddham ivvu }
+  int d
+  d lo 2 pettu
+  d * d <= k unnanta varaku {
+    k % d == 0 ayite { abaddham ivvu }
+    d lo d + 1 pettu
+  }
+  nijam ivvu
+}
+
+int n
+n ni chaduvu
+prati i 2 nundi n + 1 varaku {
+  isprime(i) ayite { i ni chupi }
+}

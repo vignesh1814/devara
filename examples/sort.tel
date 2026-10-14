@@ -1,0 +1,19 @@
+# bubble sort: read n numbers, print them sorted
+int n
+n ni chaduvu
+int a[n]
+prati i 0 nundi n varaku { a[i] ni chaduvu }
+
+int j
+int k
+int t
+pratisari (j 0 tho modhalu; j < n - 1; j lo j + 1 pettu) {
+  pratisari (k 0 tho modhalu; k < n - 1 - j; k lo k + 1 pettu) {
+    a[k] > a[k + 1] ayite {
+      t lo a[k] pettu
+      a[k] lo a[k + 1] pettu
+      a[k + 1] lo t pettu
+    }
+  }
+}
+prati i 0 nundi n varaku { a[i] ni chupi }

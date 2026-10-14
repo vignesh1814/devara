@@ -1,0 +1,16 @@
+# FizzBuzz, Devara style
+prati i 1 nundi 16 varaku {
+  i % 15 == 0 ayite {
+    "FizzBuzz" ni chupi
+  } lekunte {
+    i % 3 == 0 ayite {
+      "Fizz" ni chupi
+    } lekunte {
+      i % 5 == 0 ayite {
+        "Buzz" ni chupi
+      } lekunte {
+        i ni chupi
+      }
+    }
+  }
+}
