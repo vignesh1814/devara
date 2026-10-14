@@ -1,6 +1,7 @@
 """Phase 6: x86-64 code generation and the C runtime (native execution)."""
 
 import glob
+import re
 import subprocess
 import tempfile
 from pathlib import Path
@@ -8,6 +9,7 @@ from pathlib import Path
 import pytest
 
 from compiler import driver
+from compiler.codegen.target import host_target
 from tests.helpers.native import asm_of, build_and_run
 from tests.helpers.pipeline import run_ir
 
@@ -33,7 +35,7 @@ def test_assembly_is_intel_syntax_and_has_entry_and_main():
     a = asm_of("1 ni chupi", 1)
     assert a.startswith("    .intel_syntax noprefix")
     assert "main:" in a and "call dv_entry" in a and ".globl dv_entry" in a
-    assert 'GNU-stack' in a
+    assert ('GNU-stack' in a) == host_target().elf   # the non-executable-stack note exists on ELF targets only
 
 
 def test_generated_assembly_assembles_with_gcc_dash_c(tmp_path):
@@ -161,8 +163,8 @@ float z\nz lo 0.0 pettu
     src = src.replace("1e300 * 1e300", "100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0 * 100000000.0")
     o, st, err = build_and_run(src, b"", 1)
     assert st == 0, err
-    lines = o.decode().split("\n")
-    assert lines[:5] == ["inf", "-inf", "-nan", "nan", "-0"]
+    lines = [re.sub(r"-?nan", "nan", ln) for ln in o.decode().split("\n")]   # NaN sign is platform printf (Q-004)
+    assert lines[:5] == ["inf", "-inf", "nan", "nan", "-0"]
     assert lines[5:9] == ["-9223372036854775808", "-9223372036854775808", "nijam", "abaddham"]
     assert lines[9:12] == ["abaddham", "nijam", "abaddham"]
     assert lines[12:14] == ["1.23457e+08", "1.2345e-05"]

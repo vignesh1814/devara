@@ -42,12 +42,14 @@ def test_run_returns_program_exit_status_on_runtime_error(tmp_path):
 def test_build_writes_executable_with_o_flag_and_default_name(prog, tmp_path):
     out = tmp_path / "bin" / "x"
     out.parent.mkdir()
+    exe = ".exe" if os.name == "nt" else ""   # the driver adds the target's suffix to a suffix-less output name
     r = dv("build", str(prog), "-o", str(out))
+    out = out.with_name(out.name + exe)
     assert r.returncode == 0 and os.access(out, os.X_OK)
     run = subprocess.run([str(out)], input=b"2", capture_output=True)
     assert run.stdout == b"0\n1\ndone\n"
     r = dv("build", str(prog), cwd=tmp_path)
-    assert r.returncode == 0 and (tmp_path / "hello").exists()
+    assert r.returncode == 0 and (tmp_path / ("hello" + exe)).exists()
 
 
 def test_opt_level_flags_accepted_before_and_after_command(prog):

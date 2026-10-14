@@ -2,7 +2,6 @@
 path of such arrays is compared with the reference interpreter at -O0 and -O1, and the memory saving is
 checked with an address-space cap."""
 
-import os
 
 import pytest
 
@@ -134,7 +133,6 @@ def test_f8_bool_and_char_use_byte_accesses_and_ints_still_use_eight(level):
     assert ".zero 16\n" in text and ".zero 128\n" in text    # 16-byte bool and char arrays, 128-byte int array
 
 
-@pytest.mark.skipif(os.name != "posix", reason="needs an address-space limit (POSIX only)")
 @pytest.mark.parametrize("level", LEVELS)
 def test_f8_a_hundred_million_bools_fit_in_a_small_address_space(level):
     # 100 MB of bool elements; with 8-byte elements this needs 800 MB and fails under the 400 MB cap

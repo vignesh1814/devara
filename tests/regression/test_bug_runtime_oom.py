@@ -1,13 +1,9 @@
 """Audit F3: the input helpers used malloc/realloc unchecked, so running out of memory while reading a
 huge token or line dereferenced NULL (a crash) instead of the defined runtime error."""
 
-import os
-
 import pytest
 
 from tests.helpers.native import built, execute
-
-pytestmark = pytest.mark.skipif(os.name != "posix", reason="needs an address-space limit (POSIX only)")
 
 HUGE = 96 * 1024 * 1024      # bytes of input, far more than the 48 MB address-space cap below
 

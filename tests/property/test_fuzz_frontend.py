@@ -56,7 +56,12 @@ def run_cli_inproc(cmd, text: str):
 
     old_lim, old_stack = sys.getrecursionlimit(), threading.stack_size()
     sys.setrecursionlimit(200_000)
-    threading.stack_size(512 * 1024 * 1024)
+    for mib in (512, 256, 64, 16):   # Windows rejects the largest sizes (same fallback as compiler/cli.py)
+        try:
+            threading.stack_size(mib * 1024 * 1024)
+            break
+        except (ValueError, RuntimeError):
+            continue
     try:
         t = threading.Thread(target=target, daemon=True)
         t.start()

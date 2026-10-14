@@ -2,9 +2,10 @@
 
 Contract under test: with env DEVARA_RT_STATS=1 the program prints `devara-rt: live=<n>` to stderr at normal exit and n
 must be 0.  The "leak" programs allocate several GB in total, so they run under `bash -c 'ulimit -v 204800; exec prog'`
-(200 MB address space): a leaking implementation dies of allocation failure long before the loop finishes.  Every program
-also runs with MALLOC_PERTURB_ so that freed memory is overwritten (use-after-free shows up as wrong output) and glibc
-aborts on a double free (exit status 134, "free(): ..." on stderr).
+(200 MB address space; on Windows a job-object per-process memory limit of the same size): a leaking implementation dies
+of allocation failure long before the loop finishes.  Every program also runs with MALLOC_PERTURB_ so that freed memory is
+overwritten (use-after-free shows up as wrong output) and glibc aborts on a double free (exit status 134, "free(): ..."
+on stderr); those two checks apply on glibc only.
 
 Each program has (a) a Python closed-form model of its stdout, (b) a small-N variant that is also checked against the
 reference interpreter at -O0/-O1 (so the program text itself is validated independently of the memory features), and (c)

@@ -14,15 +14,22 @@ from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
+from compiler import driver
+from compiler.codegen.target import WINDOWS, host_target
 from tests.reference.interp import run_ast
 from tests.validation.astutil import ast as parse_ast
 from tests.helpers.cli import DEVARA_CMD
 from tests.validation.helpers import ROOT, WORK
 
 MINGW = "x86_64-w64-mingw32-gcc"
-HAVE_WINDOWS_TOOLS = shutil.which(MINGW) is not None and shutil.which("wine") is not None
-
-WIN_ENV = {"DEVARA_CC": MINGW, "DEVARA_RUNNER": "wine", "WINEDEBUG": "-all"}
+HOST_IS_WINDOWS = host_target().is_windows
+if HOST_IS_WINDOWS:
+    # Native Windows host: the MinGW-w64 gcc on PATH links the program and the .exe runs directly (no wine).
+    HAVE_WINDOWS_TOOLS = shutil.which(driver.cc_command(WINDOWS)[0]) is not None
+    WIN_ENV = {}
+else:
+    HAVE_WINDOWS_TOOLS = shutil.which(MINGW) is not None and shutil.which("wine") is not None
+    WIN_ENV = {"DEVARA_CC": MINGW, "DEVARA_RUNNER": "wine", "WINEDEBUG": "-all"}
 
 SCRATCH = WORK / "stress"
 SCRATCH.mkdir(parents=True, exist_ok=True)
@@ -138,9 +145,17 @@ def build(src: str, opt: str = "-O1", target: str | None = None, env: dict | Non
 
 def run_exe_limited(exe: Path, stdin: bytes = b"", vmem_kb: int | None = None, env: dict | None = None,
                     timeout: float = 120) -> Out:
-    """Run a built executable through `bash -c 'ulimit -v N; exec exe'` with optional address-space cap."""
+    """Run a built executable with an optional address-space cap: `bash -c 'ulimit -v N; exec exe'` on POSIX, a
+    job-object memory limit on Windows (where `bash` is at best a WSL launcher). Without a cap it is run directly."""
     e = dict(os.environ)
     e.update(env or {})
+    if os.name == "nt":
+        if vmem_kb:
+            from tests.helpers.winjob import run_with_memory_limit
+            p = run_with_memory_limit(exe, stdin, vmem_kb * 1024, e, timeout)
+            return Out(p.returncode, p.stdout, p.stderr.decode("utf-8", "replace"))
+        p = subprocess.run([str(exe)], input=stdin, capture_output=True, timeout=timeout, env=e)
+        return Out(p.returncode, p.stdout, p.stderr.decode("utf-8", "replace"))
     pre = f"ulimit -v {vmem_kb}; " if vmem_kb else ""
     p = subprocess.run(["bash", "-c", pre + 'exec "$0"', str(exe)], input=stdin, capture_output=True, timeout=timeout, env=e)
     return Out(p.returncode, p.stdout, p.stderr.decode("utf-8", "replace"))

@@ -74,8 +74,13 @@ def execute(exe: Path, stdin: bytes = b"", timeout: float = 10.0, env: dict | No
         full_env.update(SAN_ENV)
     full_env.update(env or {})
 
+    # ASan reserves terabytes of address space, so no cap under the sanitizers. Windows has no RLIMIT_AS: a job
+    # object's per-process memory limit plays that role there.
+    if max_vmem_mb is not None and SANITIZED_RT is None and os.name == "nt":
+        from tests.helpers.winjob import run_with_memory_limit
+        return run_with_memory_limit(exe, stdin, max_vmem_mb * 1024 * 1024, full_env, timeout)
+
     preexec = None
-    # ASan reserves terabytes of address space; Windows has no preexec_fn/RLIMIT_AS (no cap there)
     if max_vmem_mb is not None and SANITIZED_RT is None and os.name == "posix":
         def preexec():  # runs in the child between fork and exec (POSIX test helper only)
             import resource

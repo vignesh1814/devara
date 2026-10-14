@@ -5,17 +5,18 @@ the prefix in env DEVARA_RUNNER (wine, with WINEDEBUG=-all).  The contract: obse
 status, runtime-error text) is byte-identical to the Linux target and to the reference interpreter; stdout is binary (no
 CRLF translation); `\\r\\n` in the input behaves like `\\n`.
 
-Skipped only when `x86_64-w64-mingw32-gcc` or `wine` is not installed.  Until the Windows target is merged these tests fail
+Skipped only when `x86_64-w64-mingw32-gcc` or `wine` is not installed (on a Windows host: when no MinGW-w64 gcc is on
+PATH; the program then runs natively, without wine).  Until the Windows target is merged these tests fail
 (unknown option); they are the acceptance tests for it.
 """
 import pytest
 
 from tests.validation import stress_progs as sp
 from tests.validation.corpus_util import CORPUS, expected, pid, programs
-from tests.validation.stress_util import (HAVE_WINDOWS_TOOLS, MINGW, WIN_ENV, build, check_against_reference, devara, norm,
+from tests.validation.stress_util import (HAVE_WINDOWS_TOOLS, WIN_ENV, build, check_against_reference, devara, norm,
                                           reference, run, run_win, src_path)
 
-pytestmark = [pytest.mark.slow, pytest.mark.skipif(not HAVE_WINDOWS_TOOLS, reason="needs x86_64-w64-mingw32-gcc and wine")]
+pytestmark = [pytest.mark.slow, pytest.mark.skipif(not HAVE_WINDOWS_TOOLS, reason="needs MinGW-w64 gcc and wine (or a Windows host)")]
 
 OPTS = ["-O0", "-O1"]
 
@@ -54,7 +55,7 @@ def test_asm_for_windows_target_succeeds_and_differs_from_linux():
     f = src_path(HELLO)
     w = devara(["asm", "--target", "windows", "-O1", f], env=WIN_ENV)
     assert w.rc == 0, w.err
-    linux = devara(["asm", "-O1", f])
+    linux = devara(["asm", "--target", "linux", "-O1", f])   # explicit: on a Windows host the default is windows
     assert linux.rc == 0
     assert w.out != linux.out and w.out.strip()
     assert b".intel_syntax" in w.out
@@ -83,7 +84,7 @@ def test_unknown_target_is_a_usage_error():
 
 def test_windows_build_without_wine_runner_still_builds(tmp_path):
     out = tmp_path / "x.exe"
-    b = devara(["build", "--target", "windows", src_path(HELLO), "-o", str(out)], env={"DEVARA_CC": MINGW})
+    b = devara(["build", "--target", "windows", src_path(HELLO), "-o", str(out)], env={k: v for k, v in WIN_ENV.items() if k == "DEVARA_CC"})
     assert b.rc == 0, b.err
     assert out.read_bytes()[:2] == b"MZ"
 
