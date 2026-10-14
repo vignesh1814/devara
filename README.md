@@ -145,7 +145,7 @@ dv_f_square:
     mov rax, r8
     ret
 > devara build examples/squares.tel -o squares
-> squares.exe                  # a standalone ~200 KB executable, no Python needed (type a number, e.g. 4)
+> squares.exe                  # a standalone ~340 KB executable, no Python needed (type a number, e.g. 4)
 ```
 
 Mistakes are caught before anything runs, with a position and a category:
