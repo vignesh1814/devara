@@ -101,7 +101,7 @@ You need **Python 3.11+** and a **`gcc`** on `PATH` (the compiler writes assembl
 terminal, then:
 
 ```text
-git clone https://github.com/vigneshtheerdala-spec/devara.git
+git clone https://github.com/vignesh1814/devara.git
 cd devara
 pip install -e .
 devara run examples/hello.tel
