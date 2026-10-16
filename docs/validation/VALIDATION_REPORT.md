@@ -1,6 +1,6 @@
 # Independent Validation Report (tester agent)
 
-Branch `claude/devara-validation-l3txzx`, merged with developer branch HEAD `c3c2b2f`. All numbers below are from the
+Branch `devara-validation-l3txzx`, merged with developer branch HEAD `c3c2b2f`. All numbers below are from the
 commands run on that merged tree.
 
 ## 1. Full test run

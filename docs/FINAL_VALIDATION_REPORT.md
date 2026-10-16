@@ -1,7 +1,7 @@
 # Devara Compiler — Final Validation Report
 
 **Date:** 2026-10-04
-**Branch:** `claude/devara-compiler-cloud-migration-l3txzx`
+**Branch:** `devara-compiler-cloud-migration-l3txzx`
 **Validated tree:** developer HEAD `aabe4bc` merged with validation HEAD `be34ebd`. The final merge
 `f5e3e01` adds only the validation report docs (`b1bea27`).
 **Verdict:** **PASS.** All acceptance criteria hold. The exceptions are the documented limits in §8.
@@ -135,8 +135,8 @@ The developer also fixed bugs it found itself during Phases 1–7. Each of those
 ## 10. Reproducibility
 
 ```sh
-git clone https://github.com/vigneshtheerdala-spec/devara && cd devara
-git checkout claude/devara-compiler-cloud-migration-l3txzx
+git clone https://github.com/vignesh1814/devara && cd devara
+git checkout devara-compiler-cloud-migration-l3txzx
 ./scripts/setup.sh                      # pip install -r requirements-dev.txt (pytest, hypothesis)
 python3 -m pytest -m "not slow" -q      # fast suite (~10 s)
 python3 -m pytest -q                    # full suite (~18 min serial; the tester used -n 4 with pytest-xdist: ~4 min)

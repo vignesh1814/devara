@@ -1,8 +1,8 @@
 # Developer status — Phases 1–7
 
 All numbers below come from commands run on the final tree of branch
-`claude/devara-compiler-cloud-migration-l3txzx` (merged with the tester's branch
-`claude/devara-validation-l3txzx` up to its commit `586571d`).
+`devara-compiler-cloud-migration-l3txzx` (merged with the tester's branch
+`devara-validation-l3txzx` up to its commit `586571d`).
 
 ## Gate results
 

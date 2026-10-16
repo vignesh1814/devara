@@ -324,7 +324,7 @@ correct + `docs/FINAL_VALIDATION_REPORT.md` written from actual command output.
 
 ## K. Cloud environment
 
-No GPU needed; a standard Claude Code cloud container (or any x86-64 Linux with Python ≥ 3.11 and
+No GPU needed; a standard cloud container (or any x86-64 Linux with Python ≥ 3.11 and
 gcc) suffices. Reproducible setup: `.devcontainer/devcontainer.json` (Python 3.11 image + gcc) and
 `scripts/setup.sh` (`pip install -r requirements-dev.txt`). Commands:
 

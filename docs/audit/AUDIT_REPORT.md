@@ -1,6 +1,6 @@
 # Devara compiler audit (findings only, no fixes)
 
-**Baseline:** branch `claude/devara-compiler-cloud-migration-l3txzx` at `ea2f0bf`.
+**Baseline:** branch `devara-compiler-cloud-migration-l3txzx` at `ea2f0bf`.
 **Environment:** Linux x86-64, Python 3.11.15, gcc 13.3. MinGW-w64 gcc and wine 9.0 were installed in the container part-way through the audit, for the Windows-target checks.
 **Rule:** every finding below has a reproducer that was run. Anything that could not be confirmed is marked UNCONFIRMED. The ranked fix list is in [`IMPROVEMENT_PLAN.md`](IMPROVEMENT_PLAN.md).
 
