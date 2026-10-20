@@ -106,11 +106,13 @@ def run_opt(module, level: int):
     return optimize(module, level)
 
 
-def run_codegen(module, target=None, level: int = 0) -> str:
-    """Assembly for ``module``; ``level`` 0 = stack-slot reference generator, >= 1 = register allocation."""
+def run_codegen(module, target=None, level: int = 0, source: str | None = None) -> str:
+    """Assembly for ``module``; ``level`` 0 = stack-slot reference generator, >= 1 = register allocation.
+
+    ``source`` (the path of the .tel file) makes it a debug build: the assembly carries ``.file``/``.loc`` directives."""
     from compiler.codegen.x86_64 import generate
 
-    return generate(module, target, regalloc=level > 0)
+    return generate(module, target, regalloc=level > 0, source=source)
 
 
 # ── Envelopes ──

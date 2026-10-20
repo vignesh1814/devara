@@ -24,6 +24,14 @@ _JCC = re.compile(r"^    j(n?[a-z]+) (\.L\w+)$")
 _CMP0 = re.compile(r"^    cmp (\w+), 0$")
 _LABEL = re.compile(r"^(\.L\w+):$")
 
+def _prev(out: list[str]) -> int:
+    """Index of the last line that is not a ``.loc`` directive (those never get in the way of a rewrite)."""
+    p = len(out) - 1
+    while p >= 0 and out[p].startswith("    .loc "):
+        p -= 1
+    return p
+
+
 _INV = {"e": "ne", "ne": "e", "l": "ge", "ge": "l", "le": "g", "g": "le",
         "a": "be", "be": "a", "ae": "b", "b": "ae", "z": "nz", "nz": "z"}
 _GPR = {"rax", "rbx", "rcx", "rdx", "rsi", "rdi", "rbp", "rsp", *(f"r{n}" for n in range(8, 16))}
@@ -69,7 +77,7 @@ def _pass(lines: list[str]) -> list[str]:
         # store then reload of the same slot
         m = _LOAD.match(ln)
         if m and out:
-            s = _STORE.match(out[-1])
+            s = _STORE.match(out[_prev(out)]) if _prev(out) >= 0 else None
             if s and s.group(1) == m.group(1) and s.group(2) == m.group(3):
                 if s.group(3) == m.group(2):
                     continue
@@ -89,10 +97,10 @@ def _pass(lines: list[str]) -> list[str]:
             if falls:
                 continue
             # jcc A ; jmp B ; A:   ->   jncc B ; A:
-            if out:
-                c = _JCC.match(out[-1])
+            if out and _prev(out) >= 0:
+                c = _JCC.match(out[_prev(out)])
                 if c and c.group(1) in _INV and k < n and lines[k] == f"{c.group(2)}:":
-                    out[-1] = f"    j{_INV[c.group(1)]} {m.group(1)}"
+                    out[_prev(out)] = f"    j{_INV[c.group(1)]} {m.group(1)}"
                     continue
             dead = True
             out.append(ln)

@@ -194,6 +194,7 @@ class Lowerer:
         self.scopes = []
         self.owned = set()
         self.mem_borrow = True
+        self.cur_line = self.decl_line = 0
         self.start(self.label("entry"))
 
     def finish_function(self, name: str, params: list[I.Reg], ret: IT) -> I.IRFunction:
@@ -202,7 +203,9 @@ class Lowerer:
         for b in self.blocks:
             if b.term is None:
                 b.term = I.Return(self.zero_return(ret, b))
-        return I.IRFunction(name=name, params=params, ret=ret, blocks=self.blocks)
+        fn = I.IRFunction(name=name, params=params, ret=ret, blocks=self.blocks)
+        fn.decl_line = self.decl_line          # debug-only attribute, not a dataclass field: never serialized
+        return fn
 
     def zero_return(self, ret: IT, blk: I.BasicBlock) -> I.Operand | None:
         if ret == IT.VOID:
@@ -227,6 +230,7 @@ class Lowerer:
         if self.cur is None:                  # unreachable code after ivvu/aapu/saagu
             self.start(self.label("dead"))
         assert self.cur is not None
+        term.line = self.cur_line
         self.cur.term = term
         self.cur = None
 
@@ -238,6 +242,7 @@ class Lowerer:
         if self.cur is None:
             self.start(self.label("dead"))
         assert self.cur is not None
+        ins.line = self.cur_line
         self.cur.instrs.append(ins)
 
     def temp(self, t: IT) -> I.Reg:
@@ -254,6 +259,7 @@ class Lowerer:
 
     def lower_function(self, f: T.TFunction) -> I.IRFunction:
         self.begin_function()
+        self.cur_line = self.decl_line = f.span.start_line
         self.ret = irtype(f.ret)
         params = []
         for pid in f.params:
@@ -392,6 +398,8 @@ class Lowerer:
         self.emit(I.RtCall(None, "dv_rt_shutdown", []))
 
     def stmt(self, s: T.TStmt) -> None:
+        if not isinstance(s, T.TBlock):
+            self.cur_line = s.span.start_line
         getattr(self, "s_" + type(s).__name__)(s)
         assert not self.owned, f"unconsumed owned padham temporaries: {sorted(self.owned)}"
 

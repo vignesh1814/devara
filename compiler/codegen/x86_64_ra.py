@@ -66,6 +66,8 @@ class RAFunctionGen:
         self.idx = index
         self.strings = strings
         self.lines: list[str] = []
+        self.debug = False                 # emit .loc directives (devara build -g)
+        self.last_line = 0
         self.nlabel = 0
         self.need_div0 = self.need_rem0 = self.need_ovf = False
         self.alloc = regalloc.allocate(fn, reg_sets(target), lambda ts: assign_args(target, ts))
@@ -145,6 +147,12 @@ class RAFunctionGen:
 
     def e(self, s: str) -> None:
         self.lines.append("    " + s)
+
+    def mark(self, line: int) -> None:
+        """Debug builds: tell the assembler which source line the following instructions come from."""
+        if self.debug and line and line != self.last_line:
+            self.lines.append(f"    .loc 1 {line}")
+            self.last_line = line
 
     def lab(self, name: str) -> str:
         return f".L{self.idx}_{name}"
@@ -358,8 +366,10 @@ class RAFunctionGen:
                 for r, off, is_x in self.region_saved:
                     self.e(self._save_line(r, off, is_x))
             for ins in b.instrs:
+                self.mark(ins.line)
                 self.instr(ins)
             nxt = fn.blocks[k + 1].label if k + 1 < len(fn.blocks) else None
+            self.mark(b.term.line)
             self.terminator(b.term, nxt)
         body = self.lines
         stubs: list[str] = []
@@ -374,6 +384,8 @@ class RAFunctionGen:
 
         frame = (self.next_off + 15) & ~15
         out = tg.function_header(name)
+        if self.debug and getattr(fn, "decl_line", 0):
+            out.append(f"    .loc 1 {fn.decl_line}")
         if not self.frameless:
             out += ["    push rbp", "    mov rbp, rsp"]
         if frame:

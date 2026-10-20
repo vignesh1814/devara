@@ -96,3 +96,38 @@ $ printf 'b 11 if i == 3\nc\np i\np a\nq\n' | devara debug examples/fibonacci.te
 ```
 
 Programs that print output while running are shown as they print, between the prompts.
+
+## Debugging the compiled program with gdb or lldb
+
+`devara debug` runs the interpreter. To debug the real executable, build it with `-g`:
+
+```text
+devara build -g examples/factorial.tel -o fact
+gdb fact
+(gdb) break factorial.tel:3
+(gdb) run < in.txt
+(gdb) bt
+(gdb) next
+```
+
+or let Devara do it: `devara gdb examples/factorial.tel` builds a debug executable in a temporary directory, opens it in
+gdb with the source directory set, and cleans up afterwards. gdb must be installed (Debian/Ubuntu `apt install gdb`;
+MSYS2 `pacman -S mingw-w64-ucrt-x86_64-gdb`); set `DEVARA_GDB` to use a different one.
+
+What `-g` gives you:
+
+- breakpoints and stepping by `.tel` line (`break factorial.tel:3`, `next`, `step`, `finish`), and a call stack with
+  function names (`dv_f_fact` is the Devara function `fact`; the main program is `dv_entry`);
+- the source line shown at every stop;
+- a normal executable that behaves exactly like one built without `-g`.
+
+What it does not give you:
+
+- **Variables.** The line table describes lines and functions only, so `print total` does not work in gdb. Use
+  `devara debug`, or `x/gd &dv_g_total` for a global.
+- **Optimized code.** `-g` implies `-O0`. `-g -O1` works, but stepping then jumps around because the optimizer moves
+  and merges instructions.
+- **Visual Studio and WinDbg.** They read PDB files, which MinGW does not produce. Use gdb, or lldb with a DWARF-aware
+  build.
+
+Without `-g`, `devara asm` and `devara build` produce exactly the same output as before.

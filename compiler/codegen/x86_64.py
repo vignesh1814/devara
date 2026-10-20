@@ -95,6 +95,8 @@ class FunctionGen:
         self.idx = index
         self.strings = strings
         self.lines: list[str] = []
+        self.debug = False                 # emit .loc directives (devara build -g)
+        self.last_line = 0
         self.slots: dict[str, int] = {}
         self.next_off = 0
         self.nlabel = 0
@@ -139,6 +141,12 @@ class FunctionGen:
     def e(self, s: str) -> None:
         self.lines.append("    " + s)
 
+    def mark(self, line: int) -> None:
+        """Debug builds: tell the assembler which source line the following instructions come from."""
+        if self.debug and line and line != self.last_line:
+            self.lines.append(f"    .loc 1 {line}")
+            self.last_line = line
+
     def lab(self, name: str) -> str:
         return f".L{self.idx}_{name}"
 
@@ -179,12 +187,16 @@ class FunctionGen:
         tg = self.target
         name = mangle_function(fn.name)
         out = tg.function_header(name)
+        if self.debug and getattr(fn, "decl_line", 0):
+            out.append(f"    .loc 1 {fn.decl_line}")
         # body first (to know the frame size), then assemble
         for k, b in enumerate(fn.blocks):
             self.lines.append(f"{self.lab(b.label)}:")
             for ins in b.instrs:
+                self.mark(ins.line)
                 self.instr(ins)
             nxt = fn.blocks[k + 1].label if k + 1 < len(fn.blocks) else None
+            self.mark(b.term.line)
             self.terminator(b.term, nxt)
         stubs = []
         for need, label, helper in ((self.need_div0, "trap_div0", "dv_rt_trap_div0"),
@@ -444,15 +456,19 @@ class FunctionGen:
             raise TypeError(type(t))
 
 
-def generate(module: I.IRModule, target: "Target | str | None" = None, regalloc: bool = False) -> str:
+def generate(module: I.IRModule, target: "Target | str | None" = None, regalloc: bool = False,
+             source: str | None = None) -> str:
     """Emit GNU assembler text for a verified module (``target`` defaults to the host).
 
+    ``source`` (a path) makes this a debug build: ``.file`` / ``.loc`` directives map the code to source lines.
     ``regalloc=False`` is the reference stack-slot generator (-O0); ``True`` runs the
     register-allocating generator plus the peephole pass (-O1).
     """
     tg = get_target(target)
     strings = _Strings(tg)
     out = tg.preamble()
+    if source is not None:
+        out.append('    .file 1 "' + source.replace("\\", "/").replace('"', '\\"') + '"')
     if regalloc:
         from compiler.codegen.peephole import peephole
         from compiler.codegen.prep import hoist_array_bases, prepare_function, promote_globals
@@ -460,11 +476,15 @@ def generate(module: I.IRModule, target: "Target | str | None" = None, regalloc:
 
         module = hoist_array_bases(promote_globals(module))
         for k, fn in enumerate(module.functions):
-            out += peephole(RAFunctionGen(prepare_function(fn), k, strings, tg).generate())
+            gen = RAFunctionGen(prepare_function(fn), k, strings, tg)
+            gen.debug = source is not None
+            out += peephole(gen.generate())
             out.append("")
     else:
         for k, fn in enumerate(module.functions):
-            out += FunctionGen(fn, k, strings, tg).generate()
+            gen = FunctionGen(fn, k, strings, tg)
+            gen.debug = source is not None
+            out += gen.generate()
             out.append("")
     out += tg.function_header("main")
     out += ["    push rbp", "    mov rbp, rsp"]

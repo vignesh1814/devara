@@ -47,6 +47,8 @@ def to_data(obj: Any) -> Any:
     if dataclasses.is_dataclass(obj) and not isinstance(obj, type):
         out: dict[str, Any] = {"_node": type(obj).__name__}
         for f in dataclasses.fields(obj):
+            if f.metadata.get("debug"):        # debug-only data (IR source lines) is not part of the format
+                continue
             out[f.name] = to_data(getattr(obj, f.name))
         return out
     if isinstance(obj, enum.Enum):

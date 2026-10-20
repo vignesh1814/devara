@@ -220,6 +220,7 @@ straight from the checkout.
 |---|---|
 | `devara run prog.tel` | compile and run; the program's exit status is yours |
 | `devara build prog.tel -o prog` | write a standalone executable (`prog.exe` on Windows) |
+| `devara build -g prog.tel` / `devara gdb prog.tel` | debug build: breakpoints and stepping by `.tel` line in gdb or lldb ([docs/DEBUGGER.md](docs/DEBUGGER.md)) |
 | `devara debug prog.tel` | step through the program: breakpoints, watchpoints, call stack, `print` ([docs/DEBUGGER.md](docs/DEBUGGER.md)) |
 | `devara lex\|parse\|sema\|ir\|opt\|asm prog.tel` | print what that compiler stage produced (add `--json` for machine-readable) |
 | `-O0` / `-O1` | `-O1` (default) optimizes; `-O0` is the plain reference code generator. Output is identical at both levels |
@@ -250,7 +251,8 @@ fact(n=2) at examples/factorial.tel:3
  #3  main() at examples/factorial.tel:9
 ```
 
-A run-time error leaves the program stopped on the failing line so you can look at the variables. All commands are in
+A run-time error leaves the program stopped on the failing line so you can look at the variables. To debug the compiled
+executable instead, `devara gdb prog.tel` (or `devara build -g`) gives gdb or lldb a source-line table. All commands are in
 [`docs/DEBUGGER.md`](docs/DEBUGGER.md).
 
 ---

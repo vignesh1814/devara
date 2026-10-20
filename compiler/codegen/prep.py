@@ -118,9 +118,9 @@ def _rewrite(module: I.IRModule, chosen, types):
         new: list[I.Instr] = []
         for i in b.instrs:
             if isinstance(i, I.Load) and isinstance(i.addr, I.GlobalRef) and i.addr.name in regs:
-                new.append(I.Copy(i.dst, regs[i.addr.name]))
+                new.append(I.at(I.Copy(i.dst, regs[i.addr.name]), i))
             elif isinstance(i, I.Store) and isinstance(i.addr, I.GlobalRef) and i.addr.name in regs:
-                new.append(I.Copy(regs[i.addr.name], i.value))
+                new.append(I.at(I.Copy(regs[i.addr.name], i.value), i))
             else:
                 new.append(i)
         b.instrs = new
@@ -210,8 +210,8 @@ def _fold_addressing(fn: I.IRFunction) -> None:
                 dead.add(pending[i.addr.name])
             if replaced is not None:
                 del pending[i.addr.name]        # type: ignore[union-attr]
-                b.instrs[k] = replaced
-                i = replaced
+                b.instrs[k] = I.at(replaced, i)
+                i = b.instrs[k]
             d = lir.defs(i)
             if d is not None:
                 # a redefinition invalidates ptradds that read (or produce) this register
@@ -239,7 +239,7 @@ def _fuse_cmp_branch(fn: I.IRFunction) -> None:
                 and nuse.get(t.cond.name) == 1 and ndef.get(t.cond.name) == 1 \
                 and lir.operand_type(last.a) != IT.STR:
             b.instrs.pop()
-            b.term = lir.CmpBranch(last.cond, last.a, last.b, t.then_target, t.else_target)
+            b.term = I.at(lir.CmpBranch(last.cond, last.a, last.b, t.then_target, t.else_target), t)
 
 
 # ── hoisting of static-array base addresses (audit F10) ──

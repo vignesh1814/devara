@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import copy
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum
 
 __all__ = [
@@ -57,9 +57,14 @@ Operand = Const | Reg | GlobalRef
 
 # ── Instructions ──
 
+# Source line a (debug build) instruction came from. Never serialized, printed or compared: it only feeds the
+# `.loc` directives of `devara build -g` and does not take part in what the IR means.
+_LINE = dict(default=0, kw_only=True, compare=False, repr=False, metadata={"debug": True})
+
+
 @dataclass
 class Instr:
-    pass
+    line: int = field(**_LINE)
 
 
 @dataclass
@@ -151,7 +156,7 @@ class RtCall(Instr):
 
 @dataclass
 class Terminator:
-    pass
+    line: int = field(**_LINE)
 
 
 @dataclass
@@ -186,6 +191,12 @@ class IRFunction:
     params: list[Reg]
     ret: IRType
     blocks: list[BasicBlock]
+
+
+def at(new, old):
+    """Give the instruction or terminator ``new``, which replaces ``old``, the source line of ``old``."""
+    new.line = old.line
+    return new
 
 
 def clone_function(f: IRFunction) -> IRFunction:

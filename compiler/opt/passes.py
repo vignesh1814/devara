@@ -218,7 +218,7 @@ def const_prop(fn: I.IRFunction) -> bool:
             if d is not None and not isinstance(ins, I.Copy):
                 c = fold_instr(ins, lambda o: _const(o, env))
                 if c is not None:
-                    ins = I.Copy(d, c)
+                    ins = I.at(I.Copy(d, c), ins)
                     changed = True
             step(env, ins)
             new_instrs.append(ins)
@@ -230,10 +230,10 @@ def const_prop(fn: I.IRFunction) -> bool:
         if isinstance(b.term, I.Branch):
             if isinstance(b.term.cond, I.Const):
                 tgt = b.term.then_target if b.term.cond.value else b.term.else_target
-                b.term = I.Jump(tgt)
+                b.term = I.at(I.Jump(tgt), b.term)
                 changed = True
             elif b.term.then_target == b.term.else_target:
-                b.term = I.Jump(b.term.then_target)
+                b.term = I.at(I.Jump(b.term.then_target), b.term)
                 changed = True
     return changed
 
@@ -358,7 +358,7 @@ def algebraic(fn: I.IRFunction) -> bool:
             elif i.op == "MOD" and is_c(c, 1):
                 new = I.Copy(i.dst, zero)
             if new is not None:
-                b.instrs[k] = new
+                b.instrs[k] = I.at(new, i)
                 changed = True
     return changed
 
@@ -377,14 +377,14 @@ def redundant_convert(fn: I.IRFunction) -> bool:
             if isinstance(i, I.Convert):
                 st = i.src.type if not isinstance(i.src, I.GlobalRef) else IT.ADDR
                 if st == i.dst.type:
-                    b.instrs[k] = I.Copy(i.dst, i.src)
+                    b.instrs[k] = I.at(I.Copy(i.dst, i.src), i)
                     changed = True
                     i = b.instrs[k]
                 elif isinstance(i.src, I.Reg) and i.src.name in origin:
                     orig = origin[i.src.name][1]
                     ot = orig.type if not isinstance(orig, I.GlobalRef) else IT.ADDR
                     if (ot, i.src.type) in _ROUND_TRIP and i.dst.type == ot:
-                        b.instrs[k] = I.Copy(i.dst, orig)
+                        b.instrs[k] = I.at(I.Copy(i.dst, orig), i)
                         changed = True
                         i = b.instrs[k]
             # invalidate facts about anything redefined here

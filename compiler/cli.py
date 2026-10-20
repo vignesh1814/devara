@@ -12,6 +12,7 @@ import argparse
 import os
 import subprocess
 import sys
+import shutil
 import tempfile
 import threading
 from pathlib import Path
@@ -56,6 +57,8 @@ def _build_parser() -> argparse.ArgumentParser:
         if opt:
             p.add_argument("--target", choices=sorted(_TARGET_NAMES), default=argparse.SUPPRESS,
                            help="code-generation target (default: host OS)")
+            p.add_argument("-g", dest="debug_info", action="store_true",
+                           help="debug build: map the machine code to source lines for gdb/lldb (implies -O0 unless -O1 is given)")
         if out:
             p.add_argument("-o", dest="output", metavar="OUT", help="output executable")
         return p
@@ -68,6 +71,7 @@ def _build_parser() -> argparse.ArgumentParser:
     add("asm", "x86-64 assembly", opt=True)
     add("build", "build an executable", opt=True, out=True)
     add("run", "build and run", opt=True)
+    add("gdb", "build with debug info and open the program in gdb", opt=True)
     dbg = add("debug", "step through a program in a source-level debugger")
     dbg.add_argument("--input", metavar="FILE", help="file the program reads as its standard input (default: none)")
     dbg.add_argument("--commands", metavar="FILE", help="read debugger commands from FILE instead of the terminal")
@@ -207,7 +211,8 @@ def _dispatch(args) -> int:
         return _debug(args, filename, data)
     if args.command == "build":
         _check_output_path(_output_path(args, filename, target), filename)
-    level = args.opt_level if args.opt_level is not None else 1
+    debug_info = getattr(args, "debug_info", False) or args.command == "gdb"
+    level = args.opt_level if args.opt_level is not None else (0 if debug_info else 1)
     pipe = _Pipeline(filename, data, level)
     cmd = args.command
 
@@ -232,7 +237,7 @@ def _dispatch(args) -> int:
         from compiler.ir.printer import format_module
 
         _emit("ir", ir, args, filename, format_module)
-    elif cmd in ("asm", "build", "run"):
+    elif cmd in ("asm", "build", "run", "gdb"):
         if pipe.kind == "asm":
             asm_text = pipe.asm_text
         else:
@@ -241,7 +246,8 @@ def _dispatch(args) -> int:
                 from compiler.ir.verify import verify_module
 
                 verify_module(ir)
-            asm_text = driver.run_codegen(ir, target, level)
+            src_path = _debug_source_path(filename) if debug_info and pipe.value is not None else None
+            asm_text = driver.run_codegen(ir, target, level, src_path)
         if cmd == "asm":
             sys.stdout.write(asm_text)
             return EXIT_OK
@@ -251,6 +257,8 @@ def _dispatch(args) -> int:
         with tempfile.TemporaryDirectory(prefix="devara_run_") as tmp:
             exe = driver.executable_path(Path(tmp) / "prog", target)
             _link(asm_text, exe, pipe, filename, target)
+            if cmd == "gdb":
+                return _run_gdb(exe, filename)
             sys.stdout.flush()
             sys.stderr.flush()
             try:
@@ -290,6 +298,30 @@ def _debug(args, filename: str, data: bytes) -> int:
         raise _Fail(EXIT_USER)
     kw = {} if args.max_steps is None else {"max_steps": args.max_steps}
     return debugger.debug(program, source, filename, stdin, commands, **kw)
+
+
+def _run_gdb(exe: Path, filename: str) -> int:
+    gdb = os.environ.get("DEVARA_GDB", "gdb")
+    if shutil.which(gdb) is None:
+        print(f"devara: {gdb} not found. Install gdb (Debian/Ubuntu: apt install gdb; MSYS2: pacman -S "
+              "mingw-w64-ucrt-x86_64-gdb) or set DEVARA_GDB.", file=sys.stderr)
+        return EXIT_USAGE
+    src = Path(filename).resolve()
+    hint = (f"Devara: break {src.name}:LINE, run, next, step, continue, backtrace. "
+            "Variables are not described to gdb yet (only lines and functions); use `devara debug` to inspect them.\n")
+    cmd = [gdb, "-q", "-ex", f"directory {src.parent.as_posix()}", "-ex", f"echo {hint}", "--args", str(exe)]
+    sys.stdout.flush()
+    sys.stderr.flush()
+    try:
+        return subprocess.call(cmd)
+    except OSError as e:
+        print(f"devara: cannot run {gdb}: {e.strerror or e}", file=sys.stderr)
+        return EXIT_USAGE
+
+
+def _debug_source_path(filename: str) -> str:
+    """The path recorded in the debug line table: absolute, so a debugger finds the source from any directory."""
+    return filename if filename == "<stdin>" else Path(filename).resolve().as_posix()
 
 
 def _robust_text_streams() -> None:
