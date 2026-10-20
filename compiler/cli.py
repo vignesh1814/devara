@@ -68,6 +68,11 @@ def _build_parser() -> argparse.ArgumentParser:
     add("asm", "x86-64 assembly", opt=True)
     add("build", "build an executable", opt=True, out=True)
     add("run", "build and run", opt=True)
+    dbg = add("debug", "step through a program in a source-level debugger")
+    dbg.add_argument("--input", metavar="FILE", help="file the program reads as its standard input (default: none)")
+    dbg.add_argument("--commands", metavar="FILE", help="read debugger commands from FILE instead of the terminal")
+    dbg.add_argument("--max-steps", type=int, default=None, metavar="N",
+                     help="stop a runaway program after N evaluation steps (default 50,000,000)")
     return ap
 
 
@@ -198,6 +203,8 @@ def _fmt_tokens(tokens) -> str:
 def _dispatch(args) -> int:
     filename, data = _read_input(args.file)
     target = get_target(getattr(args, "target", None))
+    if args.command == "debug":
+        return _debug(args, filename, data)
     if args.command == "build":
         _check_output_path(_output_path(args, filename, target), filename)
     level = args.opt_level if args.opt_level is not None else 1
@@ -254,6 +261,35 @@ def _dispatch(args) -> int:
             rc = proc.returncode
             return rc if rc >= 0 else 128 - rc
     return EXIT_OK
+
+
+def _debug(args, filename: str, data: bytes) -> int:
+    if filename.endswith((".json", ".s")):
+        print(f"{filename}: debug needs a Devara source file", file=sys.stderr)
+        raise _Fail(EXIT_USAGE)
+    from compiler import debugger
+
+    def read(path: str, what: str) -> bytes:
+        try:
+            return Path(path).read_bytes()
+        except OSError as e:
+            print(f"devara: cannot read {what} {path}: {e.strerror}", file=sys.stderr)
+            raise _Fail(EXIT_USAGE)
+
+    stdin = read(args.input, "input file") if args.input else b""
+    commands = None
+    if args.commands:
+        commands = iter(read(args.commands, "command file").decode("utf-8", "replace").splitlines())
+    pipe = _Pipeline(filename, data, 0)
+    source = pipe.value
+    prog = pipe.advance("ast")
+    program = serialize.to_data(prog)
+    _check_sema = driver.run_sema(prog, filename)[1]
+    if _check_sema:
+        _report(_check_sema)
+        raise _Fail(EXIT_USER)
+    kw = {} if args.max_steps is None else {"max_steps": args.max_steps}
+    return debugger.debug(program, source, filename, stdin, commands, **kw)
 
 
 def _robust_text_streams() -> None:

@@ -28,7 +28,7 @@ plain Python 3.11 with **no dependencies**. `gcc` is used only to assemble and l
 ## Contents
 
 [Vocabulary](#vocabulary) · [Programs](#programs) · [The rest of the language](#the-rest-of-the-language) ·
-[Quick start](#quick-start) · [Look inside the compiler](#look-inside-the-compiler) · [How it works](#how-it-works) ·
+[Quick start](#quick-start) · [Debugger](#debugger) · [Look inside the compiler](#look-inside-the-compiler) · [How it works](#how-it-works) ·
 [FAQ](#faq) · [Tests](#tests) · [Windows notes](#windows-notes) · [Documentation](#documentation)
 
 ---
@@ -220,12 +220,38 @@ straight from the checkout.
 |---|---|
 | `devara run prog.tel` | compile and run; the program's exit status is yours |
 | `devara build prog.tel -o prog` | write a standalone executable (`prog.exe` on Windows) |
+| `devara debug prog.tel` | step through the program: breakpoints, watchpoints, call stack, `print` ([docs/DEBUGGER.md](docs/DEBUGGER.md)) |
 | `devara lex\|parse\|sema\|ir\|opt\|asm prog.tel` | print what that compiler stage produced (add `--json` for machine-readable) |
 | `-O0` / `-O1` | `-O1` (default) optimizes; `-O0` is the plain reference code generator. Output is identical at both levels |
 | `--target linux\|windows` | cross-assemble for the other OS (default: this OS) |
 
 Exit codes: `0` ok, `1` your program has a compile error or a run-time error, `2` bad command line, `3` the compiler
 itself failed (a bug, or no `gcc`).
+
+---
+
+## Debugger
+
+`devara debug` steps through a program in terms of your own source: breakpoints (with conditions), watchpoints, `step` /
+`next` / `finish`, a call stack, and `print` for any expression.
+
+```text
+$ devara debug examples/factorial.tel --input in.txt
+(devara-db) b 3 if n == 2
+Breakpoint 1 at line 3 if n == 2
+(devara-db) c
+Breakpoint 1, line 3
+fact(n=2) at examples/factorial.tel:3
+=>    3 |   n <= 1 ayite { 1 ivvu }
+(devara-db) bt
+*#0  fact(n=2) at examples/factorial.tel:3   called from line 4
+ #1  fact(n=3) at examples/factorial.tel:4   called from line 4
+ #2  fact(n=4) at examples/factorial.tel:4   called from line 9
+ #3  main() at examples/factorial.tel:9
+```
+
+A run-time error leaves the program stopped on the failing line so you can look at the variables. All commands are in
+[`docs/DEBUGGER.md`](docs/DEBUGGER.md).
 
 ---
 
@@ -358,6 +384,7 @@ See [`docs/README.md`](docs/README.md) for the index. The essentials:
 |---|---|
 | [`docs/DEVARA_LANGUAGE_SPEC_v0.7.md`](docs/DEVARA_LANGUAGE_SPEC_v0.7.md) | the language, with a formal grammar |
 | [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) | every design decision and ruling (P1–P43, A-001…A-006) |
+| [`docs/DEBUGGER.md`](docs/DEBUGGER.md) | the debugger: every command, with a session |
 | [`docs/STAGE_FORMATS.md`](docs/STAGE_FORMATS.md) | what each `devara lex/parse/sema/ir/opt/asm --json` prints |
 | [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md) | benchmarks |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | how to build, test and send a change |
