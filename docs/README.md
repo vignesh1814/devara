@@ -7,6 +7,7 @@
 | [DEVARA_LANGUAGE_SPEC_v0.7.md](DEVARA_LANGUAGE_SPEC_v0.7.md) | the language itself, with a formal grammar |
 | [DEBUGGER.md](DEBUGGER.md) | `devara debug`: breakpoints, watchpoints, stepping, `print` |
 | [STAGE_FORMATS.md](STAGE_FORMATS.md) | what `devara lex / parse / sema / ir / opt / asm` (and `--json`) print |
+| [PLAYGROUND.md](PLAYGROUND.md) | the browser playground: build, host, embed anywhere, every option |
 | [PERFORMANCE.md](PERFORMANCE.md) | benchmarks of the generated code and of the compiler |
 
 ## Design

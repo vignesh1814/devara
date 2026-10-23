@@ -28,6 +28,7 @@ plain Python 3.11 with **no dependencies**. `gcc` is used only to assemble and l
 ## Contents
 
 [Vocabulary](#vocabulary) · [Programs](#programs) · [The rest of the language](#the-rest-of-the-language) ·
+[Browser playground](#try-it-in-your-browser) ·
 [Quick start](#quick-start) · [Debugger](#debugger) · [Look inside the compiler](#look-inside-the-compiler) · [How it works](#how-it-works) ·
 [FAQ](#faq) · [Tests](#tests) · [Windows notes](#windows-notes) · [Documentation](#documentation)
 
@@ -194,6 +195,21 @@ The complete language, with a formal grammar, is in [`docs/DEVARA_LANGUAGE_SPEC_
 
 **Computational class.** Unbounded loops, recursion and arrays sized at run time mean that anything a computer can
 compute can be written in Devara, within the limits of 64-bit integers and the machine's memory.
+
+---
+
+## Try it in your browser
+
+No install needed: the **[playground](docs/PLAYGROUND.md)** runs Devara in a web page (the compiler front end and the
+reference interpreter, in WebAssembly), and it embeds anywhere with one tag:
+
+```html
+<script src="https://YOUR-HOST/devara-playground.js"></script>
+<devara-playground code='"Hello, Devara!" ni chupi'></devara-playground>
+```
+
+Build it with `python scripts/build_playground.py`; see [docs/PLAYGROUND.md](docs/PLAYGROUND.md) for hosting, iframes,
+every option and the JavaScript API.
 
 ---
 
