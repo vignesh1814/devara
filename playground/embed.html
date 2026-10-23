@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Devara playground (embed)</title>
+<style>
+  html,body{height:100%;margin:0;background:transparent}
+  devara-playground{height:100%}
+</style>
+</head>
+<body>
+<!-- Iframe-friendly page. Configure with the URL hash, e.g.
+     embed.html#code=<base64url>&stdin=<base64url>&theme=dark&tabs=output,input&autorun=1&readonly=1 -->
+<devara-playground id="p" height="100%"></devara-playground>
+<script src="devara-playground.js"></script>
+<script>
+  (function () {
+    var p = document.getElementById("p"), h = new URLSearchParams(location.hash.slice(1));
+    var D = window.DevaraPlayground;
+    if (h.get("code")) p.setAttribute("code", D.decode(h.get("code")));
+    if (h.get("stdin")) p.setAttribute("stdin", D.decode(h.get("stdin")));
+    ["theme", "tabs", "timeout"].forEach(function (k) { if (h.get(k)) p.setAttribute(k, h.get(k)); });
+    ["autorun", "readonly"].forEach(function (k) { if (h.get(k) === "1") p.setAttribute(k, ""); });
+  })();
+</script>
+</body>
+</html>

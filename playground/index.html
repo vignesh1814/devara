@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Devara Playground</title>
+<meta name="description" content="Write and run Devara, a programming language in romanized Telugu, right in your browser.">
+<style>
+  :root{--bg:#fff;--fg:#1f2328;--mut:#656d76;--line:#d0d7de;--panel:#f6f8fa;--acc:#0b6bcb}
+  @media (prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--mut:#8b949e;--line:#30363d;--panel:#161b22;--acc:#2f81f7}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  main{max-width:1100px;margin:0 auto;padding:20px 16px 48px}
+  h1{font-size:1.6rem;margin:.2em 0 .1em}
+  .lead{color:var(--mut);margin:0 0 16px}
+  .row{display:flex;gap:10px;align-items:center;margin:0 0 10px;flex-wrap:wrap}
+  select{font:inherit;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg)}
+  label{color:var(--mut)}
+  section{margin-top:32px}
+  h2{font-size:1.15rem}
+  pre.snip{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;overflow:auto;font-size:13px;line-height:1.5;margin:8px 0}
+  a{color:var(--acc)}
+  code{background:var(--panel);padding:1px 5px;border-radius:4px}
+  .cheat{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:6px 24px;font-size:14px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Devara Playground</h1>
+  <p class="lead">A programming language written in romanized Telugu. The verb comes last: <code>x ni chupi</code> &mdash; &ldquo;show x&rdquo;. Everything runs in your browser; nothing is uploaded.</p>
+  <div class="row"><label for="ex">Example</label><select id="ex" aria-label="Choose an example"></select></div>
+  <devara-playground id="pg" height="560"></devara-playground>
+
+  <section>
+    <h2>Cheat sheet</h2>
+    <div class="cheat">
+      <div><code>x lo 5 pettu</code> assign</div>
+      <div><code>x + 1 ni chupi</code> print</div>
+      <div><code>x ni chaduvu</code> read input</div>
+      <div><code>c ayite { } lekunte { }</code> if / else</div>
+      <div><code>c unnanta varaku { }</code> while</div>
+      <div><code>prati i 1 nundi 10 varaku { }</code> range loop</div>
+      <div><code>int f charya (int a) { a * 2 ivvu }</code> function</div>
+      <div><code>aapu</code> / <code>saagu</code> break / continue</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Put it on your own page</h2>
+    <p>One script tag and one element. No build step, no server.</p>
+    <pre class="snip" id="snip1"></pre>
+    <p>Or an iframe: use the <b>Embed</b> button in the playground above to copy a snippet containing your current program.</p>
+    <p><a href="https://github.com/vignesh1814/devara/blob/main/docs/PLAYGROUND.md">All options</a> &middot; <a href="https://github.com/vignesh1814/devara">Source</a></p>
+  </section>
+</main>
+<script src="devara-playground.js"></script>
+<script>
+  (function () {
+    var pg = document.getElementById("pg"), sel = document.getElementById("ex"), D = window.DevaraPlayground;
+    var here = location.href.replace(/[^/]*([?#].*)?$/, "");
+    document.getElementById("snip1").textContent =
+      '<script src="' + here + 'devara-playground.js"><\/script>\n' +
+      '<devara-playground code=\'"Hello, Devara!" ni chupi\'></devara-playground>';
+    var hash = new URLSearchParams(location.hash.slice(1));
+    var shared = hash.get("code");
+    if (shared) {
+      pg.code = D.decode(shared);
+      pg.stdin = hash.get("stdin") ? D.decode(hash.get("stdin")) : "";
+      if (hash.get("run") === "1") pg.run();
+    }
+    fetch("examples.json").then(function (r) { return r.json(); }).then(function (ex) {
+      var blank = document.createElement("option");
+      blank.value = ""; blank.textContent = shared ? "(shared program)" : "Choose…";
+      sel.appendChild(blank);
+      Object.keys(ex).forEach(function (k) {
+        var o = document.createElement("option"); o.value = k; o.textContent = ex[k].title; sel.appendChild(o);
+      });
+      sel.onchange = function () {
+        if (ex[sel.value]) { pg.code = ex[sel.value].code; pg.stdin = ex[sel.value].stdin || ""; }
+      };
+      if (!shared) { sel.value = "hello"; sel.onchange(); }
+    });
+  })();
+</script>
+</body>
+</html>
