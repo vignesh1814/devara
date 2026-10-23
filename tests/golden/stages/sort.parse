@@ -1,0 +1,214 @@
+Program [1:1-20:1]
+  items: [
+    Declaration [2:1-2:6]
+      type: TypeSyntax [2:1-2:4]
+        primitive: INT
+        array_dimensions: []
+      name: Identifier [2:5-2:6]
+        name: 'n'
+    Input [3:1-3:13]
+      target: Identifier [3:1-3:2]
+        name: 'n'
+    Declaration [4:1-4:9]
+      type: TypeSyntax [4:1-4:9]
+        primitive: INT
+        array_dimensions: [
+          Identifier [4:7-4:8]
+            name: 'n'
+        ]
+      name: Identifier [4:5-4:6]
+        name: 'a'
+    RangeLoop [5:1-5:45]
+      variable: Identifier [5:7-5:8]
+        name: 'i'
+      start: Literal [5:9-5:10]
+        kind: INTEGER
+        lexeme: '0'
+      end: Identifier [5:17-5:18]
+        name: 'n'
+      body: Block [5:26-5:45]
+        statements: [
+          Input [5:28-5:43]
+            target: ArrayAccess [5:28-5:32]
+              base: Identifier [5:28-5:29]
+                name: 'a'
+              indices: [
+                Identifier [5:30-5:31]
+                  name: 'i'
+              ]
+        ]
+    Declaration [7:1-7:6]
+      type: TypeSyntax [7:1-7:4]
+        primitive: INT
+        array_dimensions: []
+      name: Identifier [7:5-7:6]
+        name: 'j'
+    Declaration [8:1-8:6]
+      type: TypeSyntax [8:1-8:4]
+        primitive: INT
+        array_dimensions: []
+      name: Identifier [8:5-8:6]
+        name: 'k'
+    Declaration [9:1-9:6]
+      type: TypeSyntax [9:1-9:4]
+        primitive: INT
+        array_dimensions: []
+      name: Identifier [9:5-9:6]
+        name: 't'
+    ForLoop [10:1-18:2]
+      init: ForThoModhaluInit [10:12-10:27]
+        target: Identifier [10:12-10:13]
+          name: 'j'
+        value: Literal [10:14-10:15]
+          kind: INTEGER
+          lexeme: '0'
+      condition: BinaryExpression [10:29-10:38]
+        operator: LT
+        left: Identifier [10:29-10:30]
+          name: 'j'
+        right: BinaryExpression [10:33-10:38]
+          operator: SUB
+          left: Identifier [10:33-10:34]
+            name: 'n'
+          right: Literal [10:37-10:38]
+            kind: INTEGER
+            lexeme: '1'
+      update: AssignmentUpdate [10:40-10:56]
+        target: Identifier [10:40-10:41]
+          name: 'j'
+        value: BinaryExpression [10:45-10:50]
+          operator: ADD
+          left: Identifier [10:45-10:46]
+            name: 'j'
+          right: Literal [10:49-10:50]
+            kind: INTEGER
+            lexeme: '1'
+      body: Block [10:58-18:2]
+        statements: [
+          ForLoop [11:3-17:4]
+            init: ForThoModhaluInit [11:14-11:29]
+              target: Identifier [11:14-11:15]
+                name: 'k'
+              value: Literal [11:16-11:17]
+                kind: INTEGER
+                lexeme: '0'
+            condition: BinaryExpression [11:31-11:44]
+              operator: LT
+              left: Identifier [11:31-11:32]
+                name: 'k'
+              right: BinaryExpression [11:35-11:44]
+                operator: SUB
+                left: BinaryExpression [11:35-11:40]
+                  operator: SUB
+                  left: Identifier [11:35-11:36]
+                    name: 'n'
+                  right: Literal [11:39-11:40]
+                    kind: INTEGER
+                    lexeme: '1'
+                right: Identifier [11:43-11:44]
+                  name: 'j'
+            update: AssignmentUpdate [11:46-11:62]
+              target: Identifier [11:46-11:47]
+                name: 'k'
+              value: BinaryExpression [11:51-11:56]
+                operator: ADD
+                left: Identifier [11:51-11:52]
+                  name: 'k'
+                right: Literal [11:55-11:56]
+                  kind: INTEGER
+                  lexeme: '1'
+            body: Block [11:64-17:4]
+              statements: [
+                IfStatement [12:5-16:6]
+                  condition: BinaryExpression [12:5-12:20]
+                    operator: GT
+                    left: ArrayAccess [12:5-12:9]
+                      base: Identifier [12:5-12:6]
+                        name: 'a'
+                      indices: [
+                        Identifier [12:7-12:8]
+                          name: 'k'
+                      ]
+                    right: ArrayAccess [12:12-12:20]
+                      base: Identifier [12:12-12:13]
+                        name: 'a'
+                      indices: [
+                        BinaryExpression [12:14-12:19]
+                          operator: ADD
+                          left: Identifier [12:14-12:15]
+                            name: 'k'
+                          right: Literal [12:18-12:19]
+                            kind: INTEGER
+                            lexeme: '1'
+                      ]
+                  then_block: Block [12:27-16:6]
+                    statements: [
+                      Assignment [13:7-13:22]
+                        target: Identifier [13:7-13:8]
+                          name: 't'
+                        value: ArrayAccess [13:12-13:16]
+                          base: Identifier [13:12-13:13]
+                            name: 'a'
+                          indices: [
+                            Identifier [13:14-13:15]
+                              name: 'k'
+                          ]
+                      Assignment [14:7-14:29]
+                        target: ArrayAccess [14:7-14:11]
+                          base: Identifier [14:7-14:8]
+                            name: 'a'
+                          indices: [
+                            Identifier [14:9-14:10]
+                              name: 'k'
+                          ]
+                        value: ArrayAccess [14:15-14:23]
+                          base: Identifier [14:15-14:16]
+                            name: 'a'
+                          indices: [
+                            BinaryExpression [14:17-14:22]
+                              operator: ADD
+                              left: Identifier [14:17-14:18]
+                                name: 'k'
+                              right: Literal [14:21-14:22]
+                                kind: INTEGER
+                                lexeme: '1'
+                          ]
+                      Assignment [15:7-15:26]
+                        target: ArrayAccess [15:7-15:15]
+                          base: Identifier [15:7-15:8]
+                            name: 'a'
+                          indices: [
+                            BinaryExpression [15:9-15:14]
+                              operator: ADD
+                              left: Identifier [15:9-15:10]
+                                name: 'k'
+                              right: Literal [15:13-15:14]
+                                kind: INTEGER
+                                lexeme: '1'
+                          ]
+                        value: Identifier [15:19-15:20]
+                          name: 't'
+                    ]
+                  else_branch: None
+              ]
+        ]
+    RangeLoop [19:1-19:43]
+      variable: Identifier [19:7-19:8]
+        name: 'i'
+      start: Literal [19:9-19:10]
+        kind: INTEGER
+        lexeme: '0'
+      end: Identifier [19:17-19:18]
+        name: 'n'
+      body: Block [19:26-19:43]
+        statements: [
+          Output [19:28-19:41]
+            value: ArrayAccess [19:28-19:32]
+              base: Identifier [19:28-19:29]
+                name: 'a'
+              indices: [
+                Identifier [19:30-19:31]
+                  name: 'i'
+              ]
+        ]
+  ]

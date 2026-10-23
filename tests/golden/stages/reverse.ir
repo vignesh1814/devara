@@ -1,0 +1,33 @@
+global s: str scalar
+global i: i64 scalar
+
+function $entry() -> void {
+  entry1:
+    t1:str = rtcall dv_rt_input_str()
+    t2:str = load [@s]
+    store [@s], t1
+    rtcall dv_rt_release(t2)
+    t3:str = load [@s]
+    t4:i64 = rtcall dv_rt_strlen(t3)
+    t5:i64 = sub t4, 1
+    store [@i], t5
+    jump wcond2
+  wcond2:
+    t6:i64 = load [@i]
+    t7:bool = cmp ge t6, 0
+    branch t7, wbody3, wexit4
+  wbody3:
+    t8:str = load [@s]
+    t9:i64 = load [@i]
+    t10:char = rtcall dv_rt_strindex(t8, t9)
+    rtcall dv_rt_output_char(t10)
+    t11:i64 = load [@i]
+    t12:i64 = sub t11, 1
+    store [@i], t12
+    jump wcond2
+  wexit4:
+    t13:str = load [@s]
+    rtcall dv_rt_release(t13)
+    rtcall dv_rt_shutdown()
+    ret
+}

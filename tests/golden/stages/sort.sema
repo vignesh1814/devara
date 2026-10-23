@@ -1,0 +1,255 @@
+symbols:
+  #0 builtin podavu: (padham) -> int  [depth 0, -]
+  #1 variable n: int  [depth 0, global]
+  #2 variable a: int[]  [depth 0, global]
+  #3 variable i: int  [depth 1, __entry]
+  #4 variable j: int  [depth 0, global]
+  #5 variable k: int  [depth 0, global]
+  #6 variable t: int  [depth 0, global]
+  #7 variable i: int  [depth 1, __entry]
+
+functions:
+[]
+
+entry:
+TBlock
+  stmts: [
+    TDecl
+      symbol: 1
+      dims: []
+    TInput
+      target: TVar
+        type: int
+        symbol: 1
+    TDecl
+      symbol: 2
+      dims: [
+        TVar
+          type: int
+          symbol: 1
+      ]
+    TRange
+      loop_id: 1
+      variable: 3
+      start: TLiteral
+        type: int
+        value: 0
+      end: TVar
+        type: int
+        symbol: 1
+      body: TBlock
+        stmts: [
+          TInput
+            target: TIndex
+              type: int
+              symbol: 2
+              indices: [
+                TVar
+                  type: int
+                  symbol: 3
+              ]
+        ]
+    TDecl
+      symbol: 4
+      dims: []
+    TDecl
+      symbol: 5
+      dims: []
+    TDecl
+      symbol: 6
+      dims: []
+    TFor
+      loop_id: 2
+      init: [
+        TAssign
+          target: TVar
+            type: int
+            symbol: 4
+          value: TLiteral
+            type: int
+            value: 0
+      ]
+      condition: TBinary
+        type: bool
+        op: LT
+        left: TVar
+          type: int
+          symbol: 4
+        right: TBinary
+          type: int
+          op: SUB
+          left: TVar
+            type: int
+            symbol: 1
+          right: TLiteral
+            type: int
+            value: 1
+      update: TAssign
+        target: TVar
+          type: int
+          symbol: 4
+        value: TBinary
+          type: int
+          op: ADD
+          left: TVar
+            type: int
+            symbol: 4
+          right: TLiteral
+            type: int
+            value: 1
+      body: TBlock
+        stmts: [
+          TFor
+            loop_id: 3
+            init: [
+              TAssign
+                target: TVar
+                  type: int
+                  symbol: 5
+                value: TLiteral
+                  type: int
+                  value: 0
+            ]
+            condition: TBinary
+              type: bool
+              op: LT
+              left: TVar
+                type: int
+                symbol: 5
+              right: TBinary
+                type: int
+                op: SUB
+                left: TBinary
+                  type: int
+                  op: SUB
+                  left: TVar
+                    type: int
+                    symbol: 1
+                  right: TLiteral
+                    type: int
+                    value: 1
+                right: TVar
+                  type: int
+                  symbol: 4
+            update: TAssign
+              target: TVar
+                type: int
+                symbol: 5
+              value: TBinary
+                type: int
+                op: ADD
+                left: TVar
+                  type: int
+                  symbol: 5
+                right: TLiteral
+                  type: int
+                  value: 1
+            body: TBlock
+              stmts: [
+                TIf
+                  condition: TBinary
+                    type: bool
+                    op: GT
+                    left: TIndex
+                      type: int
+                      symbol: 2
+                      indices: [
+                        TVar
+                          type: int
+                          symbol: 5
+                      ]
+                    right: TIndex
+                      type: int
+                      symbol: 2
+                      indices: [
+                        TBinary
+                          type: int
+                          op: ADD
+                          left: TVar
+                            type: int
+                            symbol: 5
+                          right: TLiteral
+                            type: int
+                            value: 1
+                      ]
+                  then_block: TBlock
+                    stmts: [
+                      TAssign
+                        target: TVar
+                          type: int
+                          symbol: 6
+                        value: TIndex
+                          type: int
+                          symbol: 2
+                          indices: [
+                            TVar
+                              type: int
+                              symbol: 5
+                          ]
+                      TAssign
+                        target: TIndex
+                          type: int
+                          symbol: 2
+                          indices: [
+                            TVar
+                              type: int
+                              symbol: 5
+                          ]
+                        value: TIndex
+                          type: int
+                          symbol: 2
+                          indices: [
+                            TBinary
+                              type: int
+                              op: ADD
+                              left: TVar
+                                type: int
+                                symbol: 5
+                              right: TLiteral
+                                type: int
+                                value: 1
+                          ]
+                      TAssign
+                        target: TIndex
+                          type: int
+                          symbol: 2
+                          indices: [
+                            TBinary
+                              type: int
+                              op: ADD
+                              left: TVar
+                                type: int
+                                symbol: 5
+                              right: TLiteral
+                                type: int
+                                value: 1
+                          ]
+                        value: TVar
+                          type: int
+                          symbol: 6
+                    ]
+                  else_block: None
+              ]
+        ]
+    TRange
+      loop_id: 4
+      variable: 7
+      start: TLiteral
+        type: int
+        value: 0
+      end: TVar
+        type: int
+        symbol: 1
+      body: TBlock
+        stmts: [
+          TOutput
+            value: TIndex
+              type: int
+              symbol: 2
+              indices: [
+                TVar
+                  type: int
+                  symbol: 7
+              ]
+        ]
+  ]

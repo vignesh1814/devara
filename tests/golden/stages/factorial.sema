@@ -1,0 +1,77 @@
+symbols:
+  #0 builtin podavu: (padham) -> int  [depth 0, -]
+  #1 function fact: (int) -> int  [depth 0, -]
+  #2 parameter n: int  [depth 1, fact]
+  #3 variable n: int  [depth 0, global]
+
+functions:
+[
+  TFunction
+    symbol: 1
+    name: 'fact'
+    params: [2]
+    ret: int
+    body: TBlock
+      stmts: [
+        TIf
+          condition: TBinary
+            type: bool
+            op: LE
+            left: TVar
+              type: int
+              symbol: 2
+            right: TLiteral
+              type: int
+              value: 1
+          then_block: TBlock
+            stmts: [
+              TReturn
+                value: TLiteral
+                  type: int
+                  value: 1
+            ]
+          else_block: None
+        TReturn
+          value: TBinary
+            type: int
+            op: MUL
+            left: TVar
+              type: int
+              symbol: 2
+            right: TCall
+              type: int
+              callee: 1
+              args: [
+                TBinary
+                  type: int
+                  op: SUB
+                  left: TVar
+                    type: int
+                    symbol: 2
+                  right: TLiteral
+                    type: int
+                    value: 1
+              ]
+      ]
+]
+
+entry:
+TBlock
+  stmts: [
+    TDecl
+      symbol: 3
+      dims: []
+    TInput
+      target: TVar
+        type: int
+        symbol: 3
+    TOutput
+      value: TCall
+        type: int
+        callee: 1
+        args: [
+          TVar
+            type: int
+            symbol: 3
+        ]
+  ]

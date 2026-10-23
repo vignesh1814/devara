@@ -1,0 +1,87 @@
+Program [1:1-17:1]
+  items: [
+    RangeLoop [2:1-16:2]
+      variable: Identifier [2:7-2:8]
+        name: 'i'
+      start: Literal [2:9-2:10]
+        kind: INTEGER
+        lexeme: '1'
+      end: Literal [2:17-2:19]
+        kind: INTEGER
+        lexeme: '16'
+      body: Block [2:27-16:2]
+        statements: [
+          IfStatement [3:3-15:4]
+            condition: BinaryExpression [3:3-3:14]
+              operator: EQ
+              left: BinaryExpression [3:3-3:9]
+                operator: MOD
+                left: Identifier [3:3-3:4]
+                  name: 'i'
+                right: Literal [3:7-3:9]
+                  kind: INTEGER
+                  lexeme: '15'
+              right: Literal [3:13-3:14]
+                kind: INTEGER
+                lexeme: '0'
+            then_block: Block [3:21-5:4]
+              statements: [
+                Output [4:5-4:24]
+                  value: Literal [4:5-4:15]
+                    kind: STRING
+                    lexeme: '"FizzBuzz"'
+              ]
+            else_branch: Block [5:13-15:4]
+              statements: [
+                IfStatement [6:5-14:6]
+                  condition: BinaryExpression [6:5-6:15]
+                    operator: EQ
+                    left: BinaryExpression [6:5-6:10]
+                      operator: MOD
+                      left: Identifier [6:5-6:6]
+                        name: 'i'
+                      right: Literal [6:9-6:10]
+                        kind: INTEGER
+                        lexeme: '3'
+                    right: Literal [6:14-6:15]
+                      kind: INTEGER
+                      lexeme: '0'
+                  then_block: Block [6:22-8:6]
+                    statements: [
+                      Output [7:7-7:22]
+                        value: Literal [7:7-7:13]
+                          kind: STRING
+                          lexeme: '"Fizz"'
+                    ]
+                  else_branch: Block [8:15-14:6]
+                    statements: [
+                      IfStatement [9:7-13:8]
+                        condition: BinaryExpression [9:7-9:17]
+                          operator: EQ
+                          left: BinaryExpression [9:7-9:12]
+                            operator: MOD
+                            left: Identifier [9:7-9:8]
+                              name: 'i'
+                            right: Literal [9:11-9:12]
+                              kind: INTEGER
+                              lexeme: '5'
+                          right: Literal [9:16-9:17]
+                            kind: INTEGER
+                            lexeme: '0'
+                        then_block: Block [9:24-11:8]
+                          statements: [
+                            Output [10:9-10:24]
+                              value: Literal [10:9-10:15]
+                                kind: STRING
+                                lexeme: '"Buzz"'
+                          ]
+                        else_branch: Block [11:17-13:8]
+                          statements: [
+                            Output [12:9-12:19]
+                              value: Identifier [12:9-12:10]
+                                name: 'i'
+                          ]
+                    ]
+              ]
+        ]
+  ]

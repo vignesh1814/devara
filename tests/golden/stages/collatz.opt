@@ -1,0 +1,40 @@
+global n: i64 scalar
+global steps: i64 scalar
+
+function $entry() -> void {
+  entry1:
+    t1:i64 = rtcall dv_rt_input_i64()
+    store [@n], t1
+    store [@steps], 0
+    jump wcond2
+  wcond2:
+    t2:i64 = load [@n]
+    t3:bool = cmp ne t2, 1
+    branch t3, wbody3, wexit4
+  wbody3:
+    t4:i64 = load [@n]
+    t5:i64 = mod t4, 2
+    t6:bool = cmp eq t5, 0
+    branch t6, then5, else7
+  then5:
+    t7:i64 = load [@n]
+    t8:i64 = div t7, 2
+    store [@n], t8
+    jump endif6
+  else7:
+    t9:i64 = load [@n]
+    t10:i64 = mul 3, t9
+    t11:i64 = add t10, 1
+    store [@n], t11
+    jump endif6
+  endif6:
+    t12:i64 = load [@steps]
+    t13:i64 = add t12, 1
+    store [@steps], t13
+    jump wcond2
+  wexit4:
+    t14:i64 = load [@steps]
+    rtcall dv_rt_output_i64(t14)
+    rtcall dv_rt_shutdown()
+    ret
+}

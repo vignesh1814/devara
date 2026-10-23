@@ -1,0 +1,17 @@
+global a: i64 scalar
+global b: i64 scalar
+global total: i64 scalar
+
+function $entry() -> void {
+  entry1:
+    store [@a], 5
+    store [@b], 10
+    t1:i64 = load [@a]
+    t2:i64 = load [@b]
+    t3:i64 = add t1, t2
+    store [@total], t3
+    t4:i64 = load [@total]
+    rtcall dv_rt_output_i64(t4)
+    rtcall dv_rt_shutdown()
+    ret
+}

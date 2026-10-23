@@ -1,0 +1,7 @@
+Program [1:1-2:1]
+  items: [
+    Output [1:1-1:26]
+      value: Literal [1:1-1:17]
+        kind: STRING
+        lexeme: '"Hello, Devara!"'
+  ]

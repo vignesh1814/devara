@@ -1,0 +1,53 @@
+global n: i64 scalar
+
+function isprime(k.2:i64) -> bool {
+  entry1:
+    t1:bool = cmp lt k.2, 2
+    branch t1, then2, endif3
+  then2:
+    ret false
+  endif3:
+    d.3:i64 = copy 2
+    jump wcond4
+  wcond4:
+    t2:i64 = mul d.3, d.3
+    t3:bool = cmp le t2, k.2
+    branch t3, wbody5, wexit6
+  wbody5:
+    t4:i64 = mod k.2, d.3
+    t5:bool = cmp eq t4, 0
+    branch t5, then7, endif8
+  then7:
+    ret false
+  endif8:
+    t6:i64 = add d.3, 1
+    d.3:i64 = copy t6
+    jump wcond4
+  wexit6:
+    ret true
+}
+
+function $entry() -> void {
+  entry1:
+    t1:i64 = rtcall dv_rt_input_i64()
+    store [@n], t1
+    t2:i64 = load [@n]
+    t3:i64 = add t2, 1
+    i.5:i64 = copy 2
+    jump rcond2
+  rcond2:
+    t5:bool = cmp lt i.5, t3
+    branch t5, rbody3, rexit5
+  rbody3:
+    t6:bool = call isprime(i.5)
+    branch t6, then6, endif7
+  then6:
+    rtcall dv_rt_output_i64(i.5)
+    jump endif7
+  endif7:
+    i.5:i64 = add i.5, 1
+    jump rcond2
+  rexit5:
+    rtcall dv_rt_shutdown()
+    ret
+}

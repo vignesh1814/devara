@@ -1,0 +1,14 @@
+symbols:
+  #0 builtin podavu: (padham) -> int  [depth 0, -]
+
+functions:
+[]
+
+entry:
+TBlock
+  stmts: [
+    TOutput
+      value: TLiteral
+        type: padham
+        value: b'Hello, Devara!'
+  ]

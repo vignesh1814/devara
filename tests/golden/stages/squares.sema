@@ -1,0 +1,95 @@
+symbols:
+  #0 builtin podavu: (padham) -> int  [depth 0, -]
+  #1 function square: (int) -> int  [depth 0, -]
+  #2 parameter x: int  [depth 1, square]
+  #3 variable n: int  [depth 0, global]
+  #4 variable total: int  [depth 0, global]
+  #5 variable i: int  [depth 1, __entry]
+
+functions:
+[
+  TFunction
+    symbol: 1
+    name: 'square'
+    params: [2]
+    ret: int
+    body: TBlock
+      stmts: [
+        TReturn
+          value: TBinary
+            type: int
+            op: MUL
+            left: TVar
+              type: int
+              symbol: 2
+            right: TVar
+              type: int
+              symbol: 2
+      ]
+]
+
+entry:
+TBlock
+  stmts: [
+    TDecl
+      symbol: 3
+      dims: []
+    TInput
+      target: TVar
+        type: int
+        symbol: 3
+    TDecl
+      symbol: 4
+      dims: []
+    TAssign
+      target: TVar
+        type: int
+        symbol: 4
+      value: TLiteral
+        type: int
+        value: 0
+    TRange
+      loop_id: 1
+      variable: 5
+      start: TLiteral
+        type: int
+        value: 1
+      end: TBinary
+        type: int
+        op: ADD
+        left: TVar
+          type: int
+          symbol: 3
+        right: TLiteral
+          type: int
+          value: 1
+      body: TBlock
+        stmts: [
+          TAssign
+            target: TVar
+              type: int
+              symbol: 4
+            value: TBinary
+              type: int
+              op: ADD
+              left: TVar
+                type: int
+                symbol: 4
+              right: TCall
+                type: int
+                callee: 1
+                args: [
+                  TVar
+                    type: int
+                    symbol: 5
+                ]
+        ]
+    TOutput
+      value: TLiteral
+        type: padham
+        value: b'sum of squares:'
+    TOutput
+      value: TVar
+        type: int
+        symbol: 4
+  ]

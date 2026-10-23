@@ -1,0 +1,136 @@
+Program [1:1-18:1]
+  items: [
+    FunctionDeclaration [2:1-11:2]
+      return_type: TypeSyntax [2:1-2:5]
+        primitive: BOOL
+        array_dimensions: []
+      name: Identifier [2:6-2:13]
+        name: 'isprime'
+      parameters: [
+        Parameter [2:22-2:27]
+          type: TypeSyntax [2:22-2:25]
+            primitive: INT
+            array_dimensions: []
+          name: Identifier [2:26-2:27]
+            name: 'k'
+      ]
+      body: Block [2:29-11:2]
+        statements: [
+          IfStatement [3:3-3:32]
+            condition: BinaryExpression [3:3-3:8]
+              operator: LT
+              left: Identifier [3:3-3:4]
+                name: 'k'
+              right: Literal [3:7-3:8]
+                kind: INTEGER
+                lexeme: '2'
+            then_block: Block [3:15-3:32]
+              statements: [
+                ReturnStatement [3:17-3:30]
+                  value: Literal [3:17-3:25]
+                    kind: BOOL
+                    lexeme: 'abaddham'
+              ]
+            else_branch: None
+          Declaration [4:3-4:8]
+            type: TypeSyntax [4:3-4:6]
+              primitive: INT
+              array_dimensions: []
+            name: Identifier [4:7-4:8]
+              name: 'd'
+          Assignment [5:3-5:15]
+            target: Identifier [5:3-5:4]
+              name: 'd'
+            value: Literal [5:8-5:9]
+              kind: INTEGER
+              lexeme: '2'
+          WhileLoop [6:3-9:4]
+            condition: BinaryExpression [6:3-6:13]
+              operator: LE
+              left: BinaryExpression [6:3-6:8]
+                operator: MUL
+                left: Identifier [6:3-6:4]
+                  name: 'd'
+                right: Identifier [6:7-6:8]
+                  name: 'd'
+              right: Identifier [6:12-6:13]
+                name: 'k'
+            body: Block [6:29-9:4]
+              statements: [
+                IfStatement [7:5-7:39]
+                  condition: BinaryExpression [7:5-7:15]
+                    operator: EQ
+                    left: BinaryExpression [7:5-7:10]
+                      operator: MOD
+                      left: Identifier [7:5-7:6]
+                        name: 'k'
+                      right: Identifier [7:9-7:10]
+                        name: 'd'
+                    right: Literal [7:14-7:15]
+                      kind: INTEGER
+                      lexeme: '0'
+                  then_block: Block [7:22-7:39]
+                    statements: [
+                      ReturnStatement [7:24-7:37]
+                        value: Literal [7:24-7:32]
+                          kind: BOOL
+                          lexeme: 'abaddham'
+                    ]
+                  else_branch: None
+                Assignment [8:5-8:21]
+                  target: Identifier [8:5-8:6]
+                    name: 'd'
+                  value: BinaryExpression [8:10-8:15]
+                    operator: ADD
+                    left: Identifier [8:10-8:11]
+                      name: 'd'
+                    right: Literal [8:14-8:15]
+                      kind: INTEGER
+                      lexeme: '1'
+              ]
+          ReturnStatement [10:3-10:13]
+            value: Literal [10:3-10:8]
+              kind: BOOL
+              lexeme: 'nijam'
+        ]
+    Declaration [13:1-13:6]
+      type: TypeSyntax [13:1-13:4]
+        primitive: INT
+        array_dimensions: []
+      name: Identifier [13:5-13:6]
+        name: 'n'
+    Input [14:1-14:13]
+      target: Identifier [14:1-14:2]
+        name: 'n'
+    RangeLoop [15:1-17:2]
+      variable: Identifier [15:7-15:8]
+        name: 'i'
+      start: Literal [15:9-15:10]
+        kind: INTEGER
+        lexeme: '2'
+      end: BinaryExpression [15:17-15:22]
+        operator: ADD
+        left: Identifier [15:17-15:18]
+          name: 'n'
+        right: Literal [15:21-15:22]
+          kind: INTEGER
+          lexeme: '1'
+      body: Block [15:30-17:2]
+        statements: [
+          IfStatement [16:3-16:34]
+            condition: FunctionCall [16:3-16:13]
+              callee: Identifier [16:3-16:10]
+                name: 'isprime'
+              arguments: [
+                Identifier [16:11-16:12]
+                  name: 'i'
+              ]
+            then_block: Block [16:20-16:34]
+              statements: [
+                Output [16:22-16:32]
+                  value: Identifier [16:22-16:23]
+                    name: 'i'
+              ]
+            else_branch: None
+        ]
+  ]

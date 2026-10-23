@@ -1,0 +1,50 @@
+symbols:
+  #0 builtin podavu: (padham) -> int  [depth 0, -]
+  #1 variable x: int  [depth 0, global]
+
+functions:
+[]
+
+entry:
+TBlock
+  stmts: [
+    TDecl
+      symbol: 1
+      dims: []
+    TInput
+      target: TVar
+        type: int
+        symbol: 1
+    TIf
+      condition: TBinary
+        type: bool
+        op: EQ
+        left: TVar
+          type: int
+          symbol: 1
+        right: TLiteral
+          type: int
+          value: 0
+      then_block: TBlock
+        stmts: [
+          TOutput
+            value: TLiteral
+              type: int
+              value: 0
+        ]
+      else_block: TBlock
+        stmts: [
+          TWhile
+            loop_id: 1
+            condition: TLiteral
+              type: bool
+              value: True
+            body: TBlock
+              stmts: [
+                TOutput
+                  value: TLiteral
+                    type: int
+                    value: 1
+              ]
+        ]
+  ]

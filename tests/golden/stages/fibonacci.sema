@@ -1,0 +1,88 @@
+symbols:
+  #0 builtin podavu: (padham) -> int  [depth 0, -]
+  #1 variable n: int  [depth 0, global]
+  #2 variable a: int  [depth 0, global]
+  #3 variable b: int  [depth 0, global]
+  #4 variable t: int  [depth 0, global]
+  #5 variable i: int  [depth 1, __entry]
+
+functions:
+[]
+
+entry:
+TBlock
+  stmts: [
+    TDecl
+      symbol: 1
+      dims: []
+    TInput
+      target: TVar
+        type: int
+        symbol: 1
+    TDecl
+      symbol: 2
+      dims: []
+    TDecl
+      symbol: 3
+      dims: []
+    TDecl
+      symbol: 4
+      dims: []
+    TAssign
+      target: TVar
+        type: int
+        symbol: 2
+      value: TLiteral
+        type: int
+        value: 0
+    TAssign
+      target: TVar
+        type: int
+        symbol: 3
+      value: TLiteral
+        type: int
+        value: 1
+    TRange
+      loop_id: 1
+      variable: 5
+      start: TLiteral
+        type: int
+        value: 0
+      end: TVar
+        type: int
+        symbol: 1
+      body: TBlock
+        stmts: [
+          TOutput
+            value: TVar
+              type: int
+              symbol: 2
+          TAssign
+            target: TVar
+              type: int
+              symbol: 4
+            value: TBinary
+              type: int
+              op: ADD
+              left: TVar
+                type: int
+                symbol: 2
+              right: TVar
+                type: int
+                symbol: 3
+          TAssign
+            target: TVar
+              type: int
+              symbol: 2
+            value: TVar
+              type: int
+              symbol: 3
+          TAssign
+            target: TVar
+              type: int
+              symbol: 3
+            value: TVar
+              type: int
+              symbol: 4
+        ]
+  ]

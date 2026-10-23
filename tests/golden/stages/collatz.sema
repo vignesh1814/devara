@@ -1,0 +1,114 @@
+symbols:
+  #0 builtin podavu: (padham) -> int  [depth 0, -]
+  #1 variable n: int  [depth 0, global]
+  #2 variable steps: int  [depth 0, global]
+
+functions:
+[]
+
+entry:
+TBlock
+  stmts: [
+    TDecl
+      symbol: 1
+      dims: []
+    TInput
+      target: TVar
+        type: int
+        symbol: 1
+    TDecl
+      symbol: 2
+      dims: []
+    TAssign
+      target: TVar
+        type: int
+        symbol: 2
+      value: TLiteral
+        type: int
+        value: 0
+    TWhile
+      loop_id: 1
+      condition: TBinary
+        type: bool
+        op: NE
+        left: TVar
+          type: int
+          symbol: 1
+        right: TLiteral
+          type: int
+          value: 1
+      body: TBlock
+        stmts: [
+          TIf
+            condition: TBinary
+              type: bool
+              op: EQ
+              left: TBinary
+                type: int
+                op: MOD
+                left: TVar
+                  type: int
+                  symbol: 1
+                right: TLiteral
+                  type: int
+                  value: 2
+              right: TLiteral
+                type: int
+                value: 0
+            then_block: TBlock
+              stmts: [
+                TAssign
+                  target: TVar
+                    type: int
+                    symbol: 1
+                  value: TBinary
+                    type: int
+                    op: DIV
+                    left: TVar
+                      type: int
+                      symbol: 1
+                    right: TLiteral
+                      type: int
+                      value: 2
+              ]
+            else_block: TBlock
+              stmts: [
+                TAssign
+                  target: TVar
+                    type: int
+                    symbol: 1
+                  value: TBinary
+                    type: int
+                    op: ADD
+                    left: TBinary
+                      type: int
+                      op: MUL
+                      left: TLiteral
+                        type: int
+                        value: 3
+                      right: TVar
+                        type: int
+                        symbol: 1
+                    right: TLiteral
+                      type: int
+                      value: 1
+              ]
+          TAssign
+            target: TVar
+              type: int
+              symbol: 2
+            value: TBinary
+              type: int
+              op: ADD
+              left: TVar
+                type: int
+                symbol: 2
+              right: TLiteral
+                type: int
+                value: 1
+        ]
+    TOutput
+      value: TVar
+        type: int
+        symbol: 2
+  ]

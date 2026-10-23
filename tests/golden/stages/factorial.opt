@@ -1,0 +1,25 @@
+global n: i64 scalar
+
+function fact(n.2:i64) -> i64 {
+  entry1:
+    t1:bool = cmp le n.2, 1
+    branch t1, then2, endif3
+  then2:
+    ret 1
+  endif3:
+    t2:i64 = sub n.2, 1
+    t3:i64 = call fact(t2)
+    t4:i64 = mul n.2, t3
+    ret t4
+}
+
+function $entry() -> void {
+  entry1:
+    t1:i64 = rtcall dv_rt_input_i64()
+    store [@n], t1
+    t2:i64 = load [@n]
+    t3:i64 = call fact(t2)
+    rtcall dv_rt_output_i64(t3)
+    rtcall dv_rt_shutdown()
+    ret
+}

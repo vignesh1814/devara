@@ -1,0 +1,85 @@
+Program [1:1-18:1]
+  items: [
+    FunctionDeclaration [2:1-4:2]
+      return_type: TypeSyntax [2:1-2:4]
+        primitive: INT
+        array_dimensions: []
+      name: Identifier [2:5-2:11]
+        name: 'square'
+      parameters: [
+        Parameter [2:20-2:25]
+          type: TypeSyntax [2:20-2:23]
+            primitive: INT
+            array_dimensions: []
+          name: Identifier [2:24-2:25]
+            name: 'x'
+      ]
+      body: Block [2:27-4:2]
+        statements: [
+          ReturnStatement [3:3-3:13]
+            value: BinaryExpression [3:3-3:8]
+              operator: MUL
+              left: Identifier [3:3-3:4]
+                name: 'x'
+              right: Identifier [3:7-3:8]
+                name: 'x'
+        ]
+    Declaration [6:1-6:6]
+      type: TypeSyntax [6:1-6:4]
+        primitive: INT
+        array_dimensions: []
+      name: Identifier [6:5-6:6]
+        name: 'n'
+    Input [7:1-7:13]
+      target: Identifier [7:1-7:2]
+        name: 'n'
+    Declaration [9:1-9:10]
+      type: TypeSyntax [9:1-9:4]
+        primitive: INT
+        array_dimensions: []
+      name: Identifier [9:5-9:10]
+        name: 'total'
+    Assignment [10:1-10:17]
+      target: Identifier [10:1-10:6]
+        name: 'total'
+      value: Literal [10:10-10:11]
+        kind: INTEGER
+        lexeme: '0'
+    RangeLoop [12:1-14:2]
+      variable: Identifier [12:7-12:8]
+        name: 'i'
+      start: Literal [12:9-12:10]
+        kind: INTEGER
+        lexeme: '1'
+      end: BinaryExpression [12:17-12:22]
+        operator: ADD
+        left: Identifier [12:17-12:18]
+          name: 'n'
+        right: Literal [12:21-12:22]
+          kind: INTEGER
+          lexeme: '1'
+      body: Block [12:30-14:2]
+        statements: [
+          Assignment [13:3-13:35]
+            target: Identifier [13:3-13:8]
+              name: 'total'
+            value: BinaryExpression [13:12-13:29]
+              operator: ADD
+              left: Identifier [13:12-13:17]
+                name: 'total'
+              right: FunctionCall [13:20-13:29]
+                callee: Identifier [13:20-13:26]
+                  name: 'square'
+                arguments: [
+                  Identifier [13:27-13:28]
+                    name: 'i'
+                ]
+        ]
+    Output [16:1-16:27]
+      value: Literal [16:1-16:18]
+        kind: STRING
+        lexeme: '"sum of squares:"'
+    Output [17:1-17:15]
+      value: Identifier [17:1-17:6]
+        name: 'total'
+  ]

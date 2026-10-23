@@ -1,0 +1,45 @@
+Program [1:1-11:1]
+  items: [
+    Declaration [1:1-1:6]
+      type: TypeSyntax [1:1-1:4]
+        primitive: INT
+        array_dimensions: []
+      name: Identifier [1:5-1:6]
+        name: 'a'
+    Assignment [2:1-2:13]
+      target: Identifier [2:1-2:2]
+        name: 'a'
+      value: Literal [2:6-2:7]
+        kind: INTEGER
+        lexeme: '5'
+    Declaration [4:1-4:6]
+      type: TypeSyntax [4:1-4:4]
+        primitive: INT
+        array_dimensions: []
+      name: Identifier [4:5-4:6]
+        name: 'b'
+    Assignment [5:1-5:14]
+      target: Identifier [5:1-5:2]
+        name: 'b'
+      value: Literal [5:6-5:8]
+        kind: INTEGER
+        lexeme: '10'
+    Declaration [7:1-7:10]
+      type: TypeSyntax [7:1-7:4]
+        primitive: INT
+        array_dimensions: []
+      name: Identifier [7:5-7:10]
+        name: 'total'
+    Assignment [8:1-8:21]
+      target: Identifier [8:1-8:6]
+        name: 'total'
+      value: BinaryExpression [8:10-8:15]
+        operator: ADD
+        left: Identifier [8:10-8:11]
+          name: 'a'
+        right: Identifier [8:14-8:15]
+          name: 'b'
+    Output [10:1-10:15]
+      value: Identifier [10:1-10:6]
+        name: 'total'
+  ]

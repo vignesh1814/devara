@@ -1,0 +1,155 @@
+symbols:
+  #0 builtin podavu: (padham) -> int  [depth 0, -]
+  #1 function isprime: (int) -> bool  [depth 0, -]
+  #2 parameter k: int  [depth 1, isprime]
+  #3 variable d: int  [depth 1, isprime]
+  #4 variable n: int  [depth 0, global]
+  #5 variable i: int  [depth 1, __entry]
+
+functions:
+[
+  TFunction
+    symbol: 1
+    name: 'isprime'
+    params: [2]
+    ret: bool
+    body: TBlock
+      stmts: [
+        TIf
+          condition: TBinary
+            type: bool
+            op: LT
+            left: TVar
+              type: int
+              symbol: 2
+            right: TLiteral
+              type: int
+              value: 2
+          then_block: TBlock
+            stmts: [
+              TReturn
+                value: TLiteral
+                  type: bool
+                  value: False
+            ]
+          else_block: None
+        TDecl
+          symbol: 3
+          dims: []
+        TAssign
+          target: TVar
+            type: int
+            symbol: 3
+          value: TLiteral
+            type: int
+            value: 2
+        TWhile
+          loop_id: 1
+          condition: TBinary
+            type: bool
+            op: LE
+            left: TBinary
+              type: int
+              op: MUL
+              left: TVar
+                type: int
+                symbol: 3
+              right: TVar
+                type: int
+                symbol: 3
+            right: TVar
+              type: int
+              symbol: 2
+          body: TBlock
+            stmts: [
+              TIf
+                condition: TBinary
+                  type: bool
+                  op: EQ
+                  left: TBinary
+                    type: int
+                    op: MOD
+                    left: TVar
+                      type: int
+                      symbol: 2
+                    right: TVar
+                      type: int
+                      symbol: 3
+                  right: TLiteral
+                    type: int
+                    value: 0
+                then_block: TBlock
+                  stmts: [
+                    TReturn
+                      value: TLiteral
+                        type: bool
+                        value: False
+                  ]
+                else_block: None
+              TAssign
+                target: TVar
+                  type: int
+                  symbol: 3
+                value: TBinary
+                  type: int
+                  op: ADD
+                  left: TVar
+                    type: int
+                    symbol: 3
+                  right: TLiteral
+                    type: int
+                    value: 1
+            ]
+        TReturn
+          value: TLiteral
+            type: bool
+            value: True
+      ]
+]
+
+entry:
+TBlock
+  stmts: [
+    TDecl
+      symbol: 4
+      dims: []
+    TInput
+      target: TVar
+        type: int
+        symbol: 4
+    TRange
+      loop_id: 2
+      variable: 5
+      start: TLiteral
+        type: int
+        value: 2
+      end: TBinary
+        type: int
+        op: ADD
+        left: TVar
+          type: int
+          symbol: 4
+        right: TLiteral
+          type: int
+          value: 1
+      body: TBlock
+        stmts: [
+          TIf
+            condition: TCall
+              type: bool
+              callee: 1
+              args: [
+                TVar
+                  type: int
+                  symbol: 5
+              ]
+            then_block: TBlock
+              stmts: [
+                TOutput
+                  value: TVar
+                    type: int
+                    symbol: 5
+              ]
+            else_block: None
+        ]
+  ]

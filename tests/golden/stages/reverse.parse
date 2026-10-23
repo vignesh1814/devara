@@ -1,0 +1,62 @@
+Program [1:1-10:1]
+  items: [
+    Declaration [2:1-2:9]
+      type: TypeSyntax [2:1-2:7]
+        primitive: PADHAM
+        array_dimensions: []
+      name: Identifier [2:8-2:9]
+        name: 's'
+    Input [3:1-3:13]
+      target: Identifier [3:1-3:2]
+        name: 's'
+    Declaration [4:1-4:6]
+      type: TypeSyntax [4:1-4:4]
+        primitive: INT
+        array_dimensions: []
+      name: Identifier [4:5-4:6]
+        name: 'i'
+    Assignment [5:1-5:25]
+      target: Identifier [5:1-5:2]
+        name: 'i'
+      value: BinaryExpression [5:6-5:19]
+        operator: SUB
+        left: FunctionCall [5:6-5:15]
+          callee: Identifier [5:6-5:12]
+            name: 'podavu'
+          arguments: [
+            Identifier [5:13-5:14]
+              name: 's'
+          ]
+        right: Literal [5:18-5:19]
+          kind: INTEGER
+          lexeme: '1'
+    WhileLoop [6:1-9:2]
+      condition: BinaryExpression [6:1-6:7]
+        operator: GE
+        left: Identifier [6:1-6:2]
+          name: 'i'
+        right: Literal [6:6-6:7]
+          kind: INTEGER
+          lexeme: '0'
+      body: Block [6:23-9:2]
+        statements: [
+          Output [7:3-7:16]
+            value: ArrayAccess [7:3-7:7]
+              base: Identifier [7:3-7:4]
+                name: 's'
+              indices: [
+                Identifier [7:5-7:6]
+                  name: 'i'
+              ]
+          Assignment [8:3-8:19]
+            target: Identifier [8:3-8:4]
+              name: 'i'
+            value: BinaryExpression [8:8-8:13]
+              operator: SUB
+              left: Identifier [8:8-8:9]
+                name: 'i'
+              right: Literal [8:12-8:13]
+                kind: INTEGER
+                lexeme: '1'
+        ]
+  ]

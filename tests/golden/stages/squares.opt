@@ -1,0 +1,39 @@
+global n: i64 scalar
+global total: i64 scalar
+global lit.0: str scalar
+
+function square(x.2:i64) -> i64 {
+  entry1:
+    t1:i64 = mul x.2, x.2
+    ret t1
+}
+
+function $entry() -> void {
+  entry1:
+    lit.t0:str = rtcall dv_rt_strlit(str'sum of squares:')
+    store [@lit.0], lit.t0
+    t1:i64 = rtcall dv_rt_input_i64()
+    store [@n], t1
+    store [@total], 0
+    t2:i64 = load [@n]
+    t3:i64 = add t2, 1
+    i.5:i64 = copy 1
+    jump rcond2
+  rcond2:
+    t5:bool = cmp lt i.5, t3
+    branch t5, rbody3, rexit5
+  rbody3:
+    t6:i64 = load [@total]
+    t7:i64 = call square(i.5)
+    t8:i64 = add t6, t7
+    store [@total], t8
+    i.5:i64 = add i.5, 1
+    jump rcond2
+  rexit5:
+    t9:str = load [@lit.0]
+    rtcall dv_rt_output_str(t9)
+    t10:i64 = load [@total]
+    rtcall dv_rt_output_i64(t10)
+    rtcall dv_rt_shutdown()
+    ret
+}

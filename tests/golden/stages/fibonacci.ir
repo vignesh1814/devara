@@ -1,0 +1,37 @@
+global n: i64 scalar
+global a: i64 scalar
+global b: i64 scalar
+global t: i64 scalar
+
+function $entry() -> void {
+  entry1:
+    t1:i64 = rtcall dv_rt_input_i64()
+    store [@n], t1
+    store [@a], 0
+    store [@b], 1
+    t2:i64 = load [@n]
+    t3:i64 = copy t2
+    i.5:i64 = copy 0
+    jump rcond2
+  rcond2:
+    t4:bool = cmp lt i.5, t3
+    branch t4, rbody3, rexit5
+  rbody3:
+    t5:i64 = load [@a]
+    rtcall dv_rt_output_i64(t5)
+    t6:i64 = load [@a]
+    t7:i64 = load [@b]
+    t8:i64 = add t6, t7
+    store [@t], t8
+    t9:i64 = load [@b]
+    store [@a], t9
+    t10:i64 = load [@t]
+    store [@b], t10
+    jump rincr4
+  rincr4:
+    i.5:i64 = add i.5, 1
+    jump rcond2
+  rexit5:
+    rtcall dv_rt_shutdown()
+    ret
+}

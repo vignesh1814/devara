@@ -1,0 +1,105 @@
+symbols:
+  #0 builtin podavu: (padham) -> int  [depth 0, -]
+  #1 variable i: int  [depth 1, __entry]
+
+functions:
+[]
+
+entry:
+TBlock
+  stmts: [
+    TRange
+      loop_id: 1
+      variable: 1
+      start: TLiteral
+        type: int
+        value: 1
+      end: TLiteral
+        type: int
+        value: 16
+      body: TBlock
+        stmts: [
+          TIf
+            condition: TBinary
+              type: bool
+              op: EQ
+              left: TBinary
+                type: int
+                op: MOD
+                left: TVar
+                  type: int
+                  symbol: 1
+                right: TLiteral
+                  type: int
+                  value: 15
+              right: TLiteral
+                type: int
+                value: 0
+            then_block: TBlock
+              stmts: [
+                TOutput
+                  value: TLiteral
+                    type: padham
+                    value: b'FizzBuzz'
+              ]
+            else_block: TBlock
+              stmts: [
+                TIf
+                  condition: TBinary
+                    type: bool
+                    op: EQ
+                    left: TBinary
+                      type: int
+                      op: MOD
+                      left: TVar
+                        type: int
+                        symbol: 1
+                      right: TLiteral
+                        type: int
+                        value: 3
+                    right: TLiteral
+                      type: int
+                      value: 0
+                  then_block: TBlock
+                    stmts: [
+                      TOutput
+                        value: TLiteral
+                          type: padham
+                          value: b'Fizz'
+                    ]
+                  else_block: TBlock
+                    stmts: [
+                      TIf
+                        condition: TBinary
+                          type: bool
+                          op: EQ
+                          left: TBinary
+                            type: int
+                            op: MOD
+                            left: TVar
+                              type: int
+                              symbol: 1
+                            right: TLiteral
+                              type: int
+                              value: 5
+                          right: TLiteral
+                            type: int
+                            value: 0
+                        then_block: TBlock
+                          stmts: [
+                            TOutput
+                              value: TLiteral
+                                type: padham
+                                value: b'Buzz'
+                          ]
+                        else_block: TBlock
+                          stmts: [
+                            TOutput
+                              value: TVar
+                                type: int
+                                symbol: 1
+                          ]
+                    ]
+              ]
+        ]
+  ]

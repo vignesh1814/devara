@@ -1,0 +1,123 @@
+global n: i64 scalar
+global a: i64 array_ptr
+global a.d0: i64 scalar
+global j: i64 scalar
+global k: i64 scalar
+global t: i64 scalar
+
+function $entry() -> void {
+  entry1:
+    t1:i64 = rtcall dv_rt_input_i64()
+    store [@n], t1
+    t2:i64 = load [@n]
+    rtcall dv_rt_checkdim(t2)
+    t3:addr = rtcall dv_rt_newarray(t2, 8)
+    store [@a], t3
+    store [@a.d0], t2
+    t4:i64 = load [@n]
+    t5:i64 = copy t4
+    i.3:i64 = copy 0
+    jump rcond2
+  rcond2:
+    t6:bool = cmp lt i.3, t5
+    branch t6, rbody3, rexit5
+  rbody3:
+    t7:addr = load [@a]
+    t8:addr = ptradd t7, i.3
+    t9:i64 = rtcall dv_rt_input_i64()
+    store [t8], t9
+    jump rincr4
+  rincr4:
+    i.3:i64 = add i.3, 1
+    jump rcond2
+  rexit5:
+    store [@j], 0
+    jump fcond6
+  fcond6:
+    t10:i64 = load [@j]
+    t11:i64 = load [@n]
+    t12:i64 = sub t11, 1
+    t13:bool = cmp lt t10, t12
+    branch t13, fbody7, fexit9
+  fbody7:
+    store [@k], 0
+    jump fcond10
+  fcond10:
+    t14:i64 = load [@k]
+    t15:i64 = load [@n]
+    t16:i64 = sub t15, 1
+    t17:i64 = load [@j]
+    t18:i64 = sub t16, t17
+    t19:bool = cmp lt t14, t18
+    branch t19, fbody11, fexit13
+  fbody11:
+    t20:addr = load [@a]
+    t21:i64 = load [@k]
+    t22:addr = ptradd t20, t21
+    t23:i64 = load [t22]
+    t24:addr = load [@a]
+    t25:i64 = load [@k]
+    t26:i64 = add t25, 1
+    t27:addr = ptradd t24, t26
+    t28:i64 = load [t27]
+    t29:bool = cmp gt t23, t28
+    branch t29, then14, endif15
+  then14:
+    t30:addr = load [@a]
+    t31:i64 = load [@k]
+    t32:addr = ptradd t30, t31
+    t33:i64 = load [t32]
+    store [@t], t33
+    t34:addr = load [@a]
+    t35:i64 = load [@k]
+    t36:addr = ptradd t34, t35
+    t37:addr = load [@a]
+    t38:i64 = load [@k]
+    t39:i64 = add t38, 1
+    t40:addr = ptradd t37, t39
+    t41:i64 = load [t40]
+    store [t36], t41
+    t42:addr = load [@a]
+    t43:i64 = load [@k]
+    t44:i64 = add t43, 1
+    t45:addr = ptradd t42, t44
+    t46:i64 = load [@t]
+    store [t45], t46
+    jump endif15
+  endif15:
+    jump fupd12
+  fupd12:
+    t47:i64 = load [@k]
+    t48:i64 = add t47, 1
+    store [@k], t48
+    jump fcond10
+  fexit13:
+    jump fupd8
+  fupd8:
+    t49:i64 = load [@j]
+    t50:i64 = add t49, 1
+    store [@j], t50
+    jump fcond6
+  fexit9:
+    t51:i64 = load [@n]
+    t52:i64 = copy t51
+    i.7:i64 = copy 0
+    jump rcond16
+  rcond16:
+    t53:bool = cmp lt i.7, t52
+    branch t53, rbody17, rexit19
+  rbody17:
+    t54:addr = load [@a]
+    t55:addr = ptradd t54, i.7
+    t56:i64 = load [t55]
+    rtcall dv_rt_output_i64(t56)
+    jump rincr18
+  rincr18:
+    i.7:i64 = add i.7, 1
+    jump rcond16
+  rexit19:
+    t57:addr = load [@a]
+    rtcall dv_rt_freearray(t57)
+    rtcall dv_rt_shutdown()
+    ret
+}

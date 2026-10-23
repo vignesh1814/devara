@@ -1,0 +1,70 @@
+Program [1:1-10:1]
+  items: [
+    FunctionDeclaration [2:1-5:2]
+      return_type: TypeSyntax [2:1-2:4]
+        primitive: INT
+        array_dimensions: []
+      name: Identifier [2:5-2:9]
+        name: 'fact'
+      parameters: [
+        Parameter [2:18-2:23]
+          type: TypeSyntax [2:18-2:21]
+            primitive: INT
+            array_dimensions: []
+          name: Identifier [2:22-2:23]
+            name: 'n'
+      ]
+      body: Block [2:25-5:2]
+        statements: [
+          IfStatement [3:3-3:26]
+            condition: BinaryExpression [3:3-3:9]
+              operator: LE
+              left: Identifier [3:3-3:4]
+                name: 'n'
+              right: Literal [3:8-3:9]
+                kind: INTEGER
+                lexeme: '1'
+            then_block: Block [3:16-3:26]
+              statements: [
+                ReturnStatement [3:18-3:24]
+                  value: Literal [3:18-3:19]
+                    kind: INTEGER
+                    lexeme: '1'
+              ]
+            else_branch: None
+          ReturnStatement [4:3-4:23]
+            value: BinaryExpression [4:3-4:18]
+              operator: MUL
+              left: Identifier [4:3-4:4]
+                name: 'n'
+              right: FunctionCall [4:7-4:18]
+                callee: Identifier [4:7-4:11]
+                  name: 'fact'
+                arguments: [
+                  BinaryExpression [4:12-4:17]
+                    operator: SUB
+                    left: Identifier [4:12-4:13]
+                      name: 'n'
+                    right: Literal [4:16-4:17]
+                      kind: INTEGER
+                      lexeme: '1'
+                ]
+        ]
+    Declaration [7:1-7:6]
+      type: TypeSyntax [7:1-7:4]
+        primitive: INT
+        array_dimensions: []
+      name: Identifier [7:5-7:6]
+        name: 'n'
+    Input [8:1-8:13]
+      target: Identifier [8:1-8:2]
+        name: 'n'
+    Output [9:1-9:17]
+      value: FunctionCall [9:1-9:8]
+        callee: Identifier [9:1-9:5]
+          name: 'fact'
+        arguments: [
+          Identifier [9:6-9:7]
+            name: 'n'
+        ]
+  ]

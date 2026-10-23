@@ -1,0 +1,58 @@
+global lit.0: str scalar
+global lit.1: str scalar
+global lit.2: str scalar
+
+function $entry() -> void {
+  entry1:
+    lit.t0:str = rtcall dv_rt_strlit(str'FizzBuzz')
+    store [@lit.0], lit.t0
+    lit.t1:str = rtcall dv_rt_strlit(str'Fizz')
+    store [@lit.1], lit.t1
+    lit.t2:str = rtcall dv_rt_strlit(str'Buzz')
+    store [@lit.2], lit.t2
+    t1:i64 = copy 16
+    i.1:i64 = copy 1
+    jump rcond2
+  rcond2:
+    t2:bool = cmp lt i.1, t1
+    branch t2, rbody3, rexit5
+  rbody3:
+    t3:i64 = mod i.1, 15
+    t4:bool = cmp eq t3, 0
+    branch t4, then6, else8
+  then6:
+    t5:str = load [@lit.0]
+    rtcall dv_rt_output_str(t5)
+    jump endif7
+  else8:
+    t6:i64 = mod i.1, 3
+    t7:bool = cmp eq t6, 0
+    branch t7, then9, else11
+  then9:
+    t8:str = load [@lit.1]
+    rtcall dv_rt_output_str(t8)
+    jump endif10
+  else11:
+    t9:i64 = mod i.1, 5
+    t10:bool = cmp eq t9, 0
+    branch t10, then12, else14
+  then12:
+    t11:str = load [@lit.2]
+    rtcall dv_rt_output_str(t11)
+    jump endif13
+  else14:
+    rtcall dv_rt_output_i64(i.1)
+    jump endif13
+  endif13:
+    jump endif10
+  endif10:
+    jump endif7
+  endif7:
+    jump rincr4
+  rincr4:
+    i.1:i64 = add i.1, 1
+    jump rcond2
+  rexit5:
+    rtcall dv_rt_shutdown()
+    ret
+}

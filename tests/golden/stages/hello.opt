@@ -1,0 +1,11 @@
+global lit.0: str scalar
+
+function $entry() -> void {
+  entry1:
+    lit.t0:str = rtcall dv_rt_strlit(str'Hello, Devara!')
+    store [@lit.0], lit.t0
+    t1:str = load [@lit.0]
+    rtcall dv_rt_output_str(t1)
+    rtcall dv_rt_shutdown()
+    ret
+}
